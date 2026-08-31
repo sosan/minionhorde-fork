@@ -2,6 +2,7 @@
 
 > **LLM harness for OpenCode that implements a full SDLC with strong quality gates.** A supervisor-worker orchestration that turns a single prompt into PRD → specs → planning → TDD → implementation → tests → review → docs → git, with tier-aware activation and hybrid safety nets.
 
+[![Certified Shovelware](https://justin.searls.co/img/shovelware.svg)](https://justin.searls.co/shovelware/)
 [![OpenCode](https://img.shields.io/badge/OpenCode-v1%2B%20%7C%20v2-blue)](https://opencode.ai/docs)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Workflow](https://img.shields.io/badge/workflow-Tier%200--3-orange)](#tiers)
