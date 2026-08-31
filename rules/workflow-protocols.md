@@ -35,27 +35,29 @@ Each document has a single responsible agent. This map is used by **File Integri
 |----------|------------------|---------------|-------------|----------|
 | `docs/PRD.md` | Project Manager | Tier 1 Phase 1 | Architect, Test | `templates/context-files/PRD.md` |
 | `docs/specs/*.md` | Project Manager | Tier 1 Phase 1 | Architect, Test, Developer (via PM delegation) | `templates/context-files/SPEC.md` |
-| `docs/PLANNING.md` | Architect | Tier 1 Phase 2 | Developer, Documentation | `templates/context-files/PLANNING.md` |
-| `docs/IMPLEMENTATION_ROADMAP.md` | Architect (Developer for Tier 1 Small) | Tier 1 Phase 2 | Developer | `templates/context-files/IMPLEMENTATION_ROADMAP.md` |
-| `docs/FEATURE_PLAN.md` | Architect | Tier 2 Phase 1 | Developer, Test | `templates/context-files/FEATURE_PLAN.md` |
+| `docs/PLANNING.md` | Architect | Tier 1 Phase 2 (Medium/Large only; Small/Tier 0 skip — no gate) | Developer, Documentation | `templates/context-files/PLANNING.md` |
+| `docs/IMPLEMENTATION_ROADMAP.md` | Architect (Developer for Tier 1 Small) | Tier 1 Phase 2 (Medium/Large only; Small skip — ROADMAP fused with workflow_* status) | Developer | `templates/context-files/IMPLEMENTATION_ROADMAP.md` |
+| `docs/FEATURE_PLAN.md` | Architect | Tier 2 Phase 1 (Deprecated — create `docs/specs/<feature>.md` instead, same SPEC template) | Developer, Test | `templates/context-files/FEATURE_PLAN.md` |
 | `docs/PROJECT_CONTEXT.md` | Developer | Each phase end | Documentation, PM | `templates/context-files/PROJECT_CONTEXT.md` |
-| `docs/CHANGELOG.md` | DevOps | Final phases | PM, Documentation | `templates/context-files/CHANGELOG.md` |
-| `docs/README.md` | Documentation | Tier 1 Large Phase 6 | Project index | `templates/context-files/README.md` |
-| `docs/API_REFERENCE.md` | Documentation | Tier 1 Large Phase 6 | Developer, API consumers | `templates/context-files/API_REFERENCE.md` |
+| `docs/CHANGELOG.md` | DevOps | Final phases (Derived — generated at close from `git log` + `audit_*`/`implementation_*`, not per-phase gate) | PM, Documentation | `templates/context-files/CHANGELOG.md` |
+| `docs/README.md` | Documentation | Tier 1 Large Phase 6 (Large only) | Project index | `templates/context-files/README.md` |
+| `docs/API_REFERENCE.md` | Documentation | Tier 1 Large Phase 6 (Large only, if APIs) | Developer, API consumers | `templates/context-files/API_REFERENCE.md` |
 
 **Memory entities (persistent, queryable):**
 
 | Entity Type | Owner | Replaces | Phase Created | Required By |
 |-------------|-------|----------|---------------|-------------|
-| `project_*` | PM | `docs/EXISTING_CONTEXT.md` (Tier 2) | Tier 2 Phase 0 | Architect |
+| `project_*` | PM | `docs/EXISTING_CONTEXT.md` (Tier 2) | Tier 2 Phase 0 (only if Tier 1 specs exist; else skip, use `glob` direct) | Architect |
 | `ticket_*` | PM | `docs/TICKET_ANALYSIS.md` (Tier 3) | Tier 3 Phase 0 | Developer |
-| `decision_*` | Architect | — (complements PLANNING.md) | Tier 1 Phase 2 | Developer, Documentation |
-| `implementation_*` | Developer | — (complements PROJECT_CONTEXT.md) | Each phase end | Test, Code Review, DevOps |
+| `decision_*` | Architect | — (complements PLANNING.md) | Tier 1 Phase 2 (only if PLANNING.md created — Medium/Large) | Developer, Documentation |
+| `implementation_*` | Developer | — (view of PROJECT_CONTEXT.md — add_observations test_status/coverage/commit only) | Each phase end | Test, Code Review, DevOps |
 | `root_cause_*` | Developer | `docs/ROOT_CAUSE.md` (Tier 3) | Tier 3 Phase 1 | Developer (Phase 2), Test |
 | `incident_*` | Code Review | `docs/REPORT.md` | Post-review | Future reference |
-| `audit_*` | Any agent | `docs/AUDIT_LOG.md` | Ongoing | PM, Compliance |
+| `audit_*` | Any agent | `docs/AUDIT_LOG.md` (source; AUDIT_LOG.md generated on-demand at close) | Ongoing | PM, Compliance |
 
-**Note:** `docs/specs/*.md` are kept in sync by the Documentation Agent (minimal scope) in ANY tier where implementation changed the functionality and spec files exist.
+**Note:** `docs/specs/*.md` are kept in sync by the Documentation Agent (minimal scope) in ANY tier where implementation changed the functionality and spec files exist. Use `git diff --name-only HEAD` to check if specs actually changed — skip write if no diff.
+
+**Tier-aware pruning:** See `§Document Ownership Map` notes above. Do not create or gate artefacts for tiers that skip them (Tier 0: 0 docs; Tier 1 Small: PRD+specs+PROJECT_CONTEXT only; Tier 1 Large: +PLANNING/ROADMAP/README/API_REFERENCE). `workflow_*` is metric-only (start/end/duration), not a gate; `AUDIT_LOG.md` is generated on-demand from `audit_*` at close, not continuously.
 
 ---
 
@@ -110,17 +112,17 @@ Each Acceptance Criteria uses three keywords:
 |---|---|---|---|
 | Tier 1 Ph 1 — PM: PRD + specs | — | `docs/PRD.md`, `docs/specs/*` (each spec has Acceptance Criteria section with AC-N) | PM creates directly |
 | Tier 1 Ph 1b — Test: TDD stubs (per spec) | `docs/specs/<slug>.md` (approved, passes AC format gate) | `tests/<slug>.*` + `docs/specs/<slug>.md §10 Test Scenarios Mapping` (100% AC→TC). Tests must initially FAIL (red phase) | Test |
-| Tier 1 Ph 2 — Architect (Developer for Small): PLANNING + ROADMAP | `docs/PRD.md`, `docs/specs/*` (traceability SPEC-XXX → FR-N → ADR) | `docs/PLANNING.md` (with traceability appendix), `docs/IMPLEMENTATION_ROADMAP.md` | Architect (Developer for Tier 1 Small) |
+| Tier 1 Ph 2 — Architect (Developer for Small): PLANNING + ROADMAP | `docs/PRD.md`, `docs/specs/*` | `docs/PLANNING.md` (Medium/Large only) + `docs/IMPLEMENTATION_ROADMAP.md` with `status` per phase | Architect (Medium/Large only; Small skip — no gate) |
 | Tier 1 Ph 3 — Test: TDD stubs (per phase, if not done in 1b) | Relevant `docs/specs/<slug>.md` (approved) | `tests/<slug>.*` + `§10` mapping (100% AC→TC). Tests must initially FAIL | Test |
-| Tier 1 Ph 3 — Developer: implementation (TDD) — grouped by `Parallel group` | `docs/specs/<slug>.md` (approved) + `tests/<slug>.*` (exists, initially FAIL) + `docs/PLANNING.md` + `docs/IMPLEMENTATION_ROADMAP.md` + `Parallel group` markers read | Source files for group + consolidated `docs/PROJECT_CONTEXT.md` (tests now PASS) — PM consolidates after group | Developer(s) in parallel per group |
-| Tier 2 Ph 0 — PM: project context | — | `project_*` entity in memory (search_nodes("project_<name>")) | PM creates directly |
-| Tier 2 Ph 1 — Architect: FEATURE_PLAN | `project_*` entity exists | `docs/FEATURE_PLAN.md` | Architect |
-| Tier 2 Ph 1b — Test: TDD stubs (feature) | Relevant `docs/specs/<slug>.md` (approved) or `docs/FEATURE_PLAN.md` § Tests Required | `tests/<slug>.*` + `§10` mapping (100% AC→TC). Tests must initially FAIL | Test |
-| Tier 2 Ph 2 — Developer: implementation (TDD) | `docs/FEATURE_PLAN.md` + `project_*` entity + `tests/<slug>.*` (exists) + relevant `docs/specs/<slug>.md §9` | Source files + `docs/PROJECT_CONTEXT.md` (tests PASS) | Developer |
-| Tier 1 Ph 5 — Documentation: final docs | `docs/PROJECT_CONTEXT.md` + source files for all phases | `docs/README.md` + `docs/specs/*` synced + `docs/API_REFERENCE.md` (if APIs) — each with content >0 | Documentation |
-| Tier 1 Ph 6 — DevOps: commit | Phase 5 deliverables verified (`glob` PASS) | `docs/CHANGELOG.md` updated + commit `git log -1` exists + `git status` clean | DevOps |
-| Tier 2 Ph 5 — Documentation: specs sync | `docs/specs/*` exists + `docs/FEATURE_PLAN.md` | `docs/specs/*` synced if changed | Documentation |
-| Tier 2 Ph 6 — DevOps: commit | Phase 5 verified (`glob` PASS) | commit + CHANGELOG | DevOps |
+| Tier 1 Ph 3 — Developer: implementation (TDD) — grouped by `Parallel group` | `docs/specs/<slug>.md` (approved) + `tests/<slug>.*` (exists, initially FAIL) + `docs/PLANNING.md` (if Medium/Large) + `docs/IMPLEMENTATION_ROADMAP.md` with `Parallel group` + `status` | Source files for group + consolidated `docs/PROJECT_CONTEXT.md` (tests now PASS) — PM consolidates after group | Developer(s) in parallel per group |
+| Tier 2 Ph 0 — PM: project context | — | `project_*` entity (only if Tier 1 specs exist; else skip) | PM creates directly |
+| Tier 2 Ph 1 — Architect: specs for feature | `project_*` entity exists (if applicable) | `docs/specs/<feature>.md` (Deprecated: `FEATURE_PLAN.md` → use `specs/<feature>.md` SPEC template) | Architect |
+| Tier 2 Ph 1b — Test: TDD stubs (feature) | `docs/specs/<feature>.md` (approved) § Tests | `tests/<slug>.*` + `§10` mapping (100% AC→TC). Tests must initially FAIL | Test |
+| Tier 2 Ph 2 — Developer: implementation (TDD) | `docs/specs/<feature>.md` (approved) + `project_*` (if applicable) + `tests/<slug>.*` (exists) + relevant `docs/specs/<slug>.md §9` | Source files + `docs/PROJECT_CONTEXT.md` (tests PASS) | Developer |
+| Tier 1 Ph 5 — Documentation: final docs | `docs/PROJECT_CONTEXT.md` + source files | `docs/specs/*` synced (if `glob` + `git diff --name-only` shows change) — Medium/Large: + `docs/PLANNING.md` §Decisions if changed; Large only: + `docs/README.md` + `docs/API_REFERENCE.md` (if APIs) — each with content >0 | Documentation |
+| Tier 1 Ph 6 — DevOps: commit | Phase 5 verified (`glob` PASS; Small: specs sync verified or skipped) | `docs/CHANGELOG.md` derived (generated at close from `git log` + `audit_*`) + commit `git log -1` exists + `git status` clean | DevOps |
+| Tier 2 Ph 5 — Documentation: specs sync | `docs/specs/*` exists + `docs/specs/<feature>.md` | `docs/specs/*` synced if `git diff --name-only` shows change | Documentation |
+| Tier 2 Ph 6 — DevOps: commit | Phase 5 verified or skipped | commit + CHANGELOG derived | DevOps |
 | Tier 3 Ph 5 — Documentation: specs sync | `docs/specs/*` exists (if Tier 1 existed) | `docs/specs/*` synced if fix changed functionality | Documentation |
 | Tier 3 Ph 6 — DevOps: commit | Phase 5 verified (`glob` PASS) | commit `fix(... ) #<ticket>` + CHANGELOG | DevOps |
 | Tier 3 Ph 0 — PM: ticket analysis | — | `ticket_*` entity in memory (search_nodes("ticket_<number>")) | PM creates directly |

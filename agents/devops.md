@@ -128,7 +128,7 @@ Setup CI/CD pipelines appropriate for the technology stack:
 - **Tool preference:** Use native `glob`/`read` for file checks; use `filesystem` MCP only for `filesystem_directory_tree` or `filesystem_list_allowed_directories`. Batch independent `glob`s in parallel and prefer specific patterns.
 - Execute git commands safely (`bash: ask`)
 - Use proper git workflow with conventional commits
-- Update `docs/CHANGELOG.md` after every commit
+- Generate `docs/CHANGELOG.md` at workflow close from `git log --pretty` + `audit_*`/`implementation_*` (derived, not per-phase gate; see `rules/workflow-protocols.md §Document Ownership Map`). Update after commit only at close.
 - Report git status before and after operations
 - **Tier 0:** Minimal mode — git commit (conventional) + push + changelog. No CI/CD.
 - **Minimal mode:** Only git operations + changelog. Do NOT configure CI/CD.

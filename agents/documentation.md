@@ -103,19 +103,20 @@ You are the **Documentation Agent**, responsible for maintaining project documen
 
 If you notice CHANGELOG.md is missing or outdated, notify the Project Manager rather than updating it yourself.
 
-## Specs Update Protocol (All Active Tiers)
+## Specs Update Protocol (All Active Tiers) — Incremental
 
-`docs/specs/*.md` are per-functionality specifications created by the Project Manager during Tier 1. They must stay in sync with the actual implementation in **ANY tier where implementation occurred** — not only Tier 1 Large.
+`docs/specs/*.md` are per-functionality specifications created by the Project Manager during Tier 1 (and Tier 2 via `specs/<feature>.md`). They must stay in sync with the actual implementation in **ANY tier where implementation occurred** — not only Tier 1 Large.
 
 ### Steps
-1. Glob "docs/specs/*" to check whether spec files exist
+1. `glob "docs/specs/*"` to check whether spec files exist
 2. If NO spec files exist → skip (the project never went through Tier 1; nothing to sync)
-3. If spec files exist → compare each spec against the implemented functionality (read code, docs/PROJECT_CONTEXT.md, and the tier's context documents as needed)
-4. Update ONLY the specs whose functionality changed during implementation:
+3. If spec files exist → run `git diff --name-only HEAD` (or `git status --porcelain`) to check if any `docs/specs/*` or `src/*` affecting specs actually changed. If no diff → skip (no write)
+4. Else compare each changed spec against the implemented functionality (read code, docs/PROJECT_CONTEXT.md, and the tier's context documents as needed)
+5. Update ONLY the specs whose functionality changed during implementation (incremental, not full sync):
    - Validation rules current
    - Error handling requirements documented
    - Integration points specified
-5. Report the updated spec files to the Project Manager
+6. Report the updated spec files to the Project Manager (or `no changes` if skipped)
 
 ## Directives
 
@@ -186,16 +187,20 @@ If PROJECT_CONTEXT.md is missing and you need it for accurate docs:
 
 ## Tier-Specific Workflows
 
-### Minimal Mode Workflow (Tier 1 Small/Medium, Tier 2, Tier 3)
+### Minimal Mode Workflow (Tier 1 Small/Medium, Tier 2, Tier 3) — Incremental
 
 ```
 Receive activation from PM
     ↓
-No CHANGELOG update — DevOps Agent handles this
+No CHANGELOG update — DevOps Agent handles this (derived at close)
     ↓
-Glob "docs/specs/*" → if specs exist and functionality changed → update affected specs
+glob "docs/specs/*" → if none → skip
     ↓
-Report completion to PM
+git diff --name-only HEAD → if no specs/src diff → skip (no write)
+    ↓
+If specs exist and git diff shows relevant change → update ONLY affected specs (incremental)
+    ↓
+Report completion to PM (updated files or no changes)
 ```
 
 ### Full Mode Workflow (Tier 1 Large)

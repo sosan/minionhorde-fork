@@ -237,24 +237,24 @@ If during workflow execution, the actual complexity differs from initial assessm
 - 🔒 Checkpoint 1b-B: verify `tests/<slug>.*` exist with content (100% AC→TC coverage)
 - **Repeat Phase 1b for each spec** before proceeding to Phase 2
 
-### Phase 2 — Architecture & Planning (PM + Architect if applicable)
-- **Small projects:** Delegate planning creation to the Developer Agent via `task` (Architect is not activated in Tier 1 Small), **including the relevant `docs/specs/*.md` files** (paths + content) in the delegation prompt so the Developer plans directly from the specifications
-- **Medium/Large:** Delegate to Architect Agent for technical planning
-- 🔒 Checkpoint 1-B: verify `docs/PRD.md` + `docs/specs/` exist before delegating Architect
-- Create `docs/PLANNING.md` (via Architect):
+### Phase 2 — Architecture & Planning (PM + Architect if applicable) — TIER-AWARE PRUNING
+- **Tier 1 Small / Tier 0: Skip** — no `PLANNING.md` / `IMPLEMENTATION_ROADMAP.md` creation, no gates. Pasar directo a Phase 1b → Phase 3. See `rules/workflow-protocols.md §Document Ownership Map` pruning notes.
+- **Tier 1 Medium/Large:** Delegate to Architect Agent for technical planning
+- 🔒 Checkpoint 1-B: verify `docs/PRD.md` + `docs/specs/` exist before delegating Architect (Medium/Large only)
+- Create `docs/PLANNING.md` (via Architect, Medium/Large only):
   - Technology stack with justification
   - System architecture and component boundaries
   - Data flow patterns and integration points
   - Scalability strategy
-- 🔒 Checkpoint 2-A: verify `docs/PLANNING.md` exists and has content after Architect delegation (File Integrity Checkpoints table)
-- Delegate `docs/IMPLEMENTATION_ROADMAP.md` creation to the Architect Agent via `task` (to the Developer Agent for Tier 1 Small):
+- 🔒 Checkpoint 2-A: verify `docs/PLANNING.md` exists and has content after Architect delegation (Medium/Large only; Small skip — no gate)
+- Delegate `docs/IMPLEMENTATION_ROADMAP.md` creation to the Architect Agent via `task` (Medium/Large only; Small skip — ROADMAP fused with workflow_* status):
   - Include the relevant `docs/specs/*.md` files in the delegation prompt so roadmap phases map 1:1 to the specifications
-  - Phases ordered by dependency
+  - Phases ordered by dependency, each with `Parallel group: <letter>` + `status: pending/in_progress/done` (for workflow_* metric fusion)
   - Each phase: files to create/modify, tests needed, complexity estimate
-- 🔒 Checkpoint 2-B: verify `docs/IMPLEMENTATION_ROADMAP.md` exists (File Integrity Checkpoints table)
+- 🔒 Checkpoint 2-B: verify `docs/IMPLEMENTATION_ROADMAP.md` exists (Medium/Large only; Small skip)
 
-### Phase 3 — Iterative Implementation (Developer, TDD) — PARALLEL-GROUP AWARE
-1. 🔒 Checkpoint 3-A: verify `docs/PLANNING.md` + `docs/IMPLEMENTATION_ROADMAP.md` exist. **Read `IMPLEMENTATION_ROADMAP.md` and extract `Parallel group: <letter>` markers** (see `rules/workflow-protocols.md §Parallelization Protocol`).
+### Phase 3 — Iterative Implementation (Developer, TDD) — PARALLEL-GROUP AWARE — TIER-AWARE
+1. 🔒 Checkpoint 3-A: verify prerequisites — **Tier 1 Small:** `docs/specs/<slug>.md` + `tests/<slug>.*` only (no `PLANNING.md`/`ROADMAP` gate); **Tier 1 Medium/Large:** `docs/PLANNING.md` + `docs/IMPLEMENTATION_ROADMAP.md` exist. Read `IMPLEMENTATION_ROADMAP.md` (if exists) and extract `Parallel group: <letter>` + `status` markers (see `rules/workflow-protocols.md §Parallelization Protocol`).
 2. Group phases by `Parallel group` (A, B, C...). Phases without marker → treat as sequential group.
 3. For EACH parallel group IN ORDER (A → B → C):
    a. **Stashpoint:** Delegate to DevOps `git stash push -m "pre-group-<letter> - <names>" --keep-index --include-untracked` + verify `git stash list` + `git branch --list`
@@ -273,53 +273,54 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Fix loop for Critical/High/Medium (max 5 iterations: Developer → Test → Code Review)
 - Low/Suggestions → create `incident_*` entities in memory
 
-### Phase 5 — DevOps & Deployment (DevOps Agent)
-- Git workflow (conventional commits, branches)
-- CI/CD pipeline configuration
-- Deployment preparation
+### Phase 5 — Final Documentation (Documentation Agent) — TIER-AWARE
+- **Minimal (Small/Medium):** `glob docs/specs/*` + `git diff --name-only HEAD` → if no specs changed and no `src/*` affecting spec → skip (no write). Else update ONLY changed `docs/specs/*.md` if spec files exist and functionality changed (incremental, not full sync).
+- **Full (Large):** update `docs/specs/` (incremental) + `docs/README.md` with complete project info + `docs/PLANNING.md` §Decisions if architecture changed + `docs/API_REFERENCE.md` (if APIs)
+- **CHANGELOG.md is NOT created here** — it is the DevOps Agent's exclusive responsibility (derived at close from `git log` + `audit_*`, not per-phase gate)
 
-### Phase 6 — Final Documentation (Documentation Agent)
-- **Minimal (Small/Medium):** specs sync only — update `docs/specs/` if spec files exist and functionality changed
-- **Full (Large):** update `docs/README.md` with complete project info, update `docs/specs/` if anything changed, update `docs/PLANNING.md` if architecture changed, create `docs/API_REFERENCE.md` if the project has APIs
-- **CHANGELOG.md is NOT created here** — it is the DevOps Agent's exclusive responsibility
+### Phase 6 — DevOps & Deployment (DevOps Agent) — SEQUENTIAL AFTER Phase 5
+- Git workflow (conventional commits, branches) — starts only after Phase 5 `glob` verified or skipped
+- CI/CD pipeline configuration (Large only)
+- Deployment preparation (Large only)
+- `docs/CHANGELOG.md` derived at close (see `rules/workflow-protocols.md §Document Ownership Map`)
 
 ## Tier 2: Feature Addition Workflow
 
 ### Phase 0 — Codebase Analysis (PM)
 - Scan existing project structure
-- Read existing `docs/PRD.md`, `docs/PLANNING.md` if present
+- Read existing `docs/PRD.md`, `docs/PLANNING.md` if present (PLANNING.md only if Tier 1 Medium/Large existed; Small has none — skip)
 - Identify files relevant to the new functionality
-- Create `project_*` entity in memory with:
+- Create `project_*` entity in memory with (only if Tier 1 specs exist; else skip, use `glob` direct):
   - Project name, tech stack, architecture
   - Current file structure
   - Relevant entry points
   - Files likely needing modification
-- Use `search_nodes("project_<name>")` to verify entity exists
-- 🔒 Checkpoint T2-0: verify `project_*` entity exists in memory (search_nodes)
+- Use `search_nodes("project_<name>")` to verify entity exists (if applicable)
+- 🔒 Checkpoint T2-0: verify `project_*` entity exists in memory (if applicable; else `glob` direct — see `rules/... §Document Ownership Map` pruning)
 
-### Phase 1 — Impact Analysis (Architect)
-- 🔒 Checkpoint T2-1-A: verify `project_*` entity exists before delegating Architect
+### Phase 1 — Impact Analysis (Architect) — TIER-AWARE (specs preferred)
+- 🔒 Checkpoint T2-1-A: verify `project_*` entity exists (only if Tier 1 specs exist; else skip, use `glob` direct) before delegating Architect
 - Analyze new requirements against existing code
 - Identify conflicts with current architecture
 - Check if new dependencies are needed
-- Create `docs/FEATURE_PLAN.md`:
+- Create `docs/specs/<feature>.md` (Deprecated: `FEATURE_PLAN.md` → use `specs/<feature>.md` SPEC template, same AC-N → TC-N TDD flow):
   - Feature description
   - Files to modify (with approximate lines)
   - New files to create
   - Required tests (Acceptance Criteria for Test Agent)
   - Integration plan with minimal changes
-- 🔒 Checkpoint T2-1-B: verify `docs/FEATURE_PLAN.md` exists after Architect delegation (File Integrity Checkpoints table)
+- 🔒 Checkpoint T2-1-B: verify `docs/specs/<feature>.md` exists after Architect delegation (File Integrity Checkpoints table; deprecated `FEATURE_PLAN.md` path kept for backward compat)
 
 ### Phase 1b — TDD Test Stubs (Test Agent, per feature)
-- 🔒 Checkpoint T2-1b-A: verify `docs/FEATURE_PLAN.md` exists with Acceptance Criteria
+- 🔒 Checkpoint T2-1b-A: verify `docs/specs/<feature>.md` exists with Acceptance Criteria (fallback `FEATURE_PLAN.md` for compat)
 - Delegate to Test Agent via `task` to create test stubs for the feature:
-  - Test Agent reads feature Acceptance Criteria (or relevant spec)
+  - Test Agent reads feature Acceptance Criteria from `specs/<feature>.md` (or `FEATURE_PLAN.md` compat)
   - Creates `tests/<slug>.*` with AC → TC mapping
   - Tests must initially FAIL (red phase)
 - 🔒 Checkpoint T2-1b-B: verify `tests/<slug>.*` exist with content
 
 ### Phase 2 — Implementation (Developer, TDD)
-- 🔒 Checkpoint T2-2-A: verify `docs/FEATURE_PLAN.md` + `project_*` entity + `tests/<slug>.*` exist before delegating Developer
+- 🔒 Checkpoint T2-2-A: verify `docs/specs/<feature>.md` (or `FEATURE_PLAN.md` compat) + `project_*` (if applicable) + `tests/<slug>.*` exist before delegating Developer
 - **Stashpoint (non-destructive):** Delegate to DevOps Agent via `task` to run `git stash push -m "pre-feature - <feature-name>" --keep-index --include-untracked` and verify with `git stash list`
 - If `docs/specs/` exists (from an earlier Tier 1), attach the relevant spec files to the Developer delegation prompt so the feature implementation stays traceable to the specifications
 - Modify existing files respecting current patterns
@@ -505,50 +506,11 @@ Memory MCP Knowledge Graph:
 
 ## Document Ownership Map
 
-Each document has a single responsible agent. This map is used by **File Integrity Checkpoints** to verify creation and trigger recovery if needed.
-
-**Documents (formal, user-reviewed):**
-
-| Document | Responsible Agent | Phase Created | Required By |
-|----------|------------------|---------------|-------------|
-| `docs/PRD.md` | Project Manager | Tier 1 Phase 1 | Architect, Test |
-| `docs/specs/*.md` | Project Manager | Tier 1 Phase 1 | Architect, Test, Developer (via PM delegation) |
-| `docs/PLANNING.md` | Architect | Tier 1 Phase 2 | Developer, Documentation |
-| `docs/IMPLEMENTATION_ROADMAP.md` | Architect (Developer for Tier 1 Small) | Tier 1 Phase 2 | Developer |
-| `tests/<slug>.*` | Test Agent | Tier 1 Phase 1b / Tier 2 Phase 1b | Developer (must exist before implementation) |
-| `docs/FEATURE_PLAN.md` | Architect | Tier 2 Phase 1 | Developer, Test |
-| `docs/PROJECT_CONTEXT.md` | Developer | Each phase end | Documentation, PM |
-| `docs/CHANGELOG.md` | DevOps | Final phases | PM, Documentation |
-| `docs/README.md` | Documentation | Tier 1 Large Phase 6 | Project index |
-
-**Memory entities (persistent, queryable):**
-
-| Entity Type | Owner | Replaces | Phase Created | Required By |
-|-------------|-------|----------|---------------|-------------|
-| `project_*` | PM | `docs/EXISTING_CONTEXT.md` (Tier 2) | Tier 2 Phase 0 | Architect |
-| `ticket_*` | PM | `docs/TICKET_ANALYSIS.md` (Tier 3) | Tier 3 Phase 0 | Developer |
-| `root_cause_*` | Developer | `docs/ROOT_CAUSE.md` (Tier 3) | Tier 3 Phase 1 | Developer (Phase 2), Test |
-| `decision_*` | Architect | — (complements PLANNING.md) | Tier 1 Phase 2 | Developer, Documentation |
-| `implementation_*` | Developer | — (complements PROJECT_CONTEXT.md) | Each phase end | Test, Code Review, DevOps |
-| `incident_*` | Code Review | `docs/REPORT.md` | Post-review | Future reference |
-| `audit_*` | Any agent | `docs/AUDIT_LOG.md` | Ongoing | PM, Compliance |
-
-**Note:** `docs/specs/*.md` are kept in sync by the Documentation Agent (minimal scope) in ANY tier where implementation changed the functionality and spec files exist.
+> **Single source of truth:** `rules/workflow-protocols.md §Document Ownership Map`. The table below is NOT maintained here — always refer to `rules/workflow-protocols.md` for the canonical version. Do not duplicate `Documents` or `Memory entities` tables here. See `rules/... §Document Ownership Map` pruning notes (Tier 0: 0 docs; Tier 1 Small: PRD+specs+PROJECT_CONTEXT only; `FEATURE_PLAN.md` deprecated → `specs/<feature>.md`; `AUDIT_LOG.md` generated on-demand from `audit_*`; `workflow_*` metric-only).
 
 ## File Integrity Checkpoints — Phase-Gate Verification
 
-**Source of truth:** `rules/workflow-protocols.md §File Integrity Checkpoints — Prerequisite & Deliverable Table`. The table below is NOT maintained here — always refer to `rules/workflow-protocols.md` for the canonical version.
-
-**Problem:** A downstream agent may be delegated a task that requires a document which was never created. This causes silent failures or incorrect behavior.
-
-**Solution:** Before delegating any agent, verify (glob) that all prerequisite documents exist. After delegation, verify the deliverable exists with content > 0 lines. If missing → delegate recovery to the responsible agent → re-verify → escalate to human after 2 failed attempts.
-
-### Recovery Protocol
-
-1. **Identify** the responsible agent from the Document Ownership Map
-2. **Delegate** a recovery task with explicit context: document needed, why (downstream phase), any partial content, source docs to reference
-3. **Re-verify** the file exists and has content > 0 lines
-4. **Escalate** to human if: recovery fails after 2 attempts, the agent reports it cannot create the document, or the missing document blocks a critical phase
+> **Single source of truth:** `rules/workflow-protocols.md §File Integrity Checkpoints — Prerequisite & Deliverable Table` and `§Recovery Protocol`. The section below is a stub; do not redefine tables or steps. Before delegating verify prerequisites via `glob` (batched, specific patterns), after delegating verify deliverable `content >0`, else delegate recovery per `rules/... §Recovery Protocol`. See `rules/... §Document Ownership Map` pruning notes for tier-aware skip (Small/Tier 0 no PLANNING/ROADMAP gate; `FEATURE_PLAN.md` deprecated; `AUDIT_LOG.md` on-demand).
 
 ## Todo List Management (MANDATORY)
 
