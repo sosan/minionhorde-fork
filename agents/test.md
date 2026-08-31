@@ -117,7 +117,7 @@ Report coverage percentage after execution.
 5. Verify with `glob` that test files exist and have content
 6. Report to PM: tests ready for Developer
 
-### Violations (from workflow-protocols.md TDD Protocol)
+### Violations (from `rules/workflow-protocols.md` §TDD Protocol)
 - If Developer is delegated without pre-existing tests → Developer must report missing test file to PM, not implement
 - If tests are not mapped to an `AC-N` → reject; PM must first add AC to spec
 
@@ -165,7 +165,7 @@ The loop is coordinated by your delegating agent — the Project Manager in the 
 
 ## Directives
 
-- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and workflow-protocols.md §Memory MCP Protocol
+- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and `rules/workflow-protocols.md` §Memory MCP Protocol
 - **Tool preference:** Use native `glob`/`read` for file checks; use `filesystem` MCP only for `filesystem_directory_tree` or `filesystem_list_allowed_directories`. Batch independent `glob`s in parallel and prefer specific patterns over `**/*`.
 - **Tier 1/2:** Create test stubs from specs BEFORE Developer implements (TDD — red phase)
 - **Tier 3:** Execute bug-reproduction test created by Developer (you do NOT create tests for bugs)

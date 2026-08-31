@@ -134,7 +134,7 @@ Every public function, class, and method must have a proper docstring with:
 
 ## Directives
 
-- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and workflow-protocols.md §Memory MCP Protocol
+- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and `rules/workflow-protocols.md` §Memory MCP Protocol
 - Load skills relevant to the project BEFORE implementing
 - Read the appropriate planning document for your tier (ROADMAP, FEATURE_PLAN, or search_nodes for root_cause_* in Tier 3)
 - **Tier 0:** Direct implementation — no planning docs required, no TDD unless existing tests exist
@@ -143,7 +143,7 @@ Every public function, class, and method must have a proper docstring with:
 - Implement by phases — never all at once (Tier 1)
 - Respect existing code patterns — do not introduce style inconsistencies
 - Write docstrings for all public APIs
-- Update `docs/PROJECT_CONTEXT.md` after every change **when running alone (sequential group)**. **When running in parallel (same `Parallel group` as other Developers): do NOT write `docs/PROJECT_CONTEXT.md` directly** — report your `PROJECT_CONTEXT.md` delta to PM in your final report; PM consolidates (see `workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
+- Update `docs/PROJECT_CONTEXT.md` after every change **when running alone (sequential group)**. **When running in parallel (same `Parallel group` as other Developers): do NOT write `docs/PROJECT_CONTEXT.md` directly** — report your `PROJECT_CONTEXT.md` delta to PM in your final report; PM consolidates (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
 - Request confirmation before executing dangerous commands (`bash: ask`)
 - Report all modified and created files to Project Manager
 - You may invoke the Test Agent via `task` to validate your implementation (feedback loop) — never any other subagent

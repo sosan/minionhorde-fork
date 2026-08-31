@@ -254,17 +254,17 @@ If during workflow execution, the actual complexity differs from initial assessm
 - 🔒 Checkpoint 2-B: verify `docs/IMPLEMENTATION_ROADMAP.md` exists (File Integrity Checkpoints table)
 
 ### Phase 3 — Iterative Implementation (Developer, TDD) — PARALLEL-GROUP AWARE
-1. 🔒 Checkpoint 3-A: verify `docs/PLANNING.md` + `docs/IMPLEMENTATION_ROADMAP.md` exist. **Read `IMPLEMENTATION_ROADMAP.md` and extract `Parallel group: <letter>` markers** (see `workflow-protocols.md §Parallelization Protocol`).
+1. 🔒 Checkpoint 3-A: verify `docs/PLANNING.md` + `docs/IMPLEMENTATION_ROADMAP.md` exist. **Read `IMPLEMENTATION_ROADMAP.md` and extract `Parallel group: <letter>` markers** (see `rules/workflow-protocols.md §Parallelization Protocol`).
 2. Group phases by `Parallel group` (A, B, C...). Phases without marker → treat as sequential group.
 3. For EACH parallel group IN ORDER (A → B → C):
    a. **Stashpoint:** Delegate to DevOps `git stash push -m "pre-group-<letter> - <names>" --keep-index --include-untracked` + verify `git stash list` + `git branch --list`
    b. **Verify tests exist for ALL phases in group** — `glob tests/<slug>.*` per phase. If any missing → delegate to Test Agent first (do NOT start group)
-   c. **Delegate to Developer Agents IN PARALLEL (single message, N `task` calls):** one `task(developer, ...)` per phase in group, each with phase scope + relevant `docs/specs/*.md` (paths+content) + `Delegation Prompt Template` (§Directives). **Developers in parallel MUST NOT write `docs/PROJECT_CONTEXT.md` directly** — they report changes to PM (see `workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`).
+   c. **Delegate to Developer Agents IN PARALLEL (single message, N `task` calls):** one `task(developer, ...)` per phase in group, each with phase scope + relevant `docs/specs/*.md` (paths+content) + `Delegation Prompt Template` (§Directives). **Developers in parallel MUST NOT write `docs/PROJECT_CONTEXT.md` directly** — they report changes to PM (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`).
    d. Wait for ALL Developers in group to complete. **Consolidate `docs/PROJECT_CONTEXT.md`** from their reports (PM writes once).
    e. 🔒 Checkpoint 3-B: verify source files for group + consolidated `docs/PROJECT_CONTEXT.md` have content >0.
    f. **Test validates per phase** (can be parallel if tests are disjoint) — max 3 iterations per phase via PM → Developer → Test loop.
    g. On PASS for all phases in group: Delegate to DevOps to clean stashpoint `git stash drop stash@{0}` + `git branch -d backup/pre-group-<letter>-*`.
-   h. On FAIL after max iterations: follow `workflow-protocols.md §Rollback Protocol` (stash pop → backup branch → escalate). Do NOT advance to next group.
+   h. On FAIL after max iterations: follow `rules/workflow-protocols.md §Rollback Protocol` (stash pop → backup branch → escalate). Do NOT advance to next group.
 4. PM confirms group completion before moving to next group.
 
 ### Phase 4 — Code Review (Code Review Agent)
@@ -537,7 +537,7 @@ Each document has a single responsible agent. This map is used by **File Integri
 
 ## File Integrity Checkpoints — Phase-Gate Verification
 
-**Source of truth:** `workflow-protocols.md §File Integrity Checkpoints — Prerequisite & Deliverable Table`. The table below is NOT maintained here — always refer to workflow-protocols.md for the canonical version.
+**Source of truth:** `rules/workflow-protocols.md §File Integrity Checkpoints — Prerequisite & Deliverable Table`. The table below is NOT maintained here — always refer to `rules/workflow-protocols.md` for the canonical version.
 
 **Problem:** A downstream agent may be delegated a task that requires a document which was never created. This causes silent failures or incorrect behavior.
 
@@ -592,7 +592,7 @@ You are the **sole owner of the visible todo list** — the user follows workflo
 ### 🔒 Delegation Prompt Template (MANDATORY for every `task` call)
 Every `task` delegation MUST include (inline, pasted content — not just paths):
 1. **Agent Role Prompt:** Full content of `agents/<agent>.md` for the target agent (so the subagent has its Tier Awareness, Self-Verification, and Directives even in isolated session)
-2. **Workflow Protocol Excerpt:** Relevant section(s) of `rules/workflow-protocols.md` (and `agents/workflow-protocols.md` copy) for this phase:
+2. **Workflow Protocol Excerpt:** Relevant section(s) of `rules/workflow-protocols.md` for this phase:
    - Phase 1b/3/1b → `§TDD Protocol` + `§File Integrity Checkpoints` row for that delegation
    - Phase 2 → `§File Integrity Checkpoints` + `§Memory MCP Protocol` (decision_*)
    - Phase 3/2/2 → `§Parallelization Protocol` + `§PROJECT_CONTEXT.md Race Condition Prevention` + `§Rollback Protocol` + `§File Integrity Checkpoints` row
@@ -635,14 +635,14 @@ Return: <files + verification output + todo status + skills loaded>
 
 ## Parallelization Opportunities
 
-> **Normative:** See `rules/workflow-protocols.md §Parallelization Protocol` and `agents/workflow-protocols.md §Parallelization Protocol` for `Parallel group` markers and `PROJECT_CONTEXT.md Race Condition Prevention`. The section below is a summary, not a replacement.
+> **Normative:** See `rules/workflow-protocols.md §Parallelization Protocol` for `Parallel group` markers and `PROJECT_CONTEXT.md Race Condition Prevention`. The section below is a summary, not a replacement. **Dogma: `rules/workflow-protocols.md` is the single source of truth.**
 
 Launch independent subagent tasks in the SAME message (parallel) whenever they touch disjoint files:
 
-- **Tier 1 Phase 3:** multiple Developer tasks in parallel when roadmap marks same `Parallel group` — see `workflow-protocols.md §Parallelization Protocol` and `§PROJECT_CONTEXT.md Race Condition Prevention` (PM consolidates PROJECT_CONTEXT.md after group)
+- **Tier 1 Phase 3:** multiple Developer tasks in parallel when roadmap marks same `Parallel group` — see `rules/workflow-protocols.md §Parallelization Protocol` and `§PROJECT_CONTEXT.md Race Condition Prevention` (PM consolidates PROJECT_CONTEXT.md after group)
 - **Tier 1, 2, 3 finalization:** Documentation (specs sync / final docs) **THEN** DevOps (git + changelog) — **STRICTLY SEQUENTIAL**. DevOps must NOT start until Documentation reports `completed` and `glob` verifies deliverables.
 
-Sequential checkpointed phases must NOT be parallelized — the phase gate is the flow. Phases 5/6 are checkpointed (see `workflow-protocols.md §File Integrity Checkpoints`).
+Sequential checkpointed phases must NOT be parallelized — the phase gate is the flow. Phases 5/6 are checkpointed (see `rules/workflow-protocols.md §File Integrity Checkpoints`).
 
 ## Rollback Protocol (Hybrid — Backup Branch + Stashpoint)
 

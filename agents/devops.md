@@ -124,7 +124,7 @@ Setup CI/CD pipelines appropriate for the technology stack:
 
 ## Directives
 
-- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and workflow-protocols.md §Memory MCP Protocol
+- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and `rules/workflow-protocols.md` §Memory MCP Protocol
 - **Tool preference:** Use native `glob`/`read` for file checks; use `filesystem` MCP only for `filesystem_directory_tree` or `filesystem_list_allowed_directories`. Batch independent `glob`s in parallel and prefer specific patterns.
 - Execute git commands safely (`bash: ask`)
 - Use proper git workflow with conventional commits

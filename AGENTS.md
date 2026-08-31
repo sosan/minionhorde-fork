@@ -183,7 +183,7 @@ The Memory MCP provides persistent knowledge graph storage across sessions. All 
 
 ### Key Principles
 
-1. **Centralized protocol:** All memory usage rules are in `workflow-protocols.md §Memory MCP Protocol`. Refer there for entity types, ownership, and examples.
+1. **Centralized protocol:** All memory usage rules are in `rules/workflow-protocols.md §Memory MCP Protocol`. Refer there for entity types, ownership, and examples.
 2. **Token efficiency:** Never use `read_graph` — use `open_nodes` or `search_nodes` instead.
 3. **Atomic observations:** One fact per observation string, max 100 characters.
 4. **Single owner per entity:** Each entity type has one creator; authorized agents may add observations.
@@ -193,7 +193,7 @@ The Memory MCP provides persistent knowledge graph storage across sessions. All 
 - **Find project context:** `search_nodes("project_<name>")`
 - **Find workflow state:** `search_nodes("workflow_<tier>")`
 - **Update state:** `add_observations({"entityName": "<name>", "contents": ["<fact>"]})`
-- **Full protocol:** See `workflow-protocols.md §Memory MCP Protocol`
+- **Full protocol:** See `rules/workflow-protocols.md §Memory MCP Protocol`
 
 ## Feedback Loop Diagrams
 
@@ -295,7 +295,7 @@ Before each Developer phase (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
 - **Backup branch is safety net:** only used if stash restore fails
 - **Never:** `git stash clear` or `git reset --hard` on main without PM approval
 - **Never proceed without safety nets:** if both fail, escalate immediately
-- **See also:** Project Manager (`agents/project-manager.md` §Rollback Protocol), DevOps (`agents/devops.md` §Stashpoint Verification), Workflow Protocols (`agents/workflow-protocols.md` §Rollback Protocol)
+- **See also:** Project Manager (`agents/project-manager.md` §Rollback Protocol), DevOps (`agents/devops.md` §Stashpoint Verification), Workflow Protocols (`rules/workflow-protocols.md` §Rollback Protocol)
 
 ### Retry Protocol
 

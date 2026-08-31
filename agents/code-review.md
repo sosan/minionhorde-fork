@@ -142,7 +142,7 @@ The feedback loop is coordinated by the Project Manager (you cannot reach the De
 
 ## Directives
 
-- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and workflow-protocols.md §Memory MCP Protocol
+- **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and `rules/workflow-protocols.md` §Memory MCP Protocol
 - **Tool preference:** Use native `glob`/`read`/`grep` for file checks; use `filesystem` MCP only for `filesystem_directory_tree` or `filesystem_list_allowed_directories`. Batch independent `glob`s in parallel and prefer specific patterns over `**/*`.
 - Organize findings by severity: Critical > High > Medium > Low > Suggestions
 - Include file reference and line number for each incident

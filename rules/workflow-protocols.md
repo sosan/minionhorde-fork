@@ -1,5 +1,7 @@
 # Shared Workflow Protocols
 
+> **DOGMA: This file (`rules/workflow-protocols.md`) is the single source of truth.** Do not duplicate its content in `agents/` or `AGENTS.md`. All agents must reference this file via `rules/workflow-protocols.md §<Section>`.
+
 These protocols are referenced by all agents. Do not duplicate them in individual agent files.
 
 ## Audit Log
