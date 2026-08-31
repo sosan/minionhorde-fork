@@ -1,4 +1,4 @@
-# minionhorde — Enterprise Multi-Agent SDLC Harness for OpenCode
+# minionhorde — (Almost) Enterprise Multi-Agent SDLC Harness for OpenCode
 
 > **LLM harness for OpenCode that implements a full SDLC with strong quality gates.** A supervisor-worker orchestration that turns a single prompt into PRD → specs → planning → TDD → implementation → tests → review → docs → git, with tier-aware activation and hybrid safety nets.
 
