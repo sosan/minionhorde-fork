@@ -133,15 +133,15 @@ Setup CI/CD pipelines appropriate for the technology stack:
 - **Tier 0:** Minimal mode — git commit (conventional) + push + changelog. No CI/CD.
 - **Minimal mode:** Only git operations + changelog. Do NOT configure CI/CD.
 - **Full mode (Tier 1 Large only):** Configure CI/CD pipelines and deployment
-- Execute rollback only when critical issues detected (Full mode) — follow the Hybrid Rollback Protocol (AGENTS.md §Rollback Protocol): try stashpoint restore first, fallback to backup branch if stash fails
+- Execute rollback only when critical issues detected (Full mode) — follow the Hybrid Rollback Protocol (`rules/workflow-protocols.md §Rollback Protocol` — stash fast `pop --index` first, fallback to branch `reset --hard backup/...`): use unified naming `pre-<scope>` (`phase-<N>` or `group-<letter>`)
 - Never run destructive git commands (`git push --force`, `git reset --hard` on main) without explicit PM approval
 - **RESTRICTED COMMANDS:** Only execute git, docker, npm, pip, cargo, go, or CI/CD tooling commands. Never run arbitrary system commands (rm, truncate, dd, etc.) without explicit PM approval.
-- **Safety Nets (before each Developer phase):** When delegated by PM, create BOTH:
-  - **Backup branch:** `git branch backup/pre-phase-<N>-<timestamp>` — verify with `git branch --list`
-  - **Stashpoint:** `git stash push -m "pre-phase-<N> - <name>" --keep-index --include-untracked` — verify with `git stash list`
+- **Safety Nets (before each Developer phase/group):** When delegated by PM, create BOTH with unified `pre-<scope>`:
+  - **Backup branch:** `git branch backup/pre-<scope>-<timestamp>` — verify with `git branch --list "backup/pre-<scope>*"`
+  - **Stashpoint:** `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` — verify with `git stash list`
   - Never proceed if either creation fails — escalate to PM
-- **On PASS:** Clean both safety nets: `git stash drop stash@{0}` + `git branch -d backup/pre-phase-<N>-<timestamp>`
-- **On FAIL:** Follow rollback sequence: try `git stash pop --index` first; if fails, `git reset --hard backup/pre-phase-<N>-<timestamp>`; if both fail, escalate to PM immediately
+- **On PASS:** Clean both safety nets: `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`
+- **On FAIL:** Follow rollback sequence: try `git stash pop --index` first; if fails, `git reset --hard backup/pre-<scope>-<timestamp>`; if both fail, escalate to PM immediately
 
 ## Self-Verification Protocol
 
@@ -177,25 +177,25 @@ After creating deployment configs:
   → Report all created config files to PM
 ```
 
-### Safety Net Verification (P1 — Hybrid Rollback Protocol)
+### Safety Net Verification (P1 — Hybrid Rollback Protocol — see `rules/workflow-protocols.md §Rollback Protocol` for canonical naming `pre-<scope>`)
 ```
-After creating safety nets (before Developer phase):
-  → Run `git branch --list "backup/pre-phase-<N>*"` to verify backup branch exists
-  → If missing → re-run `git branch backup/pre-phase-<N>-<timestamp>`
-  → Run `git stash list` to verify stash exists with message "pre-phase-N - <name>"
-  → If missing → re-run `git stash push -m "pre-phase-N - <name>" --keep-index --include-untracked`
+After creating safety nets (before Developer phase/group):
+  → Run `git branch --list "backup/pre-<scope>*"` to verify backup branch exists
+  → If missing → re-run `git branch backup/pre-<scope>-<timestamp>`
+  → Run `git stash list` to verify stash exists with message "pre-<scope> - <name>"
+  → If missing → re-run `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked`
   → Report both refs to PM: backup branch name + stash ref (stash@{0})
 
-After successful phase (PASS):
+After successful scope (PASS):
   → Run `git stash drop stash@{0}` — clean stashpoint
-  → Run `git branch -d backup/pre-phase-<N>-<timestamp>` — clean backup branch
-  → Verify both cleaned: `git stash list` + `git branch --list`
+  → Run `git branch -d backup/pre-<scope>-<timestamp>` — clean backup branch
+  → Verify both cleaned: `git stash list` + `git branch --list "backup/pre-<scope>*"`
 
 After rollback (FAIL):
   → Attempt stash restore first: `git reset --hard HEAD` + `git stash pop --index`
   → Run `git status` to verify clean state
   → Run `git stash list` to verify stash was popped
-  → If pop had conflicts → fallback to backup branch: `git reset --hard backup/pre-phase-<N>-<timestamp>`
+  → If pop had conflicts → fallback to backup branch: `git reset --hard backup/pre-<scope>-<timestamp>`
   → If backup branch also fails → escalate to PM immediately, do NOT force resolution
 ```
 

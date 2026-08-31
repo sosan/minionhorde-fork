@@ -200,48 +200,63 @@ When multiple Developers run in parallel within the same group:
 
 ## Rollback Protocol (Hybrid — Backup Branch + Stashpoint)
 
-### Pre-phase Safety Net Creation (BEFORE Developer phase)
+> **Dogma: This is the single source of truth for rollback.** `AGENTS.md` and `agents/project-manager.md` must not redefine names or steps — they reference this section. The hybrid model preserves BOTH safety nets: stash (fast, `pop --index`) + branch (hard, `reset --hard backup/...`).
+
+### Naming Convention (Unified — eliminates divergence)
+
+All safety nets use the unified scope placeholder `<scope>`:
+
+- **Sequential execution (Tier 2 Phase 2, Tier 3 Phase 2, or Tier 1 without parallel groups):** `<scope> = phase-<N>` (e.g., `phase-3`, `phase-2`)
+- **Parallel-group execution (Tier 1 Phase 3 with `Parallel group: <letter>`):** `<scope> = group-<letter>` (e.g., `group-A`, `group-B`)
+
+This single convention replaces the previous divergence `pre-phase-<N>` vs `pre-group-<letter>` — now both are `pre-<scope>`.
+
+- **Backup branch:** `backup/pre-<scope>-<timestamp>` (e.g., `backup/pre-phase-3-20260831T120000`, `backup/pre-group-A-20260831T120000`)
+- **Stashpoint message:** `pre-<scope> - <name>` (e.g., `pre-phase-3 - auth-module`, `pre-group-A - auth+api`)
+
+### Pre-phase Safety Net Creation (BEFORE Developer phase/group)
 
 Before each Developer phase (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
 
-1. **PM delegates to DevOps** to create TWO safety nets:
-   - **Backup branch:** `git branch backup/pre-phase-<N>-<timestamp>` (permanent safety net)
-   - **Stashpoint:** `git stash push -m "pre-phase-<N> - <name>" --keep-index --include-untracked` (fast restore)
+1. **PM delegates to DevOps** to create TWO safety nets with the unified `<scope>`:
+   - **Backup branch:** `git branch backup/pre-<scope>-<timestamp>` (permanent safety net)
+   - **Stashpoint:** `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` (fast restore)
 2. **Verify both exist:**
-   - `git branch --list "backup/pre-phase-<N>*"` — backup branch must exist
-   - `git stash list` — stash entry must exist
+   - `git branch --list "backup/pre-<scope>*"` — backup branch must exist
+   - `git stash list` — stash entry must exist (message contains `pre-<scope>`)
 3. If either fails → retry once (see AGENTS.md §Retry Protocol); if still fails → escalate to human immediately — do NOT proceed without safety nets
 
 ### Post-phase Success (PASS)
 
-After Test Agent validates successfully:
+After Test Agent validates successfully for the `<scope>`:
 
 1. **Clean stashpoint:** `git stash drop stash@{0}`
-2. **Clean backup branch:** `git branch -d backup/pre-phase-<N>-<timestamp>`
-3. Verify both cleaned
+2. **Clean backup branch:** `git branch -d backup/pre-<scope>-<timestamp>`
+3. Verify both cleaned: `git stash list` (no matching `pre-<scope>`) + `git branch --list "backup/pre-<scope>*"` (no match)
 
 ### Post-phase Failure (ROLLBACK)
 
-If validation fails after max iterations and the phase cannot be resolved:
+If validation fails after max iterations and the `<scope>` cannot be resolved:
 
-1. **Stop** — Do not proceed to the next phase
+1. **Stop** — Do not proceed to the next phase/group
 2. **Attempt fast restore (stashpoint first):**
-   - `git reset --hard HEAD` — clean working dir of failed phase
-   - `git stash pop --index` — restore stashed state
+   - `git reset --hard HEAD` — clean working dir of failed scope
+   - `git stash pop --index` — restore stashed state for `pre-<scope>`
    - Verify with `git status` and `git stash list`
 3. **If stash fails → fallback to backup branch:**
-   - `git reset --hard backup/pre-phase-<N>-<timestamp>` — restore to pre-phase state
+   - `git reset --hard backup/pre-<scope>-<timestamp>` — restore to pre-scope state
    - Verify with `git status` and `git log -1`
 4. **If backup branch fails → escalate to human immediately** — do NOT attempt manual conflict resolution
-5. **Document** the rollback in `docs/CHANGELOG.md` with reason, backup branch name, and reverted commits
+5. **Document** the rollback in `docs/CHANGELOG.md` with reason, backup branch name (`backup/pre-<scope>-<timestamp>`), and reverted commits
 6. **Escalate** — Present to human for decision: adjust requirements, accept partial implementation, or redesign
 
 ### Rules
 
-- **Preferred restore:** `stash pop --index` (fast, non-destructive)
-- **Backup branch is safety net:** only used if stash restore fails
+- **Preferred restore:** `stash pop --index` (fast, non-destructive) — always try first
+- **Backup branch is safety net:** only used if stash restore fails — never the first option
 - **Never:** `git stash clear` or `git reset --hard` on main without PM approval
 - **Never proceed without safety nets:** if both backup branch and stashpoint creation fail, escalate immediately
+- **Consolidated naming:** Always use `pre-<scope>` (`phase-<N>` or `group-<letter>`); never invent `pre-phase` vs `pre-group` as separate conventions
 
 ---
 

@@ -646,48 +646,23 @@ Sequential checkpointed phases must NOT be parallelized — the phase gate is th
 
 ## Rollback Protocol (Hybrid — Backup Branch + Stashpoint)
 
-### Pre-phase Safety Net Creation (BEFORE Developer phase)
+> **Single source of truth:** `rules/workflow-protocols.md §Rollback Protocol`. The section below is a stub; do not redefine names or steps. Hybrid model preserves BOTH safety nets: stash (fast) + branch (hard), with unified naming `pre-<scope>` (`phase-<N>` or `group-<letter>`).
 
-Before each Developer phase (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
+### Pre-scope Safety Net Creation (BEFORE Developer phase/group)
 
-1. **Delegate to DevOps** to create TWO safety nets:
-   - **Backup branch:** `git branch backup/pre-phase-<N>-<timestamp>` (permanent safety net)
-   - **Stashpoint:** `git stash push -m "pre-phase-<N> - <name>" --keep-index --include-untracked` (fast restore)
-2. **Verify both exist:**
-   - `git branch --list "backup/pre-phase-<N>*"` — backup branch must exist
-   - `git stash list` — stash entry must exist
-3. If either fails → retry once; if still fails → escalate to human immediately — do NOT proceed without safety nets
+Before each Developer phase/group (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2): **PM delegates to DevOps to create TWO safety nets with unified `<scope>`** — see `rules/workflow-protocols.md §Rollback Protocol §Naming Convention` for `pre-<scope>` (`phase-<N>` or `group-<letter>`). Verify both via `git branch --list "backup/pre-<scope>*"` + `git stash list`; if either fails → retry once → escalate.
 
-### Post-phase Success (PASS)
+### Post-scope Success (PASS)
 
-After Test Agent validates successfully:
+After Test validates the `<scope>`: **Delegate to DevOps to clean both** — `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`, verify cleaned.
 
-1. **Clean stashpoint:** `git stash drop stash@{0}`
-2. **Clean backup branch:** `git branch -d backup/pre-phase-<N>-<timestamp>`
-3. Verify both cleaned: `git stash list` (no matching entry) + `git branch --list "backup/pre-phase-<N>*"` (no matching branch)
+### Post-scope Failure (ROLLBACK)
 
-### Post-phase Failure (ROLLBACK)
-
-If validation fails after max iterations and the phase cannot be resolved:
-
-1. **Stop** — Do not proceed to the next phase
-2. **Attempt fast restore (stashpoint first):**
-   - `git reset --hard HEAD` — clean working dir of failed phase
-   - `git stash pop --index` — restore stashed state
-   - Verify with `git status` and `git stash list`
-3. **If stash fails → fallback to backup branch:**
-   - `git reset --hard backup/pre-phase-<N>-<timestamp>` — restore to pre-phase state
-   - Verify with `git status` and `git log -1`
-4. **If backup branch fails → escalate to human immediately** — do NOT attempt manual conflict resolution
-5. **Document** the rollback in `docs/CHANGELOG.md`: `rollback(phase-N): restore pre-phase-<N> - <reason>`
-6. **Escalate** to human for decision: adjust requirements, accept partial implementation, or redesign
+If validation fails after max iterations: **Stop, try stash `pop --index` first, fallback to `reset --hard backup/pre-<scope>-<timestamp>`, escalate if both fail** — see `rules/workflow-protocols.md §Rollback Protocol §Post-phase Failure` for full sequence and `docs/CHANGELOG.md` format `rollback(<scope>): restore pre-<scope> - <reason>`.
 
 ### Rules
 
-- **Preferred restore:** `stash pop --index` (fast, non-destructive)
-- **Backup branch is safety net:** only used if stash restore fails
-- **Never:** `git stash clear` or `git reset --hard` on main without PM approval
-- **Never proceed without safety nets:** if both backup branch and stashpoint creation fail, escalate immediately
+> See `rules/workflow-protocols.md §Rollback Protocol §Rules` — `stash pop --index` preferred, branch is fallback, never `stash clear`/`reset --hard` on main without PM approval, never proceed without both safety nets.
 
 ## Human Oversight Points
 

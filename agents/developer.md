@@ -149,7 +149,7 @@ Every public function, class, and method must have a proper docstring with:
 - You may invoke the Test Agent via `task` to validate your implementation (feedback loop) — never any other subagent
 - Do NOT add functionality without explicit request
 - **Tier 3 only:** Implement the minimal fix — nothing more
-- **Stashpoint (P1):** PM creates `git stash push -m "pre-group-<letter> - <name>" --keep-index --include-untracked` before your group — check `git stash list` for your restore point; do NOT create or drop it yourself. Groups share one stashpoint.
+- **Stashpoint (P1):** PM creates `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` before your scope (see `rules/workflow-protocols.md §Rollback Protocol §Naming Convention` for `pre-<scope>` = `phase-<N>` or `group-<letter>`) — check `git stash list` for your restore point; do NOT create or drop it yourself.
 - **Tool preference:** Prefer native `glob`/`read`/`grep` for file checks. Use `filesystem` MCP only for `filesystem_directory_tree` JSON or `filesystem_list_allowed_directories`. Batch independent `glob`s in parallel and use specific patterns (`tests/<slug>.*`, `docs/specs/*.md`) over broad `**/*`.
 
 ## Self-Verification Protocol

@@ -265,37 +265,22 @@ Code Review Agent → Review (scope depends on tier)
 
 ### Rollback Protocol (P1 — Hybrid: Backup Branch + Stashpoint)
 
+> **Single source of truth:** `rules/workflow-protocols.md §Rollback Protocol`. The diagram below is a summary; do not redefine names or steps here. Hybrid model preserves BOTH safety nets: stash (fast) + branch (hard), with unified naming `pre-<scope>` (`phase-<N>` or `group-<letter>`).
+
 ```
-Before each Developer phase (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
-  PM → DevOps: create TWO safety nets
-       ├─ git branch backup/pre-phase-<N>-<timestamp> (permanent safety net)
-       └─ git stash push -m "pre-phase-<N> - <name>" --keep-index --include-untracked (fast restore)
-       → verify BOTH exist: git branch --list + git stash list
-  Developer → implements phase
+Before each Developer phase/group (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
+  PM → DevOps: create TWO safety nets with unified <scope>
+       ├─ git branch backup/pre-<scope>-<timestamp> (permanent)
+       └─ git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked (fast)
+       → verify BOTH exist: git branch --list "backup/pre-<scope>*" + git stash list
+  Developer → implements scope
   Test → validates (max 3 iterations)
-  ├─ PASS → DevOps: clean safety nets
-       ├─ git stash drop stash@{0}
-       └─ git branch -d backup/pre-phase-<N>-<timestamp>
-  └─ FAIL after max iterations → Rollback:
-       Step 1: Try fast restore (stash)
-       ├─ git reset --hard HEAD
-       ├─ git stash pop --index
-       ├─ verify git status + git stash list
-       └─ SUCCESS → done
-       Step 2: If stash fails → use backup branch
-       ├─ git reset --hard backup/pre-phase-<N>-<timestamp>
-       ├─ verify git status + git log -1
-       └─ SUCCESS → done
-       Step 3: If backup branch fails → escalate to human immediately
-       → document in docs/CHANGELOG.md: rollback(phase-N): restore pre-phase-<N> - <reason>
-       → escalate to PM / human
+  ├─ PASS → DevOps: clean both (stash drop + branch -d backup/pre-<scope>-<timestamp>)
+  └─ FAIL → Rollback: stash pop --index → if fails → reset --hard backup/pre-<scope>-<timestamp> → if fails → escalate
+       → document in docs/CHANGELOG.md: rollback(<scope>): restore pre-<scope> - <reason>
 ```
 
-- **Preferred restore:** `stash pop --index` (fast, non-destructive)
-- **Backup branch is safety net:** only used if stash restore fails
-- **Never:** `git stash clear` or `git reset --hard` on main without PM approval
-- **Never proceed without safety nets:** if both fail, escalate immediately
-- **See also:** Project Manager (`agents/project-manager.md` §Rollback Protocol), DevOps (`agents/devops.md` §Stashpoint Verification), Workflow Protocols (`rules/workflow-protocols.md` §Rollback Protocol)
+- **See canonical:** `rules/workflow-protocols.md §Rollback Protocol` for Naming Convention (`pre-<scope>`), verification, and escalation.
 
 ### Retry Protocol
 
