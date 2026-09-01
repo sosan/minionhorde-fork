@@ -446,11 +446,6 @@ Other entity types follow the same pattern:
 - **`incident_*`**: Created by Code Review. Observations: severity, category, file, line, description, suggestion, status, project
 - **`audit_*`**: Created by any agent. Observations: timestamp, start_time, end_time, duration, from, to, action, target_files, status, phase, tier
 
-**Timing Fields:**
-- `start_time`: ISO 8601 timestamp when the action started
-- `end_time`: ISO 8601 timestamp when the action completed (empty if in progress)
-- `duration`: Elapsed time in seconds (calculated: end_time - start_time)
-
 **Agent Responsibilities for Timing:**
 - **PM**: Records timing for delegations, phase transitions, escalations
 - **Developer**: Records timing for implementation phases, code changes
