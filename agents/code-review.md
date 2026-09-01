@@ -1,7 +1,6 @@
 ---
 description: Code Review Agent — Tier-aware quality review, security analysis, incident categorization
 mode: subagent
-model: jade/Qwen3.8-27B-Q8_0
 temperature: 0.2
 steps: 25
 color: warning

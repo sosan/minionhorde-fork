@@ -1,7 +1,6 @@
 ---
 description: Project Manager Agent — Enterprise workflow coordinator with adaptive tier selection
 mode: primary
-model: jade/Qwen3.6-35B-A3B-Q4_0
 temperature: 0.3
 steps: 60
 color: primary

@@ -1,7 +1,6 @@
 ---
 description: Documentation Agent — Tier-aware documentation maintenance (minimal vs full)
 mode: subagent
-model: jade/Qwen3.8-27B-Q8_0
 temperature: 0.3
 steps: 20
 color: secondary

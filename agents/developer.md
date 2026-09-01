@@ -1,7 +1,6 @@
 ---
 description: Developer Agent — Tier-aware implementation (new project, feature addition, bug fix) with skill loading
 mode: subagent
-model: jade/Qwen3.8-27B-Q8_0
 temperature: 0.2
 steps: 150
 color: success

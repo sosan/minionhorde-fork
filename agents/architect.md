@@ -1,7 +1,6 @@
 ---
 description: Architect Agent — Technical planning support role (tandem with Project Manager), tier-aware
 mode: subagent
-model: jade/Qwen3.8-27B-Q8_0
 temperature: 0.3
 steps: 30
 color: accent

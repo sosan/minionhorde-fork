@@ -1,7 +1,6 @@
 ---
 description: Test Agent — Tier-aware test creation, execution & validation with regression support
 mode: subagent
-model: jade/Qwen3.8-27B-Q8_0
 temperature: 0.2
 steps: 35
 color: info
