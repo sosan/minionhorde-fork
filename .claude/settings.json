@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.anthropic.com/claude-code/settings",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "TodoWrite"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "command": "if [[ \"$CLAUDE_FILE_PATH\" == *.py ]]; then black --quiet \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_FILE_PATH\" == *.{js,ts,jsx,tsx} ]]; then npx prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_FILE_PATH\" == *.go ]]; then gofmt -w \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; fi"
+      }
+    ]
+  }
+}
