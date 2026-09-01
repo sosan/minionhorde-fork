@@ -4,27 +4,6 @@
 
 These protocols are referenced by all agents. Do not duplicate them in individual agent files.
 
-## Audit Log
-
-Every workflow action is logged to `docs/AUDIT_LOG.md` for traceability. Simple append-only table — no hash chain.
-
-### Entry Format
-
-| Timestamp | Agent | Action | Target | Outcome | Details |
-|-----------|-------|--------|--------|---------|---------|
-| 2026-08-29 14:00 | PM | delegate | Architect | OK | Tier 1 Phase 2 |
-| 2026-08-29 14:05 | Architect | create | docs/PLANNING.md | OK | 45 lines |
-| 2026-08-29 14:15 | Developer | implement | src/auth/handler.go | OK | Phase 3 |
-| 2026-08-29 14:30 | Test | execute | tests/auth_test.go | FAIL | 2/5 failed |
-
-### Rules
-- **Append-only** — never modify or delete existing entries
-- Log every delegation, implementation, test run, review, commit, escalation, and rollback
-- If `docs/AUDIT_LOG.md` doesn't exist when an agent needs to log, CREATE it with a `# Audit Log` header first
-- Keep entries concise
-
----
-
 ## Document Ownership Map
 
 Each document has a single responsible agent. This map is used by **File Integrity Checkpoints** to verify creation and trigger recovery if needed.
@@ -383,29 +362,16 @@ The Memory MCP provides persistent knowledge graph storage across sessions. This
 
 ### Entity Types
 
-| Type | Owner | Purpose | Naming Convention |
-|------|-------|---------|-------------------|
-| `project_*` | PM | Current project state | `project_<name>` |
-| `workflow_*` | PM | Workflow progress | `workflow_<tier>_<feature>_<YYYYMMDD>` |
-| `ticket_*` | PM | Ticket analysis (Tier 3) | `ticket_<number>_<YYYYMMDD>` |
-| `decision_*` | Architect | Technical decisions | `decision_<topic>_<YYYYMMDD>` |
-| `implementation_*` | Developer | Code implementation state | `implementation_<feature>_<phase>_<YYYYMMDD>` |
-| `root_cause_*` | Developer | Bug root cause analysis (Tier 3) | `root_cause_<ticket>_<YYYYMMDD>` |
-| `incident_*` | Code Review | Low/Suggestions incidents | `incident_<type>_<YYYYMMDD>T<HHMMSS>` |
-| `audit_*` | Any agent | Event logging | `audit_<YYYYMMDD>T<HHMMSS>` |
-
-### Entity Ownership Rules
-
-| Entity Type | Can Create | Can Add Observations | Can Delete |
-|-------------|------------|---------------------|------------|
-| `project_*` | PM | PM | PM |
-| `workflow_*` | PM | PM | PM |
-| `ticket_*` | PM | PM | PM |
-| `audit_*` | Any agent | Any agent | PM (cleanup) |
-| `decision_*` | Architect | Architect | Architect |
-| `implementation_*` | Developer | Developer, Test, Code Review, DevOps | Developer |
-| `root_cause_*` | Developer | Developer | Developer |
-| `incident_*` | Code Review | Code Review | PM (cleanup) |
+| Type | Owner | Purpose | Naming | Create | Add Obs | Delete |
+|------|-------|---------|--------|--------|---------|--------|
+| `project_*` | PM | Current project state | `project_<name>` | PM | PM | PM |
+| `workflow_*` | PM | Workflow progress | `workflow_<tier>_<feature>_<YYYYMMDD>` | PM | PM | PM |
+| `ticket_*` | PM | Ticket analysis (Tier 3) | `ticket_<number>_<YYYYMMDD>` | PM | PM | PM |
+| `decision_*` | Architect | Technical decisions | `decision_<topic>_<YYYYMMDD>` | Architect | Architect | Architect |
+| `implementation_*` | Developer | Code implementation state | `implementation_<feature>_<phase>_<YYYYMMDD>` | Developer | Dev, Test, CR, DevOps | Developer |
+| `root_cause_*` | Developer | Bug root cause analysis (Tier 3) | `root_cause_<ticket>_<YYYYMMDD>` | Developer | Developer | Developer |
+| `incident_*` | Code Review | Low/Suggestions incidents | `incident_<type>_<YYYYMMDD>T<HHMMSS>` | Code Review | Code Review | PM (cleanup) |
+| `audit_*` | Any agent | Event logging | `audit_<YYYYMMDD>T<HHMMSS>` | Any agent | Any agent | PM (cleanup) |
 
 ### Project State Entity (`project_*`)
 
@@ -470,146 +436,15 @@ Created by PM at Phase 0. Tracks workflow progress with timing.
 - Record `end_time` and `duration` when workflow completes
 - Calculate total duration from sum of phase durations
 
-### Ticket Analysis Entity (`ticket_*`)
+### Other Entity Types
 
-Created by PM at Tier 3 Phase 0. Replaces `docs/TICKET_ANALYSIS.md`.
-
-**Example:**
-```json
-{
-  "name": "ticket_142_20260829",
-  "entityType": "ticket_analysis",
-  "observations": [
-    "ticket_number: 142",
-    "summary: Token refresh fails silently",
-    "affected_component: auth/token_service",
-    "reproduction_steps: 1. Login, 2. Wait for token expiry, 3. Call refresh endpoint",
-    "expected: New token returned",
-    "actual: 401 error, no token returned",
-    "priority: high",
-    "initial_hypothesis: Race condition in token rotation"
-  ]
-}
-```
-
-### Decision Entity (`decision_*`)
-
-Created by Architect. Stores technical decisions with rationale.
-
-**Example:**
-```json
-{
-  "name": "decision_auth_jwt_20260829",
-  "entityType": "technical_decision",
-  "observations": [
-    "author: architect",
-    "category: authentication_pattern",
-    "decision: JWT with refresh tokens",
-    "rationale: Stateless auth suitable for microservices",
-    "alternatives_rejected: session-based (stateful), OAuth2 (over-engineered)",
-    "files_affected: src/auth/handler.go, src/auth/middleware.go",
-    "project: project_swarn"
-  ],
-  "relations": [
-    {"from": "decision_auth_jwt_20260829", "to": "project_swarn", "relationType": "decision_for"}
-  ]
-}
-```
-
-### Implementation Entity (`implementation_*`)
-
-Created by Developer. Multiple agents may add observations.
-
-**Example:**
-```json
-{
-  "name": "implementation_auth_phase2_20260829",
-  "entityType": "implementation_state",
-  "observations": [
-    "author: developer",
-    "phase: 2",
-    "files_modified: src/auth/handler.go, src/auth/middleware.go",
-    "test_status: 5/5 passing",
-    "coverage: 87%",
-    "review_status: PASS",
-    "commit_hash: abc1234"
-  ],
-  "relations": [
-    {"from": "implementation_auth_phase2_20260829", "to": "project_swarn", "relationType": "part_of"},
-    {"from": "implementation_auth_phase2_20260829", "to": "decision_auth_jwt_20260829", "relationType": "implements"}
-  ]
-}
-```
-
-### Root Cause Entity (`root_cause_*`)
-
-Created by Developer at Tier 3 Phase 1. Replaces `docs/ROOT_CAUSE.md`.
-
-**Example:**
-```json
-{
-  "name": "root_cause_142_20260829",
-  "entityType": "root_cause_analysis",
-  "observations": [
-    "ticket: ticket_142_20260829",
-    "root_file: src/auth/token_service.py",
-    "root_line: 142",
-    "technical_explanation: Race condition when two requests refresh simultaneously — second request uses expired token from cache",
-    "proposed_fix: Add mutex lock around token rotation",
-    "test_needed: Concurrent refresh test with 10 parallel requests"
-  ],
-  "relations": [
-    {"from": "root_cause_142_20260829", "to": "ticket_142_20260829", "relationType": "analyzes"}
-  ]
-}
-```
-
-### Incident Entity (`incident_*`)
-
-Created by Code Review. Replaces `docs/REPORT.md`.
-
-**Example:**
-```json
-{
-  "name": "incident_low_style_20260829T143000",
-  "entityType": "incident",
-  "observations": [
-    "severity: low",
-    "category: code_style",
-    "file: src/auth/handler.py",
-    "line: 45",
-    "description: Inconsistent naming convention — function uses camelCase instead of snake_case",
-    "suggestion: Rename to get_user_by_id",
-    "status: for_future_consideration",
-    "project: project_swarn"
-  ]
-}
-```
-
-### Audit Event Entity (`audit_*`)
-
-Created by any agent. Logs workflow events with timing.
-
-**Example:**
-```json
-{
-  "name": "audit_20260829T143000",
-  "entityType": "audit_event",
-  "observations": [
-    "timestamp: 2026-08-29T14:30:00Z",
-    "start_time: 2026-08-29T14:30:00Z",
-    "end_time: 2026-08-29T14:45:00Z",
-    "duration: 900",
-    "from: project-manager",
-    "to: developer",
-    "action: delegate_implementation",
-    "target_files: src/auth/*.go",
-    "status: completed",
-    "phase: 3",
-    "tier: 1"
-  ]
-}
-```
+Other entity types follow the same pattern:
+- **`ticket_*`**: Created by PM at Tier 3 Phase 0. Observations: ticket_number, summary, affected_component, reproduction_steps, expected, actual, priority, initial_hypothesis
+- **`decision_*`**: Created by Architect. Observations: author, category, decision, rationale, alternatives_rejected, files_affected, project. Relations: decision_for → project_*
+- **`implementation_*`**: Created by Developer. Observations: author, phase, files_modified, test_status, coverage, review_status, commit_hash. Relations: part_of → project_*, implements → decision_*
+- **`root_cause_*`**: Created by Developer at Tier 3 Phase 1. Observations: ticket, root_file, root_line, technical_explanation, proposed_fix, test_needed. Relations: analyzes → ticket_*
+- **`incident_*`**: Created by Code Review. Observations: severity, category, file, line, description, suggestion, status, project
+- **`audit_*`**: Created by any agent. Observations: timestamp, start_time, end_time, duration, from, to, action, target_files, status, phase, tier
 
 **Timing Fields:**
 - `start_time`: ISO 8601 timestamp when the action started
@@ -623,38 +458,6 @@ Created by any agent. Logs workflow events with timing.
 - **Code Review**: Records timing for reviews, feedback loops
 - **DevOps**: Records timing for git operations, deployments
 - **Documentation**: Records timing for doc updates, report generation
-
-### Agent Quick Reference
-
-| Agent | Create | Add Observations | Read | Timing Responsibilities |
-|-------|--------|-----------------|------|-------------------------|
-| **PM** | `project_*`, `workflow_*`, `ticket_*`, `audit_*` | All owned entities | All | Record workflow start/end, phase transitions, delegations |
-| **Architect** | `decision_*` | Own `decision_*` | All | Record planning/research duration |
-| **Developer** | `implementation_*`, `root_cause_*` | Own `implementation_*`, `root_cause_*` | All | Record implementation phases, code changes |
-| **Test** | — | `implementation_*` (test results) | All | Record test execution, validation duration |
-| **Code Review** | `incident_*` | Own `incident_*`, `implementation_*` (review status) | All | Record review duration, feedback loops |
-| **DevOps** | — | `implementation_*` (commit/branch) | All | Record git operations, deployment duration |
-| **Documentation** | — | — (read-only) | All (for report generation) | Record doc updates, report generation duration |
-
-### Integration with Existing Protocols
-
-Memory entities **complement, not replace** formal markdown documents:
-
-| Formal Document (kept as markdown) | Memory Entity (replaces informal doc) |
-|-------------------------------------|---------------------------------------|
-| `docs/PRD.md` | — (formal, user-reviewed) |
-| `docs/specs/*.md` | — (formal, user-reviewed) |
-| `docs/PLANNING.md` | `decision_*` (complements with rationale) |
-| `docs/IMPLEMENTATION_ROADMAP.md` | `workflow_*` (persists phase progress) |
-| `docs/PROJECT_CONTEXT.md` | `implementation_*` (complements with structured state) |
-| `docs/CHANGELOG.md` | — (formal version history) |
-| `docs/README.md` | — (human-facing) |
-| `docs/API_REFERENCE.md` | — (human-facing) |
-| `docs/AUDIT_LOG.md` | `audit_*` (replaces append-only log) |
-| `docs/EXISTING_CONTEXT.md` | `project_*` (replaces Tier 2 context snapshot) |
-| `docs/TICKET_ANALYSIS.md` | `ticket_*` (replaces Tier 3 ticket breakdown) |
-| `docs/ROOT_CAUSE.md` | `root_cause_*` (replaces Tier 3 root cause analysis) |
-| `docs/REPORT.md` | `incident_*` (replaces Low/Suggestions incidents) |
 
 ### Conflict Prevention
 
