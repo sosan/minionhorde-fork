@@ -219,6 +219,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Assess project complexity using criteria above
 - Determine agent activation matrix
 - Read existing `docs/PROJECT_CONTEXT.md` if present (for context); do NOT write to it
+- **Create feature branch** — Delegate to DevOps: `git checkout -b feature/<project-slug>` from default branch. See `rules/workflow-protocols.md §Feature Branch Policy` for naming convention.
 
 ### Phase 1 — PRD & Specs Creation (PM)
 - Interact with user to define requirements (or clarify provided PRD)
@@ -290,6 +291,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Scan existing project structure
 - Read existing `docs/PRD.md`, `docs/PLANNING.md` if present (PLANNING.md only if Tier 1 Medium/Large existed; Small has none — skip)
 - Identify files relevant to the new functionality
+- **Create feature branch** — Delegate to DevOps: `git checkout -b feature/<feature-slug>` from default branch. See `rules/workflow-protocols.md §Feature Branch Policy` for naming convention.
 - Create `project_*` entity in memory with (only if Tier 1 specs exist; else skip, use `glob` direct):
   - Project name, tech stack, architecture
   - Current file structure
@@ -341,7 +343,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Security review
 
 ### Phase 5 — Integration (DevOps + Documentation, minimal)
-- Git commit with conventional commit message
+- Git commit with conventional commit message (on feature branch)
 - Push to feature branch
 - Update `docs/CHANGELOG.md` (DevOps)
 - Documentation: update `docs/specs/*.md` if spec files exist and the feature changed functionality
@@ -352,6 +354,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Receive ticket (from user input or GitHub/Jira API integration)
 - Parse ticket description, comments, conversation
 - Identify: affected component, reproduction steps, expected vs actual behavior, priority/severity
+- **Create feature branch** — Delegate to DevOps: `git checkout -b fix/<ticket-number>-<short-desc>` from default branch. See `rules/workflow-protocols.md §Feature Branch Policy` for naming convention.
 - Create `ticket_*` entity in memory with:
   - Ticket number
   - Problem summary
@@ -400,7 +403,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Fix loop if issues found (max 3 iterations)
 
 ### Phase 5 — Ticket Update (DevOps + Documentation, minimal)
-- Git commit referencing ticket: "fix(component): resolve issue #N"
+- Git commit referencing ticket: "fix(component): resolve issue #N" (on fix branch)
 - Push to fix branch
 - Update `docs/CHANGELOG.md`
 - Documentation: update `docs/specs/*.md` if the fix changed functionality (only if spec files exist)
@@ -430,6 +433,7 @@ If during workflow execution, the actual complexity differs from initial assessm
    ```
 4. **If user says "no" or is uncertain → proceed to normal complexity assessment (Tier 1/2/3)**
 5. **If user confirms "yes" → proceed to Phase 1**
+6. **Create feature branch** — Delegate to DevOps: `git checkout -b direct/<short-desc>` from default branch. See `rules/workflow-protocols.md §Feature Branch Policy` for naming convention.
 
 ### Phase 1 — Direct Implementation (Developer)
 

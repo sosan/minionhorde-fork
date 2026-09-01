@@ -61,6 +61,67 @@ Each document has a single responsible agent. This map is used by **File Integri
 
 ---
 
+## Feature Branch Policy
+
+Every workflow creates and works on an isolated feature branch. No implementation happens on the default branch.
+
+### Branch Naming Convention
+
+| Tier | Format | Example |
+|------|--------|---------|
+| Tier 0 (direct) | `direct/<short-desc>` | `direct/fix-typos` |
+| Tier 1 (new project) | `feature/<project-slug>` | `feature/task-api` |
+| Tier 2 (feature addition) | `feature/<feature-slug>` | `feature/oauth2-login` |
+| Tier 3 (bug fix) | `fix/<ticket-number>-<short-desc>` | `fix/142-token-refresh` |
+
+### When to Create
+
+| Tier | Creation Point | Base Branch |
+|------|---------------|-------------|
+| Tier 0 | Phase 0 (after user confirms direct mode) | default branch |
+| Tier 1 | Phase 0 (after complexity assessment) | default branch |
+| Tier 2 | Phase 0 (after codebase analysis) | default branch |
+| Tier 3 | Phase 0 (after ticket analysis) | default branch |
+
+### Branch Lifecycle
+
+```
+Create → Work (all phases) → Merge → Delete
+```
+
+1. **Create** — DevOps creates the feature branch at workflow start (Phase 0)
+2. **Work** — All implementation, testing, and review happens on this branch
+3. **Merge** — After human sign-off, DevOps merges to default branch (PR flow unchanged)
+4. **Delete** — After successful merge, DevOps deletes the feature branch
+
+### Integration with Rollback Protocol
+
+The rollback protocol (`§Rollback Protocol`) safety nets (`backup/pre-<scope>-<timestamp>` and stashpoints) work **IN ADDITION** to the feature branch:
+
+- **Feature branch** = the working branch for the entire workflow
+- **Backup branches** = point-in-time snapshots BEFORE each phase/group (on the feature branch)
+- **Stashpoints** = fast restore mechanism (on the feature branch)
+
+```
+feature/oauth2-login  (main working branch, exists entire workflow)
+  ├── backup/pre-phase-1-20260831T120000  (snapshot before phase 1)
+  ├── backup/pre-group-A-20260831T120000 (snapshot before parallel group A)
+  └── stash: pre-phase-2 - auth-module   (fast restore point)
+```
+
+The feature branch is **NEVER** reset or deleted during rollback. Only backup branches and stashpoints are managed by the rollback protocol.
+
+### Merge Policy
+
+- **Tier 0:** Merge `direct/<short-desc>` → default
+- **Tier 1:** Merge `feature/<project-slug>` → default
+- **Tier 2:** Merge `feature/<feature-slug>` → default
+- **Tier 3:** Merge `fix/<ticket-number>-<short-desc>` → default
+- **Human sign-off required before merge** (existing policy, unchanged)
+- **Merge method:** per DevOps preferences (merge/rebase/squash)
+
+---
+
 ## TDD Protocol — Spec → Test → Code (MANDATORY)
 
 Every feature phase follows strict TDD with spec as single source of truth. Violating order blocks downstream phases.
