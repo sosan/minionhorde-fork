@@ -62,7 +62,7 @@ project-manager (primary, never writes code)
 | Agent | Source file | Mode | Model | Steps | Role | Owns |
 |---|---|---|---|---|---|---|
 | **project-manager** | `agents/project-manager.md` | `primary` | `jade/Qwen3.6-35B-A3B` | 60 | Supervisor, tier detection, gatekeeper | `docs/PRD.md`, `docs/specs/*`, `project_*`, `ticket_*`, `workflow_*` |
-| **architect** | `agents/architect.md` | `subagent` | `jade/Qwen3.8-27B` | 30 | Tech planning, `PLANNING.md`, `FEATURE_PLAN.md` (deprecated → `specs/<feature>.md`) | `docs/PLANNING.md`, `decision_*` |
+| **architect** | `agents/architect.md` | `subagent` | `jade/Qwen3.8-27B` | 30 | Tech planning, `PLANNING.md`, `specs/<feature>.md` | `docs/PLANNING.md`, `decision_*` |
 | **developer** | `agents/developer.md` | `subagent` | `jade/Qwen3.8-27B` | 150 | Tier-aware implementation, docstrings, `PROJECT_CONTEXT.md` | `src/*`, `implementation_*`, `root_cause_*` |
 | **test** | `agents/test.md` | `subagent` | `jade/Qwen3.8-27B` | 35 | TDD stubs + execution + regression + coverage >85% | `tests/*` |
 | **code-review** | `agents/code-review.md` | `subagent` | `jade/Qwen3.8-27B` | 25 | Quality + security, `Critical>High>Medium>Low>Suggestion` → `incident_*` | `incident_*` |
@@ -79,7 +79,7 @@ Permissions enforce safety: `architect`/`test`/`code-review` `bash: deny` except
 | **Tier 1 Small** | New project `<5 files` | PM + Developer + Test, skip Architect/CR, DevOps/Doc minimal | `PRD.md + specs + PROJECT_CONTEXT.md` (3, no PLANNING/ROADMAP) |
 | **Tier 1 Medium** | 5–20 files | + Architect + CR | + `PLANNING.md` + `ROADMAP(status)` |
 | **Tier 1 Large** | >20 files | All agents full | + `README.md` + `API_REFERENCE.md` + `CHANGELOG.md` + CI/CD |
-| **Tier 2 Feature** | `add/feature/extend` on existing project | PM + Architect + Developer + Test + CR + DevOps/Doc minimal | `specs/<feature>.md` (not `FEATURE_PLAN.md`) + `PROJECT_CONTEXT.md` |
+| **Tier 2 Feature** | `add/feature/extend` on existing project | PM + Architect + Developer + Test + CR + DevOps/Doc minimal | `specs/<feature>.md` + `PROJECT_CONTEXT.md` |
 | **Tier 3 Bug** | `fix/bug #N` | PM + Developer + Test + CR, Architect if unclear | `ticket_*` + `root_cause_*` + bug-repro test (Developer creates) |
 
 See `rules/workflow-protocols.md §Document Ownership Map` and `§Prerequisite & Deliverable Table` for canonical gates (pruned notes included).

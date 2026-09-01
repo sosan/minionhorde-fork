@@ -165,7 +165,7 @@ Before starting a code review, verify that the files you need to review actually
 Before starting any code review:
   1. Read the context document for your tier:
      - Tier 1: docs/PLANNING.md + docs/IMPLEMENTATION_ROADMAP.md → extract file list
-     - Tier 2: docs/FEATURE_PLAN.md → extract modified and new file paths
+     - Tier 2: docs/specs/<feature>.md → extract modified and new file paths
      - Tier 3: search_nodes("root_cause_<ticket>") → extract the fix file path
   
   2. For EACH source file listed for review:

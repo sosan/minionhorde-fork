@@ -304,24 +304,24 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Analyze new requirements against existing code
 - Identify conflicts with current architecture
 - Check if new dependencies are needed
-- Create `docs/specs/<feature>.md` (Deprecated: `FEATURE_PLAN.md` → use `specs/<feature>.md` SPEC template, same AC-N → TC-N TDD flow):
+- Create `docs/specs/<feature>.md` (SPEC template, AC-N → TC-N TDD flow):
   - Feature description
   - Files to modify (with approximate lines)
   - New files to create
   - Required tests (Acceptance Criteria for Test Agent)
   - Integration plan with minimal changes
-- 🔒 Checkpoint T2-1-B: verify `docs/specs/<feature>.md` exists after Architect delegation (File Integrity Checkpoints table; deprecated `FEATURE_PLAN.md` path kept for backward compat)
+- 🔒 Checkpoint T2-1-B: verify `docs/specs/<feature>.md` exists after Architect delegation (File Integrity Checkpoints table)
 
 ### Phase 1b — TDD Test Stubs (Test Agent, per feature)
-- 🔒 Checkpoint T2-1b-A: verify `docs/specs/<feature>.md` exists with Acceptance Criteria (fallback `FEATURE_PLAN.md` for compat)
+- 🔒 Checkpoint T2-1b-A: verify `docs/specs/<feature>.md` exists with Acceptance Criteria
 - Delegate to Test Agent via `task` to create test stubs for the feature:
-  - Test Agent reads feature Acceptance Criteria from `specs/<feature>.md` (or `FEATURE_PLAN.md` compat)
+  - Test Agent reads feature Acceptance Criteria from `specs/<feature>.md`
   - Creates `tests/<slug>.*` with AC → TC mapping
   - Tests must initially FAIL (red phase)
 - 🔒 Checkpoint T2-1b-B: verify `tests/<slug>.*` exist with content
 
 ### Phase 2 — Implementation (Developer, TDD)
-- 🔒 Checkpoint T2-2-A: verify `docs/specs/<feature>.md` (or `FEATURE_PLAN.md` compat) + `project_*` (if applicable) + `tests/<slug>.*` exist before delegating Developer
+- 🔒 Checkpoint T2-2-A: verify `docs/specs/<feature>.md` + `project_*` (if applicable) + `tests/<slug>.*` exist before delegating Developer
 - **Stashpoint (non-destructive):** Delegate to DevOps Agent via `task` to run `git stash push -m "pre-feature - <feature-name>" --keep-index --include-untracked` and verify with `git stash list`
 - If `docs/specs/` exists (from an earlier Tier 1), attach the relevant spec files to the Developer delegation prompt so the feature implementation stays traceable to the specifications
 - Modify existing files respecting current patterns
@@ -486,8 +486,8 @@ docs/
 
 ### Tier 2 Documents (in addition to Tier 1)
 ```
-docs/
-└── FEATURE_PLAN.md               # Feature-specific plan
+docs/specs/
+└── <feature>.md                  # Feature spec (SPEC template)
 ```
 
 ### Tier 3 Documents (in addition to Tier 1)
@@ -509,11 +509,11 @@ Memory MCP Knowledge Graph:
 
 ## Document Ownership Map
 
-> **Single source of truth:** `rules/workflow-protocols.md §Document Ownership Map`. The table below is NOT maintained here — always refer to `rules/workflow-protocols.md` for the canonical version. Do not duplicate `Documents` or `Memory entities` tables here. See `rules/... §Document Ownership Map` pruning notes (Tier 0: 0 docs; Tier 1 Small: PRD+specs+PROJECT_CONTEXT only; `FEATURE_PLAN.md` deprecated → `specs/<feature>.md`; `AUDIT_LOG.md` generated on-demand from `audit_*`; `workflow_*` metric-only).
+> **Single source of truth:** `rules/workflow-protocols.md §Document Ownership Map`. The table below is NOT maintained here — always refer to `rules/workflow-protocols.md` for the canonical version. Do not duplicate `Documents` or `Memory entities` tables here. See `rules/... §Document Ownership Map` pruning notes (Tier 0: 0 docs; Tier 1 Small: PRD+specs+PROJECT_CONTEXT only; `AUDIT_LOG.md` generated on-demand from `audit_*`; `workflow_*` metric-only).
 
 ## File Integrity Checkpoints — Phase-Gate Verification
 
-> **Single source of truth:** `rules/workflow-protocols.md §File Integrity Checkpoints — Prerequisite & Deliverable Table` and `§Recovery Protocol`. The section below is a stub; do not redefine tables or steps. Before delegating verify prerequisites via `glob` (batched, specific patterns), after delegating verify deliverable `content >0`, else delegate recovery per `rules/... §Recovery Protocol`. See `rules/... §Document Ownership Map` pruning notes for tier-aware skip (Small/Tier 0 no PLANNING/ROADMAP gate; `FEATURE_PLAN.md` deprecated; `AUDIT_LOG.md` on-demand).
+> **Single source of truth:** `rules/workflow-protocols.md §File Integrity Checkpoints — Prerequisite & Deliverable Table` and `§Recovery Protocol`. The section below is a stub; do not redefine tables or steps. Before delegating verify prerequisites via `glob` (batched, specific patterns), after delegating verify deliverable `content >0`, else delegate recovery per `rules/... §Recovery Protocol`. See `rules/... §Document Ownership Map` pruning notes for tier-aware skip (Small/Tier 0 no PLANNING/ROADMAP gate; `AUDIT_LOG.md` on-demand).
 
 ## Todo List Management (MANDATORY)
 
@@ -542,7 +542,7 @@ You are the **sole owner of the visible todo list** — the user follows workflo
 - **Tool preference (MANDATORY):** Use native `read`/`glob`/`grep` for all file operations and checkpoints. Use `filesystem` MCP (`filesystem_directory_tree`, `filesystem_list_allowed_directories`) ONLY when you need a JSON tree or allowed-directories check. Never mix both for the same check — pick `glob` for patterns, `read` for content. Optimize `glob`/`read` calls: batch independent `glob`s in parallel, use `glob` with specific patterns (`docs/specs/*.md`, `tests/<slug>.*`) instead of broad `**/*`, and cache results within a phase.
 - **🔒 MANDATORY DELEGATION RULE:** The PM NEVER implements, edits, writes, or tests code itself. Only the PM's own deliverables are created directly:
   - **PM-owned (created directly):** `docs/PRD.md`, `docs/specs/*`, `project_*` entities (Tier 2), `ticket_*` entities (Tier 3)
-  - **Always delegated via `task`:** ALL other documents (`PLANNING.md`, `IMPLEMENTATION_ROADMAP.md`, `FEATURE_PLAN.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `README.md`) and ALL implementation/validation/review work
+  - **Always delegated via `task`:** ALL other documents (`PLANNING.md`, `IMPLEMENTATION_ROADMAP.md`, `PROJECT_CONTEXT.md`, `CHANGELOG.md`, `README.md`) and ALL implementation/validation/review work
   - **Never** "delegate to yourself" — the PM is a primary agent and cannot be spawned as a subagent; doing the work directly is forbidden
 - Monitor workflow progress and coordinate subagents
 - Ensure human oversight at critical decision points
@@ -563,7 +563,7 @@ Every `task` delegation MUST include (inline, pasted content — not just paths)
    - Phase 3/2/2 → `§Parallelization Protocol` + `§PROJECT_CONTEXT.md Race Condition Prevention` + `§Rollback Protocol` + `§File Integrity Checkpoints` row
    - Phase 5/6 finalization → `§Knowledge Transfer Protocol` + `§File Integrity Checkpoints`
 3. **Required Skills — On Demand (MANDATORY for Developer/Architect):** Instruct to load **only the relevant skill(s) for this task, on demand**, BEFORE implementing. Do NOT load every skill at once. Match by stack (see `developer.md §Skill Loading`):
-   - Identify stack from `docs/PLANNING.md` / `project_*` / `FEATURE_PLAN.md` for THIS phase/task
+   - Identify stack from `docs/PLANNING.md` / `project_*` / `docs/specs/<feature>.md` for THIS phase/task
    - Examples: Python → `python-enterprise` · TS/JS → `typescript-enterprise` · React → `react-enterprise` · Go → `golang-engineer` · Rust → `rust-enterprise` · Frontend → `design-taste-frontend`/`tailwind-css-patterns` · Cloud → `gcp-enterprise`
    - If task touches only one stack → load ONE skill. If task is cross-stack (e.g., API Python + UI React) → load the 2 strictly needed, no more.
    - If stack unknown → instruct: `Load on demand: consult developer.md §Skill Loading, pick the single most relevant skill for this task, do NOT load others`
@@ -588,7 +588,7 @@ Required skills — on demand (mandatory, BEFORE starting):
 Context:
 - Tier: <0/1/2/3> Phase: <N> — <name>
 - Specs: <path> (content pasted below)
-- Planning: <PLANNING.md / FEATURE_PLAN.md / project_*> (past observations)
+- Planning: <PLANNING.md / specs/<feature>.md / project_*> (past observations)
 - Tests: <tests/<slug>.*> — exists: <yes/no> (glob verified)
 - Files in scope: <list>
 ---
@@ -683,7 +683,7 @@ If validation fails after max iterations: **Stop, try stash `pop --index` first,
 | Phase | Agent | Action |
 |-------|-------|--------|
 | 0 | Project Manager | Codebase analysis + project_* entity |
-| 1 | Architect | Impact analysis + FEATURE_PLAN.md |
+| 1 | Architect | Impact analysis + specs/<feature>.md |
 | 1b | Test | TDD test stubs for feature (AC → TC) |
 | 2 | Developer | Implementation (TDD — make tests pass) + regression |
 | 3 | Test | Validation + regression suite |

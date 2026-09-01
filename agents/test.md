@@ -73,7 +73,7 @@ The Project Manager tells you which tier you're validating:
 ### Tier 2: Test Creation + Regression Validation (TDD)
 
 **Phase 1b — Test Creation (BEFORE Developer):**
-- Read `docs/FEATURE_PLAN.md § Tests Required` or relevant `docs/specs/<slug>.md §9`
+- Read relevant `docs/specs/<slug>.md §9` (Test Scenarios Mapping)
 - Create test stubs for the new feature (AC → TC mapping)
 - Tests must initially FAIL (red phase)
 - Verify with `glob` that test files exist
@@ -107,7 +107,7 @@ Report coverage percentage after execution.
 ### Steps (Phase 1b — BEFORE Developer implements)
 1. Read the appropriate context:
    - Tier 1: `docs/specs/<slug>.md` Acceptance Criteria section
-   - Tier 2: `docs/FEATURE_PLAN.md` Tests Required section or relevant spec
+   - Tier 2: `docs/specs/<slug>.md` Acceptance Criteria section (same as Tier 1)
 2. For each Acceptance Criteria (AC-N):
    - Create test stub with 1 AC-N → 1 TC-00N mapping (GIVEN/WHEN/THEN)
    - Test must initially FAIL (no source code exists yet)
@@ -188,7 +188,7 @@ Before executing any tests, you **MUST** verify that the source files you need t
 Before running any test suite:
   1. Read the context document for your tier:
      - Tier 1: docs/PRD.md + docs/specs/ → extract list of modules/features to test
-     - Tier 2: docs/FEATURE_PLAN.md → extract list of modified and new files
+     - Tier 2: docs/specs/<feature>.md → extract list of modified and new files
      - Tier 3: search_nodes("root_cause_<ticket>") → extract the bug-reproduction test path
   
   2. For EACH source file that should exist:

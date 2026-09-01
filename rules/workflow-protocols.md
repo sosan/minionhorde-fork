@@ -37,7 +37,6 @@ Each document has a single responsible agent. This map is used by **File Integri
 | `docs/specs/*.md` | Project Manager | Tier 1 Phase 1 | Architect, Test, Developer (via PM delegation) | `templates/context-files/SPEC.md` |
 | `docs/PLANNING.md` | Architect | Tier 1 Phase 2 (Medium/Large only; Small/Tier 0 skip — no gate) | Developer, Documentation | `templates/context-files/PLANNING.md` |
 | `docs/IMPLEMENTATION_ROADMAP.md` | Architect (Developer for Tier 1 Small) | Tier 1 Phase 2 (Medium/Large only; Small skip — ROADMAP fused with workflow_* status) | Developer | `templates/context-files/IMPLEMENTATION_ROADMAP.md` |
-| `docs/FEATURE_PLAN.md` | Architect | Tier 2 Phase 1 (Deprecated — create `docs/specs/<feature>.md` instead, same SPEC template) | Developer, Test | `templates/context-files/FEATURE_PLAN.md` |
 | `docs/PROJECT_CONTEXT.md` | Developer | Each phase end | Documentation, PM | `templates/context-files/PROJECT_CONTEXT.md` |
 | `docs/CHANGELOG.md` | DevOps | Final phases (Derived — generated at close from `git log` + `audit_*`/`implementation_*`, not per-phase gate) | PM, Documentation | `templates/context-files/CHANGELOG.md` |
 | `docs/README.md` | Documentation | Tier 1 Large Phase 6 (Large only) | Project index | `templates/context-files/README.md` |
@@ -177,7 +176,7 @@ Each Acceptance Criteria uses three keywords:
 | Tier 1 Ph 3 — Test: TDD stubs (per phase, if not done in 1b) | Relevant `docs/specs/<slug>.md` (approved) | `tests/<slug>.*` + `§10` mapping (100% AC→TC). Tests must initially FAIL | Test |
 | Tier 1 Ph 3 — Developer: implementation (TDD) — grouped by `Parallel group` | `docs/specs/<slug>.md` (approved) + `tests/<slug>.*` (exists, initially FAIL) + `docs/PLANNING.md` (if Medium/Large) + `docs/IMPLEMENTATION_ROADMAP.md` with `Parallel group` + `status` | Source files for group + consolidated `docs/PROJECT_CONTEXT.md` (tests now PASS) — PM consolidates after group | Developer(s) in parallel per group |
 | Tier 2 Ph 0 — PM: project context | — | `project_*` entity (only if Tier 1 specs exist; else skip) | PM creates directly |
-| Tier 2 Ph 1 — Architect: specs for feature | `project_*` entity exists (if applicable) | `docs/specs/<feature>.md` (Deprecated: `FEATURE_PLAN.md` → use `specs/<feature>.md` SPEC template) | Architect |
+| Tier 2 Ph 1 — Architect: specs for feature | `project_*` entity exists (if applicable) | `docs/specs/<feature>.md` (SPEC template) | Architect |
 | Tier 2 Ph 1b — Test: TDD stubs (feature) | `docs/specs/<feature>.md` (approved) § Tests | `tests/<slug>.*` + `§10` mapping (100% AC→TC). Tests must initially FAIL | Test |
 | Tier 2 Ph 2 — Developer: implementation (TDD) | `docs/specs/<feature>.md` (approved) + `project_*` (if applicable) + `tests/<slug>.*` (exists) + relevant `docs/specs/<slug>.md §9` | Source files + `docs/PROJECT_CONTEXT.md` (tests PASS) | Developer |
 | Tier 1 Ph 5 — Documentation: final docs | `docs/PROJECT_CONTEXT.md` + source files | `docs/specs/*` synced (if `glob` + `git diff --name-only` shows change) — Medium/Large: + `docs/PLANNING.md` §Decisions if changed; Large only: + `docs/README.md` + `docs/API_REFERENCE.md` (if APIs) — each with content >0 | Documentation |

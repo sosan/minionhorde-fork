@@ -34,7 +34,7 @@ The Project Manager tells you which tier you're working in. Adapt your approach:
 |------|---------------|-------------|
 | **Tier 0** (direct) | Task description from PM | Direct implementation — no specs, no tests required unless existing tests exist |
 | **Tier 1** (new-project) | `docs/IMPLEMENTATION_ROADMAP.md` + `docs/PLANNING.md` + `tests/<slug>.*` (created by Test Agent) | Implement phase by phase to make existing tests pass |
-| **Tier 2** (add-feature) | `docs/FEATURE_PLAN.md` + `project_*` entity (from memory) + `tests/<slug>.*` (created by Test Agent) | Modify existing files + create new ones to make existing tests pass |
+| **Tier 2** (add-feature) | `docs/specs/<feature>.md` + `project_*` entity (from memory) + `tests/<slug>.*` (created by Test Agent) | Modify existing files + create new ones to make existing tests pass |
 | **Tier 3** (fix-bug) | `root_cause_*` entity (from memory) | Write bug-reproduction test FIRST, then implement minimal fix |
 
 ## Implementation Protocol by Tier
@@ -58,7 +58,7 @@ For each phase:
 
 ### Tier 2: Feature Implementation (TDD)
 
-Read `docs/FEATURE_PLAN.md` and use `search_nodes("project_<name>")` to load project context from memory:
+Read `docs/specs/<feature>.md` and use `search_nodes("project_<name>")` to load project context from memory:
 
 **Pre-condition:** Tests for this feature must already exist (created by Test Agent in Phase 1b). If tests are missing → report to PM immediately, do NOT proceed.
 
@@ -100,7 +100,7 @@ Use `search_nodes("root_cause_<ticket>")` to load root cause analysis from memor
 
 ## Skill Loading
 
-Load relevant skills for the project type BEFORE implementing **on demand** — do not load everything at once. The PM's delegation prompt will list the **Required Skills — On Demand** for THIS task (matched to `docs/PLANNING.md` stack / `project_*` / `FEATURE_PLAN.md`). Load ONLY those, verify loaded, then implement. Match by stack; common examples:
+Load relevant skills for the project type BEFORE implementing **on demand** — do not load everything at once. The PM's delegation prompt will list the **Required Skills — On Demand** for THIS task (matched to `docs/PLANNING.md` stack / `project_*` / `docs/specs/<feature>.md`). Load ONLY those, verify loaded, then implement. Match by stack; common examples:
 - Python → `python-enterprise`
 - TypeScript/JavaScript → `typescript-enterprise`
 - React → `react-enterprise`
@@ -135,7 +135,7 @@ Every public function, class, and method must have a proper docstring with:
 
 - **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and `rules/workflow-protocols.md` §Memory MCP Protocol
 - Load skills relevant to the project BEFORE implementing
-- Read the appropriate planning document for your tier (ROADMAP, FEATURE_PLAN, or search_nodes for root_cause_* in Tier 3)
+- Read the appropriate planning document for your tier (ROADMAP, specs/<feature>.md, or search_nodes for root_cause_* in Tier 3)
 - **Tier 0:** Direct implementation — no planning docs required, no TDD unless existing tests exist
 - **Tier 1 & 2:** Verify tests exist before implementing (TDD — tests created by Test Agent)
 - **Tier 3:** Write bug-reproduction test FIRST, then implement fix
@@ -163,7 +163,7 @@ Before beginning implementation:
   → Tier 1: glob "docs/IMPLEMENTATION_ROADMAP.md" + glob "tests/<slug>.*" (for phase feature)
      If ROADMAP missing → report to PM immediately, do NOT proceed
      If tests missing → report to PM immediately, do NOT proceed (TDD violation)
-  → Tier 2: glob "docs/FEATURE_PLAN.md" + search_nodes("project_<name>") + glob "tests/<slug>.*"
+   → Tier 2: glob "docs/specs/<feature>.md" + search_nodes("project_<name>") + glob "tests/<slug>.*"
      If any planning doc missing → report to PM immediately, do NOT proceed
      If tests missing → report to PM immediately, do NOT proceed (TDD violation)
   → Tier 3: search_nodes("root_cause_<ticket>")
@@ -217,7 +217,7 @@ If the roadmap/plan references a file that you were supposed to create but it do
 
 ## Missing File Handling
 
-- If a referenced file (e.g., `FEATURE_PLAN.md`, `IMPLEMENTATION_ROADMAP.md`) does not exist → report to PM immediately, do NOT guess or proceed
+- If a referenced file (e.g., `specs/<feature>.md`, `IMPLEMENTATION_ROADMAP.md`) does not exist → report to PM immediately, do NOT guess or proceed
 - If a referenced memory entity (e.g., `root_cause_*`, `project_*`) does not exist → report to PM immediately, do NOT guess or proceed
 - If `PLANNING.md` references a technology not present in the project → ask PM before proceeding
 - Never assume file contents — always read first
@@ -262,7 +262,7 @@ If PASS → wait for PM to assign next phase
 
 ### Tier 2 Workflow (TDD — tests pre-exist)
 ```
-Read FEATURE_PLAN.md + search_nodes("project_<name>")
+Read specs/<feature>.md + search_nodes("project_<name>")
     ↓
 Verify tests exist (glob "tests/<slug>.*") — if missing, report to PM
     ↓
