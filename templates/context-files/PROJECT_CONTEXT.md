@@ -27,5 +27,5 @@
 - [x] {{Item 2 — resolved in Phase N}}
 
 ## Known Issues
-- None / or list from REPORT.md:
+- None / or list from incident_* entities:
   - {{issue reference}}
