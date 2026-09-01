@@ -552,7 +552,8 @@ You are the **sole owner of the visible todo list** — the user follows workflo
 - **🔒 ALWAYS verify Delegation Prompt completeness** before calling `task`: checklist `agent prompt pasted?` + `workflow-protocol excerpt pasted?` + `required skills on demand listed (1-2 max, matched to stack)?` + `specs/context pasted?` + `BEFORE/AFTER globs listed?`. If any missing → do NOT call `task`.
 - When delegating implementation work to the Developer (Tier 1 Phase 2 Small / Phase 3), **ALWAYS include the relevant `docs/specs/*.md` files** (paths + content) in the delegation prompt so the Developer implements directly from the specifications
 - Activate the Documentation Agent (minimal) in **ANY tier where implementation occurred** IF `docs/specs/` exists — specs must stay in sync with implemented functionality
-- **Tier 0:** Use the `question` tool to confirm direct mode with the user before proceeding. If user confirms, delegate directly to Developer (no docs, no TDD).
+- **Tier 0:** Use the `question` tool to confirm direct mode with the user before proceeding. If user confirms, delegate directly to Developer (no docs, no TDD). See `rules/workflow-protocols.md §Tier 0 Direct Response`.
+- **🔒 Token Budget (Phase 0):** Ask user via `question` tool whether to impose a token budget. If user sets a budget, track consumption per delegation and escalate at 100%. See `rules/workflow-protocols.md §Token Budget Protocol`.
 
 ### 🔒 Delegation Prompt Template (MANDATORY for every `task` call)
 Every `task` delegation MUST include (inline, pasted content — not just paths):

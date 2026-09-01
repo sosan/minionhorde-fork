@@ -141,6 +141,7 @@ Setup CI/CD pipelines appropriate for the technology stack:
   - Never proceed if either creation fails — escalate to PM
 - **On PASS:** Clean both safety nets: `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`
 - **On FAIL:** Follow rollback sequence: try `git stash pop --index` first; if fails, `git reset --hard backup/pre-<scope>-<timestamp>`; if both fail, escalate to PM immediately
+- **Post-Rollback Verification (MANDATORY):** After ANY rollback, run tests for complete scope (all groups/phases, not just rolled-back). If tests PASS → rollback successful. If tests FAIL → escalate to PM immediately. Document in CHANGELOG: `rollback(<scope>) FAILED verification`. See `rules/workflow-protocols.md §Post-Rollback Verification`.
 
 ## Self-Verification Protocol
 
@@ -196,6 +197,10 @@ After rollback (FAIL):
   → Run `git stash list` to verify stash was popped
   → If pop had conflicts → fallback to backup branch: `git reset --hard backup/pre-<scope>-<timestamp>`
   → If backup branch also fails → escalate to PM immediately, do NOT force resolution
+  → Post-Rollback Verification: Run tests for complete scope (all groups/phases)
+  → If tests PASS → rollback successful
+  → If tests FAIL → escalate to PM immediately
+  → Document in CHANGELOG: `rollback(<scope>) FAILED verification`
 ```
 
 ### Git Operation Verification

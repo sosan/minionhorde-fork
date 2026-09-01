@@ -39,6 +39,59 @@ Each document has a single responsible agent. This map is used by **File Integri
 
 ---
 
+## Tier 0: Direct Response Workflow
+
+### Trigger
+
+- ≤ 3 existing files to modify (verify with `glob`)
+- No new dependencies
+- No API/interface changes
+- No auth, database, or critical logic touched
+- No new business logic
+- OR explicit user flag: "direct", "rápido", "sin pipeline"
+
+### Agents Activated
+
+| Agent | Mode |
+|-------|------|
+| Project Manager | Detection + confirmation via `question` tool |
+| Developer | Direct implementation (no TDD, no docs) |
+| Test | Optional — run existing tests if they exist |
+| DevOps | Git commit (conventional) + push + changelog |
+
+### Documents Created
+
+**None.** Tier 0 generates 0 documentation (no PRD, no specs, no planning).
+
+### Branch
+
+`direct/<short-desc>` — see §Feature Branch Policy.
+
+### TDD Protocol
+
+**Optional.** Only if existing tests exist — Developer runs them for regression. No new tests created by Test Agent.
+
+### Rollback Protocol
+
+**Minimal.** Stashpoint only (no backup branch). See §Rollback Protocol §Naming Convention.
+
+### File Integrity Checkpoints
+
+| Delegation | Verify BEFORE | Verify AFTER | Recovery |
+|------------|---------------|--------------|----------|
+| Tier 0 Ph 1 — Developer: implementation | Task description exists | Modified files exist + content > 0 | Developer |
+| Tier 0 Ph 2 — Test: regression (optional) | Existing tests exist | Tests PASS | Developer |
+| Tier 0 Ph 3 — DevOps: commit | Phase 2 verified or skipped | Commit exists + CHANGELOG entry | DevOps |
+
+### Escalation
+
+If during Tier 0 execution, the task is discovered to be more complex:
+1. PM re-assesses using §Complexity Assessment
+2. May escalate to Tier 1/2/3
+3. Branch changes: `direct/<slug>` → `feature/<slug>` or `fix/<slug>`
+
+---
+
 ## Feature Branch Policy
 
 Every workflow creates and works on an isolated feature branch. No implementation happens on the default branch.
@@ -291,6 +344,50 @@ If validation fails after max iterations and the `<scope>` cannot be resolved:
 5. **Document** the rollback in `docs/CHANGELOG.md` with reason, backup branch name (`backup/pre-<scope>-<timestamp>`), and reverted commits
 6. **Escalate** — Present to human for decision: adjust requirements, accept partial implementation, or redesign
 
+### Post-Rollback Verification (MANDATORY)
+
+After ANY rollback (stash pop or branch reset), verify the restored state is correct:
+
+#### Verification Steps
+
+1. **Git status check:**
+   ```
+   git status → verify clean working directory
+   ```
+
+2. **Test suite execution:**
+   ```
+   Run ALL tests for the complete scope
+   (if rolling back group B, run tests for group A + group B)
+   ```
+
+3. **State validation:**
+   - If ALL tests PASS → rollback successful, proceed
+   - If ANY test fails → rollback incomplete, try next fallback
+
+#### Escalation on Verification Failure
+
+```
+After stash pop --index:
+  → Run tests for complete scope (group A + B)
+  → If tests PASS → success
+  → If tests FAIL → fallback to branch reset
+
+After branch reset --hard:
+  → Run tests for complete scope (group A + B)
+  → If tests PASS → success
+  → If tests FAIL → ESCALATE to human immediately
+  → Document in CHANGELOG: rollback(<scope>) FAILED verification
+```
+
+#### Rules
+
+- **Never proceed after rollback without verification**
+- **Verification is part of the rollback, not separate**
+- **If verification fails, the rollback is NOT complete**
+- **Test scope = complete scope (all groups/phases in the workflow, not just rolled-back scope)**
+- **Escalate immediately if both restore methods fail verification**
+
 ### Rules
 
 - **Preferred restore:** `stash pop --index` (fast, non-destructive) — always try first
@@ -331,6 +428,69 @@ After workflow completion, ensure the project state is properly captured for fut
 
 ### Output
 No separate document is created. The knowledge lives in PROJECT_CONTEXT.md (state), incident_* entities in memory (learnings), and specs/ (specifications) — all already owned by their respective agents.
+
+---
+
+## Token Budget Protocol
+
+> **Dogma:** Token budgeting is OPTIONAL. PM asks at workflow start.
+> Human decides whether to impose a limit. No auto-detection.
+
+### Phase 0 — Budget Offer (MANDATORY)
+
+When PM detects tier and assesses complexity, ask user via `question` tool:
+
+```
+question:
+  "Do you want to set a token limit for this workflow?
+   This helps prevent context window overflow."
+
+  options:
+    - label: "100k tokens"
+      description: "Conservative budget"
+    - label: "165k tokens"
+      description: "Standard window"
+    - label: "262k tokens"
+      description: "Extended window"
+    - label: "500k tokens"
+      description: "Practically unlimited"
+    - label: "Custom value"
+      description: "Enter an arbitrary limit"
+    - label: "No budget"
+      description: "Don't monitor tokens"
+```
+
+**If "Custom value" selected:**
+- Use `question` tool: "Enter the token limit (e.g., 200000):"
+- PM stores value as `token_budget` in `workflow_*` entity
+
+**If "No budget" selected:**
+- PM does NOT monitor tokens
+- Workflow proceeds without limits
+
+### Budget Monitoring (only if budget was set)
+
+PM tracks estimated token consumption per delegation:
+- Agent role prompt: ~3-5k tokens
+- Workflow excerpt: ~2-4k tokens
+- Spec/context: ~3-8k tokens
+- Task description: ~1-2k tokens
+- Total per delegation: ~10-20k tokens
+
+### Escalation Rules (only if budget was set)
+
+1. **At 70% budget:** PM notes consumption, continues
+2. **At 85% budget:** PM optimizes remaining delegation prompts (shorter excerpts)
+3. **At 100% budget:** PM escalates to human via `question` tool:
+   - "Keep current budget"
+   - "Increase budget"
+   - "Stop workflow"
+
+### Workflow State
+
+PM stores budget in `workflow_*` entity observations:
+- `token_budget: <value>` or `token_budget: none`
+- `tokens_consumed: <estimated>` (updated as workflow progresses)
 
 ---
 
