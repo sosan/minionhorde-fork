@@ -324,9 +324,10 @@ Before each Developer phase (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
 
 After Test Agent validates successfully for the `<scope>`:
 
-1. **Clean stashpoint:** `git stash drop stash@{0}`
-2. **Clean backup branch:** `git branch -d backup/pre-<scope>-<timestamp>`
-3. Verify both cleaned: `git stash list` (no matching `pre-<scope>`) + `git branch --list "backup/pre-<scope>*"` (no match)
+1. **Resolve stash ref:** `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` — never use hardcoded `stash@{0}`
+2. **Clean stashpoint:** `git stash drop "$STASH_REF"` (if `STASH_REF` empty → already cleaned → skip)
+3. **Clean backup branch:** `git branch -d backup/pre-<scope>-<timestamp>` (use exact `<timestamp>` from creation, not wildcard)
+4. Verify both cleaned: `git stash list` must NOT contain `pre-<scope>` + `git branch --list "backup/pre-<scope>*"` must be empty
 
 ### Post-phase Failure (ROLLBACK)
 

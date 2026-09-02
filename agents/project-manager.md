@@ -257,13 +257,14 @@ If during workflow execution, the actual complexity differs from initial assessm
 1. 🔒 Checkpoint 3-A: verify prerequisites — **Tier 1 Small:** `docs/specs/<slug>.md` + `tests/<slug>.*` only (no `PLANNING.md`/`ROADMAP` gate); **Tier 1 Medium/Large:** `docs/PLANNING.md` + `docs/IMPLEMENTATION_ROADMAP.md` exist. Read `IMPLEMENTATION_ROADMAP.md` (if exists) and extract `Parallel group: <letter>` + `status` markers (see `rules/workflow-protocols.md §Parallelization Protocol`).
 2. Group phases by `Parallel group` (A, B, C...). Phases without marker → treat as sequential group.
 3. For EACH parallel group IN ORDER (A → B → C):
-   a. **Stashpoint:** Delegate to DevOps `git stash push -m "pre-group-<letter> - <names>" --keep-index --include-untracked` + verify `git stash list` + `git branch --list`
+   a. **Stashpoint:** Delegate to DevOps `git stash push -m "pre-<scope> - <names>" --keep-index --include-untracked` where `<scope>` = `group-<letter>` if `IMPLEMENTATION_ROADMAP.md` has `Parallel group:`, else `phase-<N>` (see `rules/workflow-protocols.md §Naming Convention` — unified `pre-<scope>`). Verify both: `git stash list` must contain `pre-<scope>` + `git branch --list "backup/pre-<scope>*"` must exist; if either fails → retry 2s→5s→escalate.
    b. **Verify tests exist for ALL phases in group** — `glob tests/<slug>.*` per phase. If any missing → delegate to Test Agent first (do NOT start group)
+   b2. **Files overlap gate (MANDATORY before parallel launch):** For each pair of phases in same `Parallel group`, compare `Files:` lists from `IMPLEMENTATION_ROADMAP.md`. If any file path overlaps (same `src/...` in 2 phases) → do NOT launch in parallel → treat as sequential groups or escalate to Architect to re-group. Report `blocked: Files overlap <path> in phases <A> vs <B>` to PM.
    c. **Delegate to Developer Agents IN PARALLEL (single message, N `task` calls):** one `task(developer, ...)` per phase in group, each with phase scope + relevant `docs/specs/*.md` (paths+content) + `Delegation Prompt Template` (§Directives). **Developers in parallel MUST NOT write `docs/PROJECT_CONTEXT.md` directly** — they report changes to PM (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`).
    d. Wait for ALL Developers in group to complete. **Consolidate `docs/PROJECT_CONTEXT.md`** from their reports (PM writes once).
    e. 🔒 Checkpoint 3-B: verify source files for group + consolidated `docs/PROJECT_CONTEXT.md` have content >0.
    f. **Test validates per phase** (can be parallel if tests are disjoint) — max 3 iterations per phase via PM → Developer → Test loop.
-   g. On PASS for all phases in group: Delegate to DevOps to clean stashpoint `git stash drop stash@{0}` + `git branch -d backup/pre-group-<letter>-*`.
+   g. On PASS for all phases in group: Delegate to DevOps to clean both safety nets: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp from creation). Verify cleaned: `git stash list` no `pre-<scope>` + `git branch --list "backup/pre-<scope>*"` empty.
    h. On FAIL after max iterations: follow `rules/workflow-protocols.md §Rollback Protocol` (stash pop → backup branch → escalate). Do NOT advance to next group.
 4. PM confirms group completion before moving to next group.
 
@@ -329,7 +330,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - **Implement to make existing tests pass** (TDD — tests created by Test Agent in Phase 1b)
 - Update `docs/PROJECT_CONTEXT.md`
 - 🔒 Checkpoint T2-2-B: verify `docs/PROJECT_CONTEXT.md` exists and has content (File Integrity Checkpoints table)
-- On PASS: Delegate to DevOps to clean stashpoint `git stash drop stash@{0}`
+- On PASS: Delegate to DevOps to clean both safety nets: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp). Verify cleaned.
 
 ### Phase 3 — Validation (Test Agent)
 - Run new feature tests
@@ -388,7 +389,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - Run quick regression on nearby areas
 - Update `docs/PROJECT_CONTEXT.md`
 - 🔒 Checkpoint T3-2-B: verify `docs/PROJECT_CONTEXT.md` exists and has content (File Integrity Checkpoints table)
-- On PASS: Delegate to DevOps to clean stashpoint `git stash drop stash@{0}`
+- On PASS: Delegate to DevOps to clean both safety nets: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp). Verify cleaned.
 
 ### Phase 3 — Verification (Test Agent)
 - Run bug fix tests
@@ -619,7 +620,7 @@ Before each Developer phase/group (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phas
 
 ### Post-scope Success (PASS)
 
-After Test validates the `<scope>`: **Delegate to DevOps to clean both** — `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`, verify cleaned.
+After Test validates the `<scope>`: **Delegate to DevOps to clean both** — resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp), verify cleaned: `git stash list` no `pre-<scope>` + `branch --list` empty.
 
 ### Post-scope Failure (ROLLBACK)
 

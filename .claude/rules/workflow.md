@@ -248,14 +248,14 @@ Before each Developer phase (Tier1 Phase3 / Tier2 Phase2 / Tier3 Phase2):
 
 ### Post-phase Success (PASS)
 
-After Test validates successfully for `<scope>`: clean stash `git stash drop stash@{0}` + clean branch `git branch -d backup/pre-<scope>-<timestamp>` + verify both cleaned.
+After Test validates successfully for `<scope>`: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then clean stash `git stash drop "$STASH_REF"` (skip if empty) + clean branch `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp) + verify both cleaned: `git stash list` no `pre-<scope>` + `branch --list` empty.
 
 ### Post-phase Failure (ROLLBACK)
 
 If validation fails after max iterations:
 1. Stop — do not proceed to next phase/group
-2. Attempt fast restore (stash first): `git reset --hard HEAD` + `git stash pop --index` → verify `git status` + `git stash list`
-3. If stash fails → fallback to backup branch: `git reset --hard backup/pre-<scope>-<timestamp>` → verify `git status` + `git log -1`
+2. Attempt fast restore (stash first): resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git reset --hard HEAD` + `git stash pop --index "$STASH_REF"` → verify `git status` clean + `git stash list` no `pre-<scope>`; if conflicts (needs merge/CONFLICT) keep stash intact and fallback
+3. If stash fails → fallback to backup branch: `git reset --hard backup/pre-<scope>-<timestamp>` → verify `git status` clean + `git log -1`
 4. If backup fails → escalate immediately — do NOT attempt manual conflict resolution
 5. Document rollback in `docs/CHANGELOG.md` with reason, branch name, reverted commits
 6. Escalate — present to human for decision
