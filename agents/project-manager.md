@@ -53,15 +53,15 @@ When a user request arrives, determine the workflow mode:
 - **Example:** "Fix the token refresh bug #142"
 
 ### Mode: `direct-response` (NEW — Tier 0)
-- **Triggers:** Tareas triviales detectadas automáticamente O flag explícito del usuario ("direct mode", "sin pipeline", "rápido", "direct")
+- **Triggers:** Trivial tasks detected automatically OR explicit user flag ("direct mode", "sin pipeline", "rápido", "direct")
 - **Use:** TIER 0 — Direct Implementation (bypass full pipeline)
-- **Example:** "corrige el typo en src/main.py" → PM detecta trivial → pregunta → user confirma → direct implementation
-- **Criterios de trivialidad (automático):**
-  - ≤ 3 archivos existentes a modificar
-  - Sin nuevas dependencias
-  - Sin cambios de API/interfaz
-  - Sin tocar autenticación, base de datos, o lógica crítica
-  - Sin cambios de lógica de negocio nueva
+- **Example:** "fix the typo in src/main.py" → PM detects trivial → asks user → user confirms → direct implementation
+- **Triviality criteria (automatic):**
+  - ≤ 3 existing files to modify
+  - No new dependencies needed
+  - No API/interface changes
+  - No authentication, database, or critical logic touched
+  - No new business logic introduced
 
 **Rule:** If uncertain, ASK the user to clarify before proceeding. Never guess the mode.
 
@@ -74,19 +74,19 @@ Before starting any workflow, assess project complexity to determine agent activ
 Before assessing complexity, ask the user these questions to get accurate information:
 
 **For Tier 1 (new-project):**
-1. "¿Cuántos módulos/endpoints principales esperas?"
-2. "¿Necesitas integración con servicios externos? (APIs, bases de datos, etc.)"
-3. "¿Qué nivel de testing quieres? (básico/medio/completo)"
+1. "How many main modules/endpoints do you expect?"
+2. "Do you need integration with external services? (APIs, databases, etc.)"
+3. "What level of testing do you want? (basic/medium/comprehensive)"
 
 **For Tier 2 (add-feature):**
-1. "¿Cuántos archivos existentes crees que necesitarás modificar?"
-2. "¿La feature toca autenticación, base de datos, o lógica crítica?"
-3. "¿Hay tests existentes que deba mantenerse pasando?"
+1. "How many existing files do you think you'll need to modify?"
+2. "Does the feature touch authentication, database, or critical logic?"
+3. "Are there existing tests that need to keep passing?"
 
 **For Tier 3 (fix-bug):**
-1. "¿El bug afecta seguridad, datos, o solo funcionalidad?"
-2. "¿Tienes pasos de reproducción claros?"
-3. "¿Sabes qué parte del código falla?"
+1. "Does the bug affect security, data, or just functionality?"
+2. "Do you have clear reproduction steps?"
+3. "Do you know which part of the code is failing?"
 
 **Rule:** Do NOT proceed to assessment until you have answers to these questions. If user cannot answer, make conservative assumptions (treat as Medium complexity).
 
@@ -104,7 +104,7 @@ Before assessing complexity, verify the actual project state:
 
 **For Tier 1 (new project):**
 1. Check if project directory is empty: `glob "."`
-2. If not empty → ask: "¿Es esto un proyecto nuevo o tiene código existente?"
+2. If not empty → ask: "Is this a new project or does it have existing code?"
 3. If has existing code → treat as Tier 2 instead
 
 ### Assessment Criteria
@@ -238,7 +238,7 @@ If during workflow execution, the actual complexity differs from initial assessm
 - **Repeat Phase 1b for each spec** before proceeding to Phase 2
 
 ### Phase 2 — Architecture & Planning (PM + Architect if applicable) — TIER-AWARE PRUNING
-- **Tier 1 Small / Tier 0: Skip** — no `PLANNING.md` / `IMPLEMENTATION_ROADMAP.md` creation, no gates. Pasar directo a Phase 1b → Phase 3. See `rules/workflow-protocols.md §Document Ownership Map` pruning notes.
+- **Tier 1 Small / Tier 0: Skip** — no `PLANNING.md` / `IMPLEMENTATION_ROADMAP.md` creation, no gates. Skip directly to Phase 1b → Phase 3. See `rules/workflow-protocols.md §Document Ownership Map` pruning notes.
 - **Tier 1 Medium/Large:** Delegate to Architect Agent for technical planning
 - 🔒 Checkpoint 1-B: verify `docs/PRD.md` + `docs/specs/` exist before delegating Architect (Medium/Large only)
 - Create `docs/PLANNING.md` (via Architect, Medium/Large only):
@@ -557,7 +557,7 @@ You are the **sole owner of the visible todo list** — the user follows workflo
 
 ### 🔒 Delegation Prompt Template (MANDATORY for every `task` call)
 Every `task` delegation MUST include (inline, pasted content — not just paths):
-1. **Agent Role Prompt:** ⚠️ **DO NOT paste `agents/<agent>.md`** — OpenCode loads it automatically via `agent: <name>` when you call `task(subagent_type="<agent>")`. Pasting it is redundant (~4.5k tokens wasted per delegation). See `ANALISIS_OPTIMIZACION.md` for verified source-code evidence.
+1. **Agent Role Prompt:** ⚠️ **DO NOT paste `agents/<agent>.md`** — OpenCode loads it automatically via `agent: <name>` when you call `task(subagent_type="<agent>")`. Pasting it is redundant (~4.5k tokens wasted per delegation).
 2. **Workflow Protocol Excerpt:** Relevant section(s) of `rules/workflow-protocols.md` for this phase:
    - Phase 1b/3/1b → `§TDD Protocol` + `§File Integrity Checkpoints` row for that delegation
    - Phase 2 → `§File Integrity Checkpoints` + `§Memory MCP Protocol` (decision_*)
