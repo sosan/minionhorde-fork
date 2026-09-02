@@ -246,7 +246,7 @@ If source files referenced in planning documents are missing:
 
 ## Code Review Workflow
 
-> **Workflow diagram:** See `AGENTS.md §Feedback Loop — Code Review Feedback Loop` for the full visual diagram.
+> **Workflow diagram:** See `rules/workflow-protocols.md §File Integrity Checkpoints` and this file's §Feedback Loop Protocol for the full flow.
 
 - **Max iterations:** 5 (Tier 1), 3 (Tier 2/3) before escalation to PM
 

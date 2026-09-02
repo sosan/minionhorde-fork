@@ -37,6 +37,10 @@ The Project Manager tells you which tier you're working in. Adapt your approach:
 | **Tier 2** (add-feature) | `docs/specs/<feature>.md` + `project_*` entity (from memory) + `tests/<slug>.*` (created by Test Agent) | Modify existing files + create new ones to make existing tests pass |
 | **Tier 3** (fix-bug) | `root_cause_*` entity (from memory) | Write bug-reproduction test FIRST, then implement minimal fix |
 
+## Workflow Reference
+
+For TDD protocol and iteration limits, see `rules/workflow-protocols.md §TDD Protocol` and `agents/test.md §Feedback Loop Protocol`.
+
 ## Implementation Protocol by Tier
 
 ### Tier 1: Phase-by-Phase Implementation (TDD)

@@ -162,7 +162,7 @@ Every feature phase follows strict TDD with spec as single source of truth. Viol
 1. **PM creates spec** — `docs/specs/<feature-slug>.md` with Acceptance Criteria in format `### AC-N: GIVEN / WHEN / THEN`. Spec status `approved` gates next step.
 2. **PM delegates Test (FIRST)** — Test Agent reads spec ACs and creates `tests/<slug>.*` stubs: `1 AC-N → 1 TC-00N`. Tests must initially FAIL (red). Verify with `glob` that test file exists; coverage = `TCs / ACs` must be 100% before Developer starts.
 3. **PM delegates Developer (SECOND)** — Developer reads spec + tests and implements ONLY to make tests pass. No source before tests — if `glob` for test file fails, Developer reports to PM and does NOT proceed.
-4. **Test validates** — Test executes tests + regression suite. PASS → phase completes. FAIL → feedback loop (max 3 iterations per AGENTS.md §Test Feedback Loop).
+4. **Test validates** — Test executes tests + regression suite. PASS → phase completes. FAIL → feedback loop (max 3 iterations per agents/test.md §Feedback Loop Protocol).
 5. **PM confirms phase** — Only after Test reports `PASS + 100% AC→TC coverage` does PM advance to next phase.
 
 ### AC Format
@@ -318,7 +318,7 @@ Before each Developer phase (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
 2. **Verify both exist:**
    - `git branch --list "backup/pre-<scope>*"` — backup branch must exist
    - `git stash list` — stash entry must exist (message contains `pre-<scope>`)
-3. If either fails → retry once (see AGENTS.md §Retry Protocol); if still fails → escalate to human immediately — do NOT proceed without safety nets
+3. If either fails → retry once (2s → 5s → escalate); if still fails → escalate to human immediately — do NOT proceed without safety nets
 
 ### Post-phase Success (PASS)
 

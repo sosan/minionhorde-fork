@@ -195,113 +195,14 @@ The Memory MCP provides persistent knowledge graph storage across sessions. All 
 - **Update state:** `add_observations({"entityName": "<name>", "contents": ["<fact>"]})`
 - **Full protocol:** See `rules/workflow-protocols.md §Memory MCP Protocol`
 
-## Feedback Loop Diagrams
+## Workflow References
 
-All agents reference these centralized workflow diagrams. Do not duplicate them in agent files.
+All workflow protocols live in `rules/workflow-protocols.md`. Agent files contain operational details. Do not duplicate diagrams here.
 
-### Test Feedback Loop (Developer → Test)
+> **Test Feedback Loop:** See `rules/workflow-protocols.md §TDD Protocol` and `agents/test.md §Feedback Loop Protocol`.
 
-```
-Developer Agent → Code Implementation
-    ↓
-Test Agent → Execute Tests
-    ↓
-[Test Result]
-    ├─ All PASS → Report PASS to PM
-    └─ Some FAIL → Feedback Loop Initiated
-                   ↓
-                   Iteration 1: Developer → Corrections → Re-test
-                   ↓
-                   [Iteration 1 Result]
-                   ├─ All PASS → Report PASS to PM
-                   └─ Some FAIL → Iteration 2
-                   ↓
-                   Iteration 2: Developer → Corrections → Re-test
-                   ↓
-                   [Iteration 2 Result]
-                   ├─ All PASS → Report PASS to PM
-                   └─ Some FAIL → Iteration 3
-                   ↓
-                   Iteration 3: Developer → Corrections → Re-test
-                   ↓
-                   [Iteration 3 Result]
-                   ├─ All PASS → Report PASS to PM
-                   └─ Some FAIL → Escalate to Project Manager (Human Oversight)
-```
+> **Code Review Feedback Loop:** See `rules/workflow-protocols.md §File Integrity Checkpoints` and `agents/code-review.md §Feedback Loop Protocol`.
 
-- **Max iterations:** 3 before escalation to PM
-- **See also:** Test Agent (`agents/test.md`), Developer Agent (`agents/developer.md`)
+> **Rollback Protocol:** See `rules/workflow-protocols.md §Rollback Protocol` for full protocol, naming convention, and escalation.
 
-### Code Review Feedback Loop (Code Review → Developer → Test)
-
-```
-Code Review Agent → Review (scope depends on tier)
-    ↓
-[Analysis Result]
-    ↓
-[Incident Categorization]
-    ├─ Critical/High/Medium → Feedback Loop Initiated
-    │   ↓
-    │   Iteration 1: Developer → Corrections → Test → Code Review
-    │   ↓
-    │   [Iteration 1 Result]
-    │   ├─ All Resolved → Continue
-    │   └─ Some Unresolved → Iteration 2
-    │   ... (up to 5 iterations for Tier 1, 3 for Tier 2/3)
-    │   ↓
-    │   [After timeout] → Escalate to Project Manager
-    │
-    └─ Low/Suggestions → incident_* entities in memory
-        ↓
-        Create incident_* entities
-        ↓
-        Register incidents for future consideration
-        ↓
-        Continue workflow
-```
-
-- **Max iterations:** 5 (Tier 1), 3 (Tier 2/3) before escalation to PM
-- **See also:** Code Review Agent (`agents/code-review.md`), Test Agent (`agents/test.md`)
-
-### Rollback Protocol (P1 — Hybrid: Backup Branch + Stashpoint)
-
-> **Single source of truth:** `rules/workflow-protocols.md §Rollback Protocol`. The diagram below is a summary; do not redefine names or steps here. Hybrid model preserves BOTH safety nets: stash (fast) + branch (hard), with unified naming `pre-<scope>` (`phase-<N>` or `group-<letter>`).
-
-```
-Before each Developer phase/group (Tier 1 Phase 3 / Tier 2 Phase 2 / Tier 3 Phase 2):
-  PM → DevOps: create TWO safety nets with unified <scope>
-       ├─ git branch backup/pre-<scope>-<timestamp> (permanent)
-       └─ git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked (fast)
-       → verify BOTH exist: git branch --list "backup/pre-<scope>*" + git stash list
-  Developer → implements scope
-  Test → validates (max 3 iterations)
-  ├─ PASS → DevOps: clean both (stash drop + branch -d backup/pre-<scope>-<timestamp>)
-  └─ FAIL → Rollback: stash pop --index → if fails → reset --hard backup/pre-<scope>-<timestamp> → if fails → escalate
-       → document in docs/CHANGELOG.md: rollback(<scope>): restore pre-<scope> - <reason>
-```
-
-- **See canonical:** `rules/workflow-protocols.md §Rollback Protocol` for Naming Convention (`pre-<scope>`), verification, and escalation.
-
-### Retry Protocol
-
-When an operation fails (git command, delegation, file creation, webhook POST), apply this retry strategy:
-
-```
-Attempt 1: Execute operation
-  ├─ SUCCESS → continue
-  └─ FAIL → wait 2s, retry
-       Attempt 2: Execute operation
-         ├─ SUCCESS → continue
-         └─ FAIL → wait 5s, retry
-              Attempt 3: Execute operation
-                ├─ SUCCESS → continue
-                └─ FAIL → ESCALATE immediately (do NOT retry further)
-```
-
-**Rules:**
-- **Max retries:** 3 attempts total (1 initial + 2 retries)
-- **Backoff:** 2s → 5s → escalate (exponential but bounded)
-- **Escalation:** Report failure to PM with error details, attempted retries, and context
-- **Non-blocking:** Never halt workflow for more than 17s total (2+5+10 timeout budget)
-- **Applies to:** git operations, delegation failures, file creation failures, webhook POSTs
-- **Does NOT apply to:** user input waits, Test Agent test execution (has its own loop), Code Review feedback loop (has its own timeout)
+> **Retry Protocol:** See `rules/workflow-protocols.md §Rollback Protocol §Pre-phase Safety Net Creation` for retry strategy.
