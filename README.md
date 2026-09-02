@@ -55,7 +55,7 @@ project-manager (primary, never writes code)
 * **Parallelization Protocol:** `IMPLEMENTATION_ROADMAP.md` marks `Parallel group: <letter>`. PM launches all phases in same group in **one message** (`N task` calls), waits, consolidates `PROJECT_CONTEXT.md` once.
 * **Rollback Protocol (Hybrid):** `stash` fast (`pop --index`) + `branch` hard (`reset --hard backup/pre-<scope>-<timestamp>`) with unified naming `pre-<scope>` = `phase-<N>` (sequential) or `group-<letter>` (parallel). Both verified before advancing.
 * **File Integrity Checkpoints:** `Verify BEFORE (prereqs via glob)` → delegate → `Verify AFTER (deliverable content >0)` → recovery → escalation after 2 fails.
-* **Delegation Prompt Template (mandatory):** every `task` pastes `agents/<agent>.md` + `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (1-2 max, e.g. `python-enterprise`) + `specs` content + `Verify BEFORE/AFTER` globs + `Output Contract`.
+* **Delegation Prompt Template (mandatory):** every `task` pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (1-2 max, e.g. `python-enterprise`) + `specs` content + `Verify BEFORE/AFTER` globs + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
 
 ### Agents
 
@@ -410,7 +410,7 @@ When installed, OpenCode resolves:
 
 ## Protocols (deep dive)
 
-* **Delegation Prompt Template (mandatory):** Every `task` pastes `agents/<agent>.md` + `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (e.g. `python-enterprise` only for Python stack) + `specs` content + `Verify BEFORE/AFTER globs` + `Output Contract`. Prevents degraded subagent.
+* **Delegation Prompt Template (mandatory):** Every `task` pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (e.g. `python-enterprise` only for Python stack) + `specs` content + `Verify BEFORE/AFTER globs` + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
 * **Tool preference:** Native `read`/`glob`/`grep` for gates, `filesystem` MCP only for `directory_tree`/`allowed_directories`. Batch independent `glob`s in parallel, use `docs/specs/*.md` not `**/*`, cache per phase.
 * **Memory MCP:** `project_*`, `workflow_*`, `ticket_*`, `decision_*`, `implementation_*`, `root_cause_*`, `incident_*`, `audit_*` — see `rules/... §Memory MCP Protocol` for creation/ownership/timing. Never `read_graph`.
 
