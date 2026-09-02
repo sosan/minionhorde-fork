@@ -85,9 +85,8 @@ Checkpoint 1b-A: specs exist + approved AC-N. Delegate to Test: reads spec ACs �
 ### Phase 3 — Iterative Implementation (Parallel-group aware)
 1. Checkpoint 3-A: verify specs + tests(FAIL) + PLANNING( if M/L) + ROADMAP groups. Group by `Parallel group` A,B,C...
 2. For EACH group in order A→B→C:
-   a. Stashpoint: delegate DevOps `git stash push -m "pre-<scope> - <names>" --keep-index --include-untracked` where `<scope>` = `group-<letter>` if roadmap has `Parallel group:`, else `phase-<N>` (workflow.md §Naming Convention) + `git branch backup/pre-<scope>-<timestamp>` + verify both via `git stash list | grep "pre-<scope>"` + `git branch --list "backup/pre-<scope>*"`; if either fails retry 2s→5s→escalate
+   a. Stashpoint: delegate DevOps `git stash push -m "pre-group-<letter> - <names>" --keep-index --include-untracked` + `git branch backup/pre-group-<letter>-<timestamp>` + verify both (Glob/Bash)
    b. Verify tests exist per phase in group (Glob tests/<slug>.*) — if missing → delegate Test first
-   b2. Files overlap gate (MANDATORY): for each pair phases in same group, compare `Files:` lists — if any overlap → do NOT launch parallel → sequential or escalate to Architect
    c. Delegate Developer IN PARALLEL (single message, N Agent calls): one per phase in group, with Delegation Prompt Template. **Parallel Developers MUST NOT write PROJECT_CONTEXT.md** — they report delta to PM
    d. Wait ALL, consolidate PROJECT_CONTEXT.md once (PM writes)
    e. Checkpoint 3-B: src for group + PROJECT_CONTEXT.md >0

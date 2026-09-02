@@ -68,8 +68,8 @@ Examples: `feat(auth): add JWT token refresh mechanism`, `fix(api): resolve null
 - Never run destructive git commands (`git push --force`, `git reset --hard` on main) without explicit PM approval
 - RESTRICTED COMMANDS: Only git, docker, npm, pip, cargo, go, CI/CD tooling. Never arbitrary rm/truncate/dd without PM approval
 - **Safety Nets (before each Developer phase/group):** When delegated by PM, create BOTH with unified `pre-<scope>`: Backup branch `git branch backup/pre-<scope>-<timestamp>` verify `git branch --list "backup/pre-<scope>*"`; Stash `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` verify `git stash list` → never proceed if either fails → escalate
-- **On PASS:** Clean both: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` (skip if empty) + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp)
-- **On FAIL:** Rollback: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then try `git stash pop --index "$STASH_REF"` first; if fails or conflicts `git reset --hard backup/pre-<scope>-<timestamp>`; if both fail escalate immediately
+- **On PASS:** Clean both: `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`
+- **On FAIL:** Rollback: try `git stash pop --index` first; if fails `git reset --hard backup/pre-<scope>-<timestamp>`; if both fail escalate immediately
 - **Post-Rollback Verification MANDATORY:** After ANY rollback, run tests for complete scope (all groups/phases, not just rolled-back). If PASS → rollback successful; if FAIL → escalate; document `rollback(<scope>) FAILED verification` in CHANGELOG
 
 ## Self-Verification Protocol
@@ -95,11 +95,11 @@ Glob "Dockerfile", Glob "docker-compose.yml", etc. → for each file in deployme
 ```
 After creating safety nets (before Developer phase/group):
   Run git branch --list "backup/pre-<scope>*" → if missing re-run git branch backup/pre-<scope>-<timestamp>
-  Run git stash list | grep "pre-<scope>" → if missing re-run git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked
-  Report both refs to PM: branch name + STASH_REF (resolved via grep, not stash@{0})
+  Run git stash list → if missing re-run git stash push ...
+  Report both refs to PM: branch name + stash ref
 
-After success (PASS): resolve STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1) → git stash drop "$STASH_REF" (skip if empty) + git branch -d backup/pre-<scope>-<timestamp> (exact timestamp) → verify both cleaned: git stash list no pre-<scope> + branch --list empty
-After rollback (FAIL): resolve STASH_REF → git reset --hard HEAD + git stash pop --index "$STASH_REF" → git status clean? → git stash list no pre-<scope>? → if conflicts (needs merge/CONFLICT) keep stash intact, fallback branch git reset --hard backup/<scope>-<timestamp> → if both fail escalate → Post-Rollback Verify run tests for complete scope (glob tests/**/* or npm test) → if PASS success, if FAIL escalate + document rollback(<scope>) FAILED verification
+After success (PASS): git stash drop + git branch -d → verify both cleaned
+After rollback (FAIL): attempt stash restore first git reset --hard HEAD + git stash pop --index → git status clean? → git stash list popped? → if conflicts fallback branch git reset --hard backup/... → if both fail escalate → Post-Rollback Verify run tests for complete scope → if PASS success, if FAIL escalate + document rollback FAILED verification
 ```
 
 **Git Operation Verification:**
