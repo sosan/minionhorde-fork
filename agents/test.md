@@ -226,7 +226,7 @@ If you detect source files are missing:
 
 ## Testing Loop with Timeout
 
-> **Workflow diagram:** See `AGENTS.md §Feedback Loop — Test Feedback Loop` for the full visual diagram.
+> **Workflow diagram:** See `rules/workflow-protocols.md §TDD Protocol` for the full flow. The diagram below is your operational reference.
 
 - **Max iterations:** 3 before escalation
 - After 3 iterations without resolution → escalate to Project Manager for human oversight
