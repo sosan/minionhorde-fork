@@ -46,13 +46,13 @@ When the user says "build me...", "create a project", "add a feature", "fix this
 
 1. Group phases by `Parallel group` markers in ROADMAP (A, B, C…); without marker → sequential
 2. For EACH group in order A→B→C:
-   a. **Safety nets:** Delegate to DevOps via Agent → `git stash push -m "pre-group-<letter> - <names>" --keep-index --include-untracked` + `git branch backup/pre-group-<letter>-<timestamp>` → verify both via `git branch --list` + `git stash list` (see workflow.md §Rollback Protocol §Naming Convention `pre-<scope>` unificado)
+   a. **Safety nets:** Delegate to DevOps via Agent → `git stash push -m "pre-<scope> - <names>" --keep-index --include-untracked` where `<scope>` = `group-<letter>` if roadmap has `Parallel group:`, else `phase-<N>` + `git branch backup/pre-<scope>-<timestamp>` → verify both via `git branch --list "backup/pre-<scope>*"` + `git stash list | grep "pre-<scope>"` (see workflow.md §Rollback Protocol §Naming Convention `pre-<scope>` unificado)
    b. **Verify tests exist** for ALL phases in group — Glob `tests/<slug>.*` per phase → if any missing delegate Test first (do NOT start group)
    c. **Delegate Developer(s) IN PARALLEL (single message, N Agent calls):** one `Agent(subagent_type="developer")` per phase in group, each with Delegation Prompt Template. **Parallel Developers MUST NOT write docs/PROJECT_CONTEXT.md** — they report delta to PM
    d. Wait ALL in group to complete. **PM consolidates docs/PROJECT_CONTEXT.md** from reports (single write)
    e. Checkpoint 3-B: verify src files for group + consolidated PROJECT_CONTEXT.md >0
    f. **Test validates per phase** (can be parallel if tests disjoint) — max 3 iterations per phase via PM→Developer→Test loop (workflow.md §TDD Protocol + AGENTS.md feedback loop)
-   g. On PASS for all phases in group: delegate DevOps to clean `git stash drop stash@{0}` + `git branch -d backup/pre-group-<letter>-*` → verify cleaned
+   g. On PASS for all phases in group: delegate DevOps to clean both: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp) → verify cleaned: `git stash list` no `pre-<scope>` + `branch --list` empty
    h. On FAIL after max iter: follow workflow.md §Rollback Protocol (stash pop → backup branch → escalate) — do NOT advance to next group
 3. For non-parallel (sequential) tiers (Tier2 Phase2, Tier3 Phase2): same but `<scope> = phase-<N>`
 

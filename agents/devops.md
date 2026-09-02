@@ -139,7 +139,7 @@ Setup CI/CD pipelines appropriate for the technology stack:
   - **Backup branch:** `git branch backup/pre-<scope>-<timestamp>` — verify with `git branch --list "backup/pre-<scope>*"`
   - **Stashpoint:** `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` — verify with `git stash list`
   - Never proceed if either creation fails — escalate to PM
-- **On PASS:** Clean both safety nets: `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`
+- **On PASS:** Clean both safety nets: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` (skip if empty) + `git branch -d backup/pre-<scope>-<timestamp>` (exact timestamp)
 - **On FAIL:** Follow rollback sequence: try `git stash pop --index` first; if fails, `git reset --hard backup/pre-<scope>-<timestamp>`; if both fail, escalate to PM immediately
 - **Post-Rollback Verification (MANDATORY):** After ANY rollback, run tests for complete scope (all groups/phases, not just rolled-back). If tests PASS → rollback successful. If tests FAIL → escalate to PM immediately. Document in CHANGELOG: `rollback(<scope>) FAILED verification`. See `rules/workflow-protocols.md §Post-Rollback Verification`.
 
@@ -184,18 +184,18 @@ After creating safety nets (before Developer phase/group):
   → If missing → re-run `git branch backup/pre-<scope>-<timestamp>`
   → Run `git stash list` to verify stash exists with message "pre-<scope> - <name>"
   → If missing → re-run `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked`
-  → Report both refs to PM: backup branch name + stash ref (stash@{0})
+  → Report both refs to PM: backup branch name + STASH_REF (resolved via `git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1`, not hardcoded `stash@{0}`)
 
 After successful scope (PASS):
-  → Run `git stash drop stash@{0}` — clean stashpoint
-  → Run `git branch -d backup/pre-<scope>-<timestamp>` — clean backup branch
-  → Verify both cleaned: `git stash list` + `git branch --list "backup/pre-<scope>*"`
+  → Resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)`
+  → Run `git stash drop "$STASH_REF"` — clean stashpoint (skip if STASH_REF empty)
+  → Run `git branch -d backup/pre-<scope>-<timestamp>` — clean backup branch (exact timestamp)
+  → Verify both cleaned: `git stash list` must NOT contain `pre-<scope>` + `git branch --list "backup/pre-<scope>*"` empty
 
 After rollback (FAIL):
-  → Attempt stash restore first: `git reset --hard HEAD` + `git stash pop --index`
-  → Run `git status` to verify clean state
-  → Run `git stash list` to verify stash was popped
-  → If pop had conflicts → fallback to backup branch: `git reset --hard backup/pre-<scope>-<timestamp>`
+  → Resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)`
+  → Attempt stash restore first: `git reset --hard HEAD` + `git stash pop --index "$STASH_REF"` — verify `git status` clean + `git stash list` no longer contains `pre-<scope>`
+  → If pop had conflicts (`needs merge` or `CONFLICT`) → do NOT drop, keep stash intact, fallback to backup branch: `git reset --hard backup/pre-<scope>-<timestamp>`
   → If backup branch also fails → escalate to PM immediately, do NOT force resolution
   → Post-Rollback Verification: Run tests for complete scope (all groups/phases)
   → If tests PASS → rollback successful
