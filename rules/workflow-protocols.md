@@ -92,6 +92,197 @@ If during Tier 0 execution, the task is discovered to be more complex:
 
 ---
 
+## Tier 4: Research / Spike Workflow
+
+> **Dogma:** Tier 4 is a structured research pipeline that leverages existing agents (PM, Architect, Developer, Documentation) with adapted roles. The output is **knowledge** (Spike Report), not production code. Positive spikes escalate to Tier 1/2 for implementation.
+
+### Trigger
+
+**Keyword detection:**
+- `spike`, `research`, `explore`, `proof of concept`, `POC`, `feasibility`, `viability`, `evaluate`, `compare`
+
+**Intent detection (no keyword):**
+- If task implies research/exploration without explicit keywords → PM asks confirmation:
+  ```
+  "Is this a spike (research to evaluate viability) 
+   or do you want me to implement it directly?"
+  ```
+- If user says "spike" → Tier 4
+- If user says "implement" → Tier 0/1/2 based on complexity
+
+### Agents Activated
+
+| Agent | Mode | Notes |
+|-------|------|-------|
+| Project Manager | Detection + coordination + post-spike decision | No PRD, no specs, no complexity assessment |
+| Architect | Research intensivo (50 steps) | Output: Spike Report sections, `decision_*` entity |
+| Developer | POC implementation | No TDD, no PROJECT_CONTEXT, no docstrings, `spike/<topic>` branch |
+| Documentation | Spike Report consolidation | Generates `docs/spikes/<topic>-<YYYYMMDD>.md` |
+| Test | **Not activated** | POC doesn't need formal validation |
+| Code Review | **Not activated** | Not production code |
+| DevOps | **Minimal** (stashpoint only) | No mandatory commit, no CHANGELOG |
+
+### Documents Created
+
+| Document | Responsible Agent | Template |
+|----------|------------------|----------|
+| `docs/spikes/<topic>-brief.md` | PM | `templates/context-files/SPIKE_BRIEF.md` |
+| `docs/spikes/<topic>-<YYYYMMDD>.md` | Documentation | `templates/context-files/SPIKE_REPORT.md` |
+| `decision_*` entity | Architect | Memory MCP |
+
+### Branch
+
+`spike/<topic>` — see §Feature Branch Policy for naming.
+
+### TDD Protocol
+
+**Not applicable.** POC implementations do not require formal tests. Manual validation is sufficient.
+
+### Rollback Protocol
+
+**Minimal.** Stashpoint only (no backup branch). See §Rollback Protocol §Naming Convention.
+
+### Memory Entities
+
+| Entity | Owner | Purpose |
+|--------|-------|---------|
+| `decision_*` | Architect | Technology selection, alternatives rejected, rationale |
+| `audit_*` | Any agent | Spike workflow events |
+
+### File Integrity Checkpoints
+
+| Delegation | Verify BEFORE | Verify AFTER | Recovery |
+|------------|---------------|--------------|----------|
+| Tier 4 Ph 0 — PM: research brief | — | `docs/spikes/<topic>-brief.md` exists | PM creates directly |
+| Tier 4 Ph 1 — Architect: research | `docs/spikes/<topic>-brief.md` exists | `decision_*` entity in memory (search_nodes) | Architect |
+| Tier 4 Ph 2 — Developer: POC | `decision_*` entity exists | `spike/<topic>` branch + POC files exist | Developer |
+| Tier 4 Ph 3 — Documentation: report | POC files exist + `decision_*` entity | `docs/spikes/<topic>-<YYYYMMDD>.md` exists, content > 50 lines | Documentation |
+
+### Escalation
+
+If during Tier 4 execution, the task is discovered to be more complex than a spike:
+1. PM re-assesses using §Complexity Assessment
+2. May escalate to Tier 1/2/3
+3. Branch changes: `spike/<topic>` → `feature/<topic>` or `fix/<topic>`
+4. Spike findings carry over as `decision_*` entity context
+
+### Post-Spike Decision
+
+After Phase 3 (Documentation), PM presents the Spike Report and asks:
+
+```
+question:
+  "The spike <topic> is complete. Result: <VIABLE/NOT VIABLE/CONDITIONAL>.
+  
+  What do you want to do?"
+
+  options:
+    - label: "Escalate to feature"
+      description: "Use spike as base for Tier 1 or Tier 2 implementation"
+    - label: "Save and move on"
+      description: "Keep the report, continue with other work"
+    - label: "Research more"
+      description: "New spike with different angle or deeper investigation"
+  multiple: false
+```
+
+**If "Escalate to feature":**
+- PM generates a brief from the Spike Report
+- Enters Tier 1 or Tier 2 normal workflow
+- Spike Report referenced via `decision_*` entity in Memory
+
+**If "Save":**
+- Report saved to `docs/spikes/`
+- `decision_*` entity created in Memory (if not already)
+- Workflow ends
+
+### Spike Report Structure
+
+The Documentation Agent consolidates all findings into `docs/spikes/<topic>-<YYYYMMDD>.md` using the SPIKE_REPORT.md template. Key sections:
+
+1. **Research Question** — what we tried to validate
+2. **Technology Evaluation** — comparison table of options
+3. **Alternatives Analysis** — why alternatives were rejected
+4. **Risk Assessment** — risks with severity and mitigation
+5. **POC Implementation** — branch, files, how to run, result
+6. **Conclusions** — viability + effort estimation if escalated
+7. **Lessons Learned** — unexpected findings
+8. **Recommendation** — concrete next steps
+
+### Delegation Patterns
+
+#### PM → Architect (Phase 1)
+
+```
+Tier 4 — Phase 1: Research
+
+Context:
+- Research Brief: <content of SPIKE_BRIEF.md>
+- Scope: <topic>
+- Project context: <existing codebase summary>
+
+Task:
+1. Research the following question: <question>
+2. Use websearch and context7 to evaluate technology options
+3. Analyze alternatives with pros/cons
+4. Assess technical risks
+5. Estimate effort if this were a feature
+6. Create decision_* entity in Memory MCP with findings
+7. Return: Technology Evaluation, Alternatives, Risk Assessment, 
+   Effort Estimate, Recommendation
+
+Verify AFTER: decision_* entity exists (search_nodes)
+```
+
+#### PM → Developer (Phase 2)
+
+```
+Tier 4 — Phase 2: POC Implementation
+
+Context:
+- Architect recommendation: <summary>
+- Branch: spike/<topic>
+- Scope: implement a POC to validate <question>
+
+Rules:
+- No TDD required
+- No PROJECT_CONTEXT update
+- No docstrings required
+- Max 1-2 files
+- Functional code only
+
+Task:
+1. Create branch spike/<topic>
+2. Implement POC based on Architect recommendation
+3. Verify the POC demonstrates the concept works
+4. Return: files created, how to run, result (works/partially/fails)
+
+Verify AFTER: spike/<topic> branch exists, POC files exist
+```
+
+#### PM → Documentation (Phase 3)
+
+```
+Tier 4 — Phase 3: Spike Report Generation
+
+Context:
+- Spike topic: <topic>
+- Research Brief: <content>
+- Architect findings: <sections from Phase 1>
+- Developer POC: <files, branch, result>
+
+Task:
+1. Read SPIKE_REPORT.md template
+2. Consolidate all findings into the template
+3. Create docs/spikes/ directory if it doesn't exist
+4. Write to docs/spikes/<topic>-<YYYYMMDD>.md
+5. Return: file path, viability status, recommendation
+
+Verify AFTER: docs/spikes/<topic>-<YYYYMMDD>.md exists, content > 50 lines
+```
+
+---
+
 ## Feature Branch Policy
 
 Every workflow creates and works on an isolated feature branch. No implementation happens on the default branch.

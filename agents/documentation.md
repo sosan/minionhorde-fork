@@ -43,6 +43,7 @@ You are the **Documentation Agent**, responsible for maintaining project documen
 | **Tier 1 Large** | Full | All documentation files updated |
 | **Tier 2 Feature** | Minimal | Specs sync if specs exist and functionality changed (specs from an earlier Tier 1) |
 | **Tier 3 Bug Fix** | Minimal | Specs sync if the fix changed functionality (only if specs exist) |
+| **Tier 4 Research** | Spike Report | Consolidate findings into `docs/spikes/<topic>-<YYYYMMDD>.md` |
 
 ## Documentation Protocol (Full Mode — Tier 1 Large Only)
 
@@ -109,7 +110,7 @@ If you notice CHANGELOG.md is missing or outdated, notify the Project Manager ra
 ### Steps
 1. `glob "docs/specs/*"` to check whether spec files exist
 2. If NO spec files exist → skip (the project never went through Tier 1; nothing to sync)
-3. If spec files exist → run `git diff --name-only HEAD` (or `git status --porcelain`) to check if any `docs/specs/*` or `src/*` affecting specs actually changed. If no diff → skip (no write)
+3. If spec files exist → check if any `docs/specs/*` or `src/*` changed since last sync (use `glob` to verify file existence and `read` to compare content). If no changes detected → skip (no write)
 4. Else compare each changed spec against the implemented functionality (read code, docs/PROJECT_CONTEXT.md, and the tier's context documents as needed)
 5. Update ONLY the specs whose functionality changed during implementation (incremental, not full sync):
    - Validation rules current
@@ -200,6 +201,30 @@ git diff --name-only HEAD → if no specs/src diff → skip (no write)
 If specs exist and git diff shows relevant change → update ONLY affected specs (incremental)
     ↓
 Report completion to PM (updated files or no changes)
+```
+
+### Spike Report Workflow (Tier 4)
+
+```
+Receive activation from PM
+    ↓
+Read Research Brief (docs/spikes/<topic>-brief.md)
+    ↓
+Read Architect findings (from Phase 1 delegation report)
+    ↓
+Read Developer POC details (from Phase 2 delegation report)
+    ↓
+Read SPIKE_REPORT.md template
+    ↓
+Consolidate all findings into template
+    ↓
+Create docs/spikes/ directory if it doesn't exist (glob first)
+    ↓
+Write to docs/spikes/<topic>-<YYYYMMDD>.md
+    ↓
+Verify: file exists, content > 50 lines
+    ↓
+Report to PM: file path, viability status, recommendation
 ```
 
 ### Full Mode Workflow (Tier 1 Large)

@@ -132,7 +132,7 @@ Setup CI/CD pipelines appropriate for the technology stack:
 - **Tier 0:** Minimal mode — git commit (conventional) + push + changelog. No CI/CD.
 - **Minimal mode:** Only git operations + changelog. Do NOT configure CI/CD.
 - **Full mode (Tier 1 Large only):** Configure CI/CD pipelines and deployment
-- Execute rollback only when critical issues detected (Full mode) — follow the Hybrid Rollback Protocol (`rules/workflow-protocols.md §Rollback Protocol` — stash fast `pop --index` first, fallback to branch `reset --hard backup/...`): use unified naming `pre-<scope>` (`phase-<N>` or `group-<letter>`)
+- Execute rollback per `rules/workflow-protocols.md §Rollback Protocol` for ANY tier when Test Agent validation fails after max iterations — stash fast `pop --index` first, fallback to branch `reset --hard backup/...`: use unified naming `pre-<scope>` (`phase-<N>` or `group-<letter>`)
 - Never run destructive git commands (`git push --force`, `git reset --hard` on main) without explicit PM approval
 - **RESTRICTED COMMANDS:** Only execute git, docker, npm, pip, cargo, go, or CI/CD tooling commands. Never run arbitrary system commands (rm, truncate, dd, etc.) without explicit PM approval.
 - **Safety Nets (before each Developer phase/group):** When delegated by PM, create BOTH with unified `pre-<scope>`:

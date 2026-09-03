@@ -248,7 +248,7 @@ Before each Developer phase (Tier1 Phase3 / Tier2 Phase2 / Tier3 Phase2):
 
 ### Post-phase Success (PASS)
 
-After Test validates successfully for `<scope>`: clean stash `git stash drop stash@{0}` + clean branch `git branch -d backup/pre-<scope>-<timestamp>` + verify both cleaned.
+After Test validates successfully for `<scope>`: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + clean branch `git branch -d backup/pre-<scope>-<timestamp>` + verify both cleaned.
 
 ### Post-phase Failure (ROLLBACK)
 

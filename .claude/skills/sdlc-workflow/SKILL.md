@@ -52,7 +52,7 @@ When the user says "build me...", "create a project", "add a feature", "fix this
    d. Wait ALL in group to complete. **PM consolidates docs/PROJECT_CONTEXT.md** from reports (single write)
    e. Checkpoint 3-B: verify src files for group + consolidated PROJECT_CONTEXT.md >0
    f. **Test validates per phase** (can be parallel if tests disjoint) — max 3 iterations per phase via PM→Developer→Test loop (workflow.md §TDD Protocol + AGENTS.md feedback loop)
-   g. On PASS for all phases in group: delegate DevOps to clean `git stash drop stash@{0}` + `git branch -d backup/pre-group-<letter>-*` → verify cleaned
+   g. On PASS for all phases in group: delegate DevOps to clean `STASH_REF=$(git stash list | grep "pre-group-<letter>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-group-<letter>-*` → verify cleaned
    h. On FAIL after max iter: follow workflow.md §Rollback Protocol (stash pop → backup branch → escalate) — do NOT advance to next group
 3. For non-parallel (sequential) tiers (Tier2 Phase2, Tier3 Phase2): same but `<scope> = phase-<N>`
 

@@ -117,7 +117,7 @@ Full protocols live in the agent files (`~/.config/opencode/agents/*.md`). This 
 | Test (`test`) | Test creation, execution & validation | Test files only (never source) | Maps tests to PRD requirements; executes against Developer's code; reports pass/fail + root cause + coverage; feedback loop max 3 iterations; never spawns subagents |
 | Code Review (`code-review`) | Quality + security review (merged), incident categorization | `incident_*` entities (Low/Suggestions) | Categorizes Critical > High > Medium > Low > Suggestions; feedback loop max 5 iterations (3 for Tier 2/3); never edits source code |
 | DevOps (`devops`) | Git operations, CI/CD, deployment, changelog | `docs/CHANGELOG.md`, CI/CD and deployment configs | Conventional commits; Minimal mode = git + changelog only; Full mode (Tier 1 Large) = CI/CD + deployment; no destructive git commands without PM approval |
-| Documentation (`documentation`) | Documentation maintenance + on-demand reports | `docs/README.md`, `docs/API_REFERENCE.md`, specs sync | Minimal mode = specs sync only; never updates CHANGELOG (DevOps owns it); Full mode (Tier 1 Large) = README + API reference + PLANNING sync; reads all memory entities for report generation |
+| Documentation (`documentation`) | Documentation maintenance + on-demand reports | `docs/README.md`, `docs/API_REFERENCE.md`, specs sync | Minimal mode = specs sync only; Spike mode (Tier 4) = Spike Report consolidation; never updates CHANGELOG (DevOps owns it); Full mode (Tier 1 Large) = README + API reference + PLANNING sync; reads all memory entities for report generation |
 
 ### Shared Subagent Directives (MANDATORY)
 

@@ -81,6 +81,7 @@ Permissions enforce safety: `architect`/`test`/`code-review` `bash: deny` except
 | **Tier 1 Large** | >20 files | All agents full | + `README.md` + `API_REFERENCE.md` + `CHANGELOG.md` + CI/CD |
 | **Tier 2 Feature** | `add/feature/extend` on existing project | PM + Architect + Developer + Test + CR + DevOps/Doc minimal | `specs/<feature>.md` + `PROJECT_CONTEXT.md` |
 | **Tier 3 Bug** | `fix/bug #N` | PM + Developer + Test + CR, Architect if unclear | `ticket_*` + `root_cause_*` + bug-repro test (Developer creates) |
+| **Tier 4 Research** | `spike/research/explore/POC/feasibility` | PM + Architect (50 steps) + Developer (POC) + Documentation | `docs/spikes/<topic>-brief.md` + `docs/spikes/<topic>-<date>.md` + `decision_*` entity |
 
 See `rules/workflow-protocols.md §Document Ownership Map` and `§Prerequisite & Deliverable Table` for canonical gates (pruned notes included).
 
@@ -355,8 +356,8 @@ opencode
 
 ```bash
 # Tier 0 — trivial, no pipeline
-opencode run --agent project-manager "corrige el typo en src/main.py"
-# → PM detects ≤3 files, asks via question tool: "¿Direct mode?" → Yes → Developer direct + DevOps commit
+opencode run --agent project-manager "fix the typo in src/main.py"
+# → PM detects ≤3 files, asks via question tool: "Direct mode?" → Yes → Developer direct + DevOps commit
 
 # Tier 1 Small — no PLANNING overhead
 "Build a Go CLI that converts CSV to JSON (3 files)"
@@ -369,6 +370,12 @@ opencode run --agent project-manager "corrige el typo en src/main.py"
 # Tier 3 — bug
 "Fix the token refresh race #142"
 # → ticket_142_* → Developer root_cause_142_* (file:line + hypothesis) → bug-repro test (FAIL→PASS) → minimal fix → Test regression → CR quick → DevOps fix(auth): ... #142
+
+# Tier 4 — research spike
+"Spike: evaluate WebSockets vs SSE for real-time notifications"
+# → PM detects spike → creates research brief → Architect researches (50 steps, websearch + context7)
+# → Developer implements POC on spike/websockets-vs-sse branch → Documentation consolidates Spike Report
+# → PM asks: "Escalate to feature?" → If yes → Tier 1/2 with Spike Report as context
 ```
 
 ### Key files (where to look when debugging)
@@ -377,7 +384,7 @@ opencode run --agent project-manager "corrige el typo en src/main.py"
 * `rules/workflow-protocols.md` — **Single source of truth** for `TDD Protocol`, `File Integrity Checkpoints`, `Parallelization Protocol`, `Rollback Protocol (stash+branch pre-<scope>)`, `Memory MCP Protocol`, `Document Ownership Map`. Do not duplicate.
 * `rules/security-policy.md` — Blocked files/env/commands/secret patterns (mandatory).
 * `agents/*.md` — Per-agent system prompts, tier awareness, `tool preference` (native `glob/read/grep` primary), `steps`, `temperature`, `model`.
-* `docs/` — Generated at runtime: `PRD.md`, `specs/*.md` (AC-N G/W/T), `PLANNING.md`, `IMPLEMENTATION_ROADMAP.md` (with `Parallel group: A/B` + `status`), `PROJECT_CONTEXT.md` (living state), `CHANGELOG.md` (derived), `README.md`, `API_REFERENCE.md`.
+* `docs/` — Generated at runtime: `PRD.md`, `specs/*.md` (AC-N G/W/T), `PLANNING.md`, `IMPLEMENTATION_ROADMAP.md` (with `Parallel group: A/B` + `status`), `PROJECT_CONTEXT.md` (living state), `CHANGELOG.md` (derived), `README.md`, `API_REFERENCE.md`, `spikes/*.md` (Spike Reports from Tier 4).
 * `prompts/build.txt` + `plan.txt` — Built-in `build` (full-access) / `plan` (restricted) primaries you can `Tab` to.
 
 ## Project Structure
@@ -413,6 +420,7 @@ When installed, OpenCode resolves:
 * **Delegation Prompt Template (mandatory):** Every `task` pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (e.g. `python-enterprise` only for Python stack) + `specs` content + `Verify BEFORE/AFTER globs` + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
 * **Tool preference:** Native `read`/`glob`/`grep` for gates, `filesystem` MCP only for `directory_tree`/`allowed_directories`. Batch independent `glob`s in parallel, use `docs/specs/*.md` not `**/*`, cache per phase.
 * **Memory MCP:** `project_*`, `workflow_*`, `ticket_*`, `decision_*`, `implementation_*`, `root_cause_*`, `incident_*`, `audit_*` — see `rules/... §Memory MCP Protocol` for creation/ownership/timing. Never `read_graph`.
+* **Tier 4 Spike Workflow:** Structured research pipeline. PM detects spike → creates brief → Architect researches (50 steps, `websearch` reinforced) → Developer implements POC (no TDD) → Documentation consolidates Spike Report → PM offers escalation to Tier 1/2. See `rules/workflow-protocols.md §Tier 4: Research / Spike Workflow`.
 
 ## Troubleshooting
 

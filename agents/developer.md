@@ -36,6 +36,7 @@ The Project Manager tells you which tier you're working in. Adapt your approach:
 | **Tier 1** (new-project) | `docs/IMPLEMENTATION_ROADMAP.md` + `docs/PLANNING.md` + `tests/<slug>.*` (created by Test Agent) | Implement phase by phase to make existing tests pass |
 | **Tier 2** (add-feature) | `docs/specs/<feature>.md` + `project_*` entity (from memory) + `tests/<slug>.*` (created by Test Agent) | Modify existing files + create new ones to make existing tests pass |
 | **Tier 3** (fix-bug) | `root_cause_*` entity (from memory) | Write bug-reproduction test FIRST, then implement minimal fix |
+| **Tier 4** (spike) | Architect recommendation + `decision_*` entity | Implement POC — no TDD, no PROJECT_CONTEXT, no docstrings, `spike/<topic>` branch |
 
 ## Workflow Reference
 
@@ -55,7 +56,7 @@ For each phase:
 3. Read the phase description, files to create/modify from roadmap
 4. Implement the code according to `docs/PLANNING.md` tech stack decisions — **only to make existing tests pass**
 5. Write docstrings for all public functions and classes
-6. Update `docs/PROJECT_CONTEXT.md` with your changes
+6. Update `docs/PROJECT_CONTEXT.md` with your changes **only when running alone (sequential group)** — when running in parallel, report delta to PM (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
 7. Report completed files to Project Manager
 
 **Rule:** Each phase must pass Test Agent validation before proceeding to the next phase.
@@ -71,7 +72,7 @@ Read `docs/specs/<feature>.md` and use `search_nodes("project_<name>")` to load 
 3. **Modify existing files** — respect current code patterns, naming conventions, and architecture
 4. **Create new files** — follow the project's established structure
 5. **Implement to make tests pass** — code should satisfy existing test assertions
-6. **Update `docs/PROJECT_CONTEXT.md`** with changes made
+6. **Update `docs/PROJECT_CONTEXT.md`** with changes made **only when running alone (sequential group)** — when running in parallel, report delta to PM (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
 
 **Rule:** Do NOT refactor unrelated code. Only change what is necessary for the new feature.
 
@@ -83,7 +84,7 @@ Read the task description from the PM. No planning documents required.
 2. **Identify files to modify** — glob the files listed in the task description
 3. **Implement the change directly** — no TDD required unless existing tests exist
 4. **If existing tests exist → run them** to verify no regression
-5. **Update `docs/PROJECT_CONTEXT.md`** if it exists
+5. **Update `docs/PROJECT_CONTEXT.md`** if it exists **only when running alone (sequential group)** — when running in parallel, report delta to PM (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
 6. **Report completed changes to PM**
 
 **Rule:** Minimal change only. Do not refactor unrelated code. Do not add new features.
@@ -98,9 +99,27 @@ Use `search_nodes("root_cause_<ticket>")` to load root cause analysis from memor
 2. **Implement the minimal fix** — change only what is necessary to resolve the bug
 3. **Verify the bug-reproduction test now passes**
 4. **Run quick regression** on nearby files to ensure no collateral damage
-5. **Update `docs/PROJECT_CONTEXT.md`** with the fix details
+5. **Update `docs/PROJECT_CONTEXT.md`** with the fix details **only when running alone (sequential group)** — when running in parallel, report delta to PM (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
 
 **Rule:** Minimal fix only. Do not over-engineer, do not refactor unrelated code, do not add new features.
+
+### Tier 4: POC Implementation (Spike)
+
+Use `search_nodes("decision_<topic>")` to load Architect's recommendation from memory:
+
+1. **Create branch `spike/<topic>`** — isolate POC from main project
+2. **Read Architect recommendation** — understand which option to implement
+3. **Implement POC** — functional code that demonstrates the concept works
+4. **Verify POC works** — manual validation, no formal tests required
+5. **Report results** — files created, how to run, result (works/partially/fails)
+
+**Rules:**
+- **No TDD** — POC implementations do not require formal tests
+- **No PROJECT_CONTEXT update** — this is temporary code
+- **No docstrings required** — temporary code, not production
+- **Max 1-2 files** — a POC is not a project
+- **Functional code only** — must demonstrate the concept works
+- **If POC fails** — that's valid! Document why in your report
 
 ## Skill Loading
 
@@ -302,6 +321,19 @@ Update PROJECT_CONTEXT.md
 Test Agent validates → PASS or FAIL
     ↓
 If FAIL → fix and re-validate (max 3 iterations)
+```
+
+### Tier 4 Workflow (POC Implementation)
+```
+search_nodes("decision_<topic>") → load Architect recommendation
+    ↓
+Create branch spike/<topic>
+    ↓
+Implement POC (no TDD, no docs, max 1-2 files)
+    ↓
+Verify POC works (manual validation)
+    ↓
+Report results to PM (files, how to run, result)
 ```
 
 ## Human Oversight Points

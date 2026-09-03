@@ -68,7 +68,7 @@ Examples: `feat(auth): add JWT token refresh mechanism`, `fix(api): resolve null
 - Never run destructive git commands (`git push --force`, `git reset --hard` on main) without explicit PM approval
 - RESTRICTED COMMANDS: Only git, docker, npm, pip, cargo, go, CI/CD tooling. Never arbitrary rm/truncate/dd without PM approval
 - **Safety Nets (before each Developer phase/group):** When delegated by PM, create BOTH with unified `pre-<scope>`: Backup branch `git branch backup/pre-<scope>-<timestamp>` verify `git branch --list "backup/pre-<scope>*"`; Stash `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` verify `git stash list` → never proceed if either fails → escalate
-- **On PASS:** Clean both: `git stash drop stash@{0}` + `git branch -d backup/pre-<scope>-<timestamp>`
+- **On PASS:** Clean both: resolve `STASH_REF=$(git stash list | grep "pre-<scope>" | head -1 | cut -d: -f1)` then `git stash drop "$STASH_REF"` + `git branch -d backup/pre-<scope>-<timestamp>`
 - **On FAIL:** Rollback: try `git stash pop --index` first; if fails `git reset --hard backup/pre-<scope>-<timestamp>`; if both fail escalate immediately
 - **Post-Rollback Verification MANDATORY:** After ANY rollback, run tests for complete scope (all groups/phases, not just rolled-back). If PASS → rollback successful; if FAIL → escalate; document `rollback(<scope>) FAILED verification` in CHANGELOG
 

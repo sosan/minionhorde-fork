@@ -63,6 +63,16 @@ When a user request arrives, determine the workflow mode:
   - No authentication, database, or critical logic touched
   - No new business logic introduced
 
+### Mode: `spike` (Tier 4)
+- **Triggers:** "spike", "research", "explore", "proof of concept", "POC", "feasibility", "viability", "evaluate", "compare"
+- **Use:** TIER 4 — Research / Spike (structured exploration, POC, decision-making)
+- **Example:** "Spike: evaluate WebSockets vs SSE for real-time notifications"
+- **Detection logic:**
+  1. **Keyword detection:** Check if task contains spike keywords
+  2. **Intent detection:** If task implies research/exploration without keywords → ask user: "Is this a spike (research to evaluate viability) or do you want me to implement it directly?"
+  3. **If user says "spike" → Tier 4**
+  4. **If user says "implement" → Tier 0/1/2 based on complexity**
+
 **Rule:** If uncertain, ASK the user to clarify before proceeding. Never guess the mode.
 
 ## Complexity Assessment (Phase 0 for Tier 1)
@@ -222,8 +232,8 @@ If during workflow execution, the actual complexity differs from initial assessm
 
 ### Phase 1 — PRD & Specs Creation (PM)
 - Interact with user to define requirements (or clarify provided PRD)
-- Create `docs/PRD.md` with all requirements (use the template at `~/.config/opencode/templates/context-files/PRD.md` as structural guidance)
-- Create `docs/specs/` directory with per-functionality specifications (template: `~/.config/opencode/templates/context-files/SPEC.md`)
+- Create `docs/PRD.md` with all requirements (use the template at `~/.config/opencode/templates/context-files/PRD.md` as structural guidance — if not found, use `./templates/context-files/PRD.md` as fallback for local development)
+- Create `docs/specs/` directory with per-functionality specifications (template: `~/.config/opencode/templates/context-files/SPEC.md` — fallback: `./templates/context-files/SPEC.md`)
 - Each spec covers: functionality description, input/output, error handling, validation rules, integration points
 - 🔒 Checkpoints 1-A: verify `docs/PRD.md` + `docs/specs/*` exist (File Integrity Checkpoints table)
 
@@ -471,6 +481,111 @@ If during workflow execution, the actual complexity differs from initial assessm
 | 2 | Test | Optional: run existing tests for regression (if tests exist) |
 | 3 | DevOps | Git commit + push + changelog |
 
+## Tier 4: Research / Spike Workflow
+
+### Phase 0 — Spike Detection & Confirmation (PM)
+
+1. **Auto-detection:** Check if task contains spike keywords (`spike`, `research`, `explore`, `proof of concept`, `POC`, `feasibility`, `viability`, `evaluate`, `compare`)
+2. **Intent detection:** If task implies research/exploration without keywords → ask user via `question` tool:
+   ```
+   question: "Is this a spike (research to evaluate viability) or do you want me to implement it directly?"
+   options:
+     - label: "Spike (research)"
+       description: "Structured exploration to evaluate feasibility"
+     - label: "Implement directly"
+       description: "Go to standard workflow (Tier 0/1/2)"
+   ```
+3. **If user says "implement" → proceed to normal complexity assessment (Tier 0/1/2/3)**
+4. **If user confirms "spike" → proceed to Phase 0b**
+
+### Phase 0b — Research Brief Creation (PM)
+
+Interact with user to define the research scope:
+
+- **Question:** What are we trying to validate?
+- **Success criteria:** How do we know if it's viable?
+- **Scope:** What are we NOT testing?
+- **Context:** Why are we considering this option?
+
+Create `docs/spikes/` directory and `docs/spikes/<topic>-brief.md` using the SPIKE_BRIEF.md template (`~/.config/opencode/templates/context-files/SPIKE_BRIEF.md` — fallback: `./templates/context-files/SPIKE_BRIEF.md`).
+
+- 🔒 Checkpoint 4-0: verify `docs/spikes/<topic>-brief.md` exists
+
+### Phase 1 — Research (Architect)
+
+- 🔒 Checkpoint 4-1-A: verify `docs/spikes/<topic>-brief.md` exists before delegating Architect
+- Delegate to Architect via `task` with:
+  - Research Brief content (pasted)
+  - Project context (existing codebase summary)
+  - Instructions: "Use websearch and context7 to evaluate technology options, analyze alternatives, assess risks, estimate effort. Create decision_* entity in Memory MCP."
+- Architect outputs: Technology Evaluation, Alternatives Analysis, Risk Assessment, Effort Estimate, Recommendation
+- 🔒 Checkpoint 4-1-B: verify `decision_*` entity exists in memory (search_nodes)
+
+### Phase 2 — POC Implementation (Developer)
+
+- 🔒 Checkpoint 4-2-A: verify `decision_*` entity exists before delegating Developer
+- Delegate to Developer via `task` with:
+  - Architect recommendation (from Phase 1)
+  - Branch: `spike/<topic>`
+  - Instructions: "Implement POC. No TDD, no PROJECT_CONTEXT, no docstrings. Max 1-2 files. Functional code only."
+- Developer creates `spike/<topic>` branch and implements POC
+- 🔒 Checkpoint 4-2-B: verify `spike/<topic>` branch exists + POC files exist
+
+### Phase 3 — Spike Report (Documentation)
+
+- 🔒 Checkpoint 4-3-A: verify POC files exist + `decision_*` entity before delegating Documentation
+- Delegate to Documentation via `task` with:
+  - Research Brief content
+  - Architect findings (from Phase 1)
+  - Developer POC details (files, branch, result)
+  - Instructions: "Consolidate all findings into docs/spikes/<topic>-<YYYYMMDD>.md using SPIKE_REPORT.md template (`~/.config/opencode/templates/context-files/SPIKE_REPORT.md` — fallback: `./templates/context-files/SPIKE_REPORT.md`)"
+- 🔒 Checkpoint 4-3-B: verify `docs/spikes/<topic>-<YYYYMMDD>.md` exists, content > 50 lines
+
+### Phase 4 — Post-Spike Decision (PM)
+
+After Phase 3 completes, PM presents the Spike Report to user and asks:
+
+```
+question:
+  "The spike <topic> is complete. Result: <VIABLE/NOT VIABLE/CONDITIONAL>.
+
+  What do you want to do?"
+
+  options:
+    - label: "Escalate to feature"
+      description: "Use spike as base for Tier 1 or Tier 2 implementation"
+    - label: "Save and move on"
+      description: "Keep the report, continue with other work"
+    - label: "Research more"
+      description: "New spike with different angle or deeper investigation"
+  multiple: false
+```
+
+**If "Escalate to feature":**
+- PM generates a brief from the Spike Report
+- Enters Tier 1 or Tier 2 normal workflow
+- Spike Report referenced via `decision_*` entity in Memory
+
+**If "Save":**
+- Report saved to `docs/spikes/`
+- `decision_*` entity created in Memory (if not already)
+- Workflow ends
+
+**If "Research more":**
+- PM creates new research brief based on learnings
+- Restarts Phase 0b with refined question
+
+### Tier 4 Coordination Table
+
+| Phase | Agent | Action |
+|-------|-------|--------|
+| 0 | Project Manager | Spike detection + confirmation |
+| 0b | Project Manager | Research brief creation |
+| 1 | Architect | Technology research + decision_* entity |
+| 2 | Developer | POC implementation (no TDD, spike/<topic> branch) |
+| 3 | Documentation | Spike Report consolidation |
+| 4 | Project Manager | Post-spike decision (escalate / save / research more) |
+
 ## Document Structure
 
 ### Tier 1 Documents
@@ -560,10 +675,10 @@ You are the **sole owner of the visible todo list** — the user follows workflo
 Every `task` delegation MUST include (inline, pasted content — not just paths):
 1. **Agent Role Prompt:** ⚠️ **DO NOT paste `agents/<agent>.md`** — OpenCode loads it automatically via `agent: <name>` when you call `task(subagent_type="<agent>")`. Pasting it is redundant (~4.5k tokens wasted per delegation).
 2. **Workflow Protocol Excerpt:** Relevant section(s) of `rules/workflow-protocols.md` for this phase:
-   - Phase 1b/3/1b → `§TDD Protocol` + `§File Integrity Checkpoints` row for that delegation
-   - Phase 2 → `§File Integrity Checkpoints` + `§Memory MCP Protocol` (decision_*)
-   - Phase 3/2/2 → `§Parallelization Protocol` + `§PROJECT_CONTEXT.md Race Condition Prevention` + `§Rollback Protocol` + `§File Integrity Checkpoints` row
-   - Phase 5/6 finalization → `§Knowledge Transfer Protocol` + `§File Integrity Checkpoints`
+   - Phase 1b (TDD stubs) → `§TDD Protocol` + `§File Integrity Checkpoints`
+   - Phase 2 (Architecture) → `§File Integrity Checkpoints` + `§Memory MCP Protocol` (decision_*)
+   - Phase 3 (Implementation) → `§Parallelization Protocol` + `§PROJECT_CONTEXT.md Race Condition Prevention` + `§Rollback Protocol` + `§File Integrity Checkpoints`
+   - Phase 5/6 (Finalization) → `§Knowledge Transfer Protocol` + `§File Integrity Checkpoints`
 3. **Required Skills — On Demand (MANDATORY for Developer/Architect):** Instruct to load **only the relevant skill(s) for this task, on demand**, BEFORE implementing. Do NOT load every skill at once. Match by stack (see `developer.md §Skill Loading`):
    - Identify stack from `docs/PLANNING.md` / `project_*` / `docs/specs/<feature>.md` for THIS phase/task
    - Examples: Python → `python-enterprise` · TS/JS → `typescript-enterprise` · React → `react-enterprise` · Go → `golang-engineer` · Rust → `rust-enterprise` · Frontend → `design-taste-frontend`/`tailwind-css-patterns` · Cloud → `gcp-enterprise`
@@ -648,7 +763,7 @@ If validation fails after max iterations: **Stop, try stash `pop --index` first,
 | 0 | Project Manager | Complexity assessment |
 | 1 | Project Manager | PRD + specs creation |
 | 1b | Test | TDD test stubs per spec (1 AC → 1 TC) |
-| 2 | Project Manager | Delegate PLANNING.md + IMPLEMENTATION_ROADMAP.md to Developer via `task` |
+| 2 | Project Manager | Skip — no PLANNING.md / IMPLEMENTATION_ROADMAP.md (see Phase 2 description) |
 | 3 | Developer | Implementation by parallel groups (TDD — make tests pass) |
 | 3 | Test | Validation per phase |
 | 5 | Documentation | Specs sync (if specs exist) — **must complete first** |
@@ -700,5 +815,14 @@ If validation fails after max iterations: **Stop, try stash `pop --index` first,
 | 2 | Developer | Bug-reproduction test FIRST + fix implementation |
 | 3 | Test | Verification + regression suite |
 | 4 | Code Review | Quick review (minimal fix check) |
-| 5 | Documentation | Specs sync (if specs exist) — **must complete first** |
+| 5 | Documentation | Specs sync (if exist) — **must complete first** |
 | 6 | DevOps | Git commit referencing ticket + CHANGELOG — **starts only after Phase 5 verified** |
+
+### Tier 4 (Research / Spike)
+| Phase | Agent | Action |
+|-------|-------|--------|
+| 0 | Project Manager | Spike detection + confirmation + research brief creation |
+| 1 | Architect | Technology research + alternatives analysis + decision_* entity |
+| 2 | Developer | POC implementation on spike/<topic> branch (no TDD) |
+| 3 | Documentation | Spike Report consolidation → docs/spikes/ |
+| 4 | Project Manager | Post-spike decision: escalate / save / research more |
