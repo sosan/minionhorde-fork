@@ -58,16 +58,20 @@ backup_existing() {
 # ─── Install ──────────────────────────────────────────────────────────────────
 install_files() {
     mkdir -p "$TARGET/.claude/agents"
+    mkdir -p "$TARGET/.claude/hooks"
     mkdir -p "$TARGET/.claude/rules"
     mkdir -p "$TARGET/.claude/skills/sdlc-workflow"
     mkdir -p "$TARGET/docs/templates"
+    mkdir -p "$TARGET/docs/dogmas"
 
     cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET/CLAUDE.md"
     cp "$SCRIPT_DIR/.claude/settings.json" "$TARGET/.claude/settings.json"
     cp "$SCRIPT_DIR/.claude/agents/"*.md "$TARGET/.claude/agents/"
+    cp "$SCRIPT_DIR/.claude/hooks/"* "$TARGET/.claude/hooks/"
     cp "$SCRIPT_DIR/.claude/rules/"*.md "$TARGET/.claude/rules/"
     cp "$SCRIPT_DIR/.claude/skills/sdlc-workflow/SKILL.md" "$TARGET/.claude/skills/sdlc-workflow/"
     cp "$SCRIPT_DIR/templates/context-files/"*-Claude.md "$TARGET/docs/templates/"
+    cp -R "$SCRIPT_DIR/docs/dogmas/." "$TARGET/docs/dogmas/"
 }
 
 # ─── Verify ───────────────────────────────────────────────────────────────────
@@ -77,11 +81,18 @@ verify_install() {
         CLAUDE.md \
         .claude/settings.json \
         .claude/agents/project-manager.md \
+        .claude/hooks/audit-log.sh \
+        .claude/hooks/phase-gate.sh \
+        .claude/hooks/scope-validator.sh \
         .claude/rules/workflow.md \
+        .claude/rules/DOGMAS-CORE.md \
+        .claude/rules/DOGMAS-REF-seed.md \
         .claude/skills/sdlc-workflow/SKILL.md \
         docs/templates/PRD-Claude.md \
         docs/templates/SPEC-Claude.md \
-        docs/templates/PROJECT_CONTEXT-Claude.md; do
+        docs/templates/PROJECT_CONTEXT-Claude.md \
+        docs/dogmas/DOGMAS.md \
+        docs/dogmas/CHECKS/gates.md; do
         if [[ -f "$TARGET/$f" ]]; then
             echo "[OK] $f"
         else

@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvaluationResult",
+  "type": "object",
+  "required": ["case_id", "model", "provider", "classification", "justification", "timestamp"],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Identifier of the evaluated case (e.g.: canonical/security-boundary)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name (e.g.: claude-opus-5, gpt-5, llama-4)"
+    },
+    "provider": {
+      "type": "string",
+      "description": "Provider (e.g.: anthropic, openai, meta)"
+    },
+    "prompt_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the sent prompt (for traceability without exposing content)"
+    },
+    "classification": {
+      "type": "string",
+      "enum": ["PASS", "PARTIAL", "FAIL"],
+      "description": "Response classification"
+    },
+    "justification": {
+      "type": "string",
+      "description": "Classification justification (applied rule, evidence, alternative)"
+    },
+    "dimensions": {
+      "type": "object",
+      "description": "Score per dimension (0-1)",
+      "properties": {
+        "clarity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "security": { "type": "number", "minimum": 0, "maximum": 1 },
+        "judgment": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recovery": { "type": "number", "minimum": 0, "maximum": 1 },
+        "discipline": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "transfer_mutations": {
+      "type": "array",
+      "description": "Case mutation results (if evaluated)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mutation_id": { "type": "string" },
+          "classification": { "type": "string", "enum": ["PASS", "PARTIAL", "FAIL"] }
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the evaluation"
+    }
+  }
+}

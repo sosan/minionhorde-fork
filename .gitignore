@@ -1,0 +1,9 @@
+openspec/
+.claude/*
+!.claude/hooks/
+!.claude/hooks/*.sh
+!.claude/hooks/*.py
+!.claude/rules/
+!.claude/rules/DOGMAS-CORE.md
+!.claude/rules/DOGMAS-REF-seed.md
+__pycache__/

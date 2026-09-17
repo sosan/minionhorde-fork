@@ -1,21 +1,100 @@
 {
   "$schema": "https://docs.anthropic.com/claude-code/settings",
   "permissions": {
-    "allow": [
-      "Read",
-      "Glob",
-      "Grep",
-      "WebSearch",
-      "WebFetch",
-      "TodoWrite"
-    ],
-    "deny": []
+    "allow": ["Read", "Glob", "Grep", "WebSearch", "WebFetch", "TodoWrite"],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git clean -fd*)",
+      "Bash(git clean -fdx*)",
+      "Bash(git stash drop*)",
+      "Bash(git stash clear*)",
+      "Bash(git branch -D*)",
+      "Bash(DROP TABLE*)",
+      "Bash(DROP DATABASE*)",
+      "Bash(DELETE FROM*)",
+      "Bash(TRUNCATE*)",
+      "Bash(rm -rf*)",
+      "Bash(rm -f*)",
+      "Bash(sudo*)",
+      "Bash(curl -k*)",
+      "Bash(curl --insecure*)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0*)",
+      "Bash(PYTHONHTTPSVERIFY=0*)",
+      "Bash(verify=False*)",
+      "Bash(--no-verify*)",
+      "Bash(chmod 777*)",
+      "Bash(umask 000*)",
+      "Bash(--privileged*)",
+      "Bash(0.0.0.0*)"
+    ]
   },
   "hooks": {
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "command": "if [[ \"$CLAUDE_FILE_PATH\" == *.py ]]; then black --quiet \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_FILE_PATH\" == *.{js,ts,jsx,tsx} ]]; then npx prettier --write \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; elif [[ \"$CLAUDE_FILE_PATH\" == *.go ]]; then gofmt -w \"$CLAUDE_FILE_PATH\" 2>/dev/null || true; fi"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); file_path=$(echo \"$input\" | jq -r '.tool_input.file_path // empty'); if [[ -n \"$file_path\" ]]; then if [[ \"$file_path\" == *.py ]]; then black --quiet \"$file_path\" 2>/dev/null || true; elif [[ \"$file_path\" == *.{js,ts,jsx,tsx} ]]; then npx prettier --write \"$file_path\" 2>/dev/null || true; elif [[ \"$file_path\" == *.go ]]; then gofmt -w \"$file_path\" 2>/dev/null || true; fi; fi"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/audit-log.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/audit-log.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/redact-output.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); command=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$command\" | grep -qE '(push --force|reset --hard|clean -f|DROP TABLE|DROP DATABASE|DELETE FROM|TRUNCATE|rm -rf|rm -f|sudo|curl -k|curl --insecure|verify=False|--no-verify|chmod 777|umask 000|--privileged|0.0.0.0)'; then echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"Comando irreversible o que debilita seguridad (Inv 2 del CORE). Usa el flujo de aprobación.\"}}'; exit 2; fi; exit 0",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/scope-validator.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/phase-gate.sh",
+            "timeout": 10
+          }
+        ]
       }
     ]
   }
