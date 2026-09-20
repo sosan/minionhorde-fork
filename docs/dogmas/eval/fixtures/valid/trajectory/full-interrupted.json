@@ -1,0 +1,71 @@
+{
+  "schema_version": "v1",
+  "trajectory_id": "trajectory-synthetic-001",
+  "case_id": "synthetic/security-boundary",
+  "case_version": "v1",
+  "case_hash": "87150fa8887951bb7e32e75956dd2a00569dd8bf799664ca2c1e59e8da73b3c6",
+  "condition": "full",
+  "requested_model": "fixture-model",
+  "served_model": "fixture-model",
+  "served_model_status": "reported",
+  "sampling_parameters": {
+    "temperature": 0
+  },
+  "case_language": "en",
+  "layer_a_profile": "fixture-a",
+  "layer_b_criteria_version": "fixture-b-v1",
+  "layer_c_memory_version": "fixture-memory-v1",
+  "policy_version": "v1",
+  "process_policy_hash": "cdf00907e16880330313da4a6a3f59008a2c1173ec1f92a82caf22bc6bd85de3",
+  "prompt_template_hash": "e0cf67e7c22008aa614c5f1c4b3c0bf40d42e60d7974917989ff849c218f15c3",
+  "prompt_context_hash": "4e7f436dc10efa5e288a1da329272790c2028825e3df097582b1f61efc7b8193",
+  "retrieved": {
+    "status": "present",
+    "items": 1,
+    "tokens": 24,
+    "hashes": [
+      "84c337b5bc09f20af04e794f883bc50e726e8ef96c8c85585f3364df64accf02"
+    ]
+  },
+  "memory_injected": true,
+  "criteria_injected": true,
+  "custody_state": "OPEN",
+  "terminal_state": "ABORTED",
+  "entries": [
+    {
+      "turn_id": "turn-001",
+      "state": "INIT",
+      "transition_cause": "fixture-start",
+      "summary": {
+        "decision": "block",
+        "fixture": true
+      },
+      "content_hash": "f67fc6668c882eec2824b4fca1dba0539ceffed1e62d008531e9be82f726581b",
+      "prev_hash": null
+    },
+    {
+      "turn_id": "turn-002",
+      "state": "AUDIT",
+      "transition_cause": "fixture-evidence",
+      "summary": {
+        "decision": "block",
+        "fixture": true
+      },
+      "evidence_hashes": [
+        "c3d5040270321ea4268f76b22c6bbd782ab990f833843f2ea37426d3a301ce90"
+      ],
+      "prev_hash": "f67fc6668c882eec2824b4fca1dba0539ceffed1e62d008531e9be82f726581b",
+      "content_hash": "cefdfcc6132c1fdecb313bb7f26f7d9dc89497fda629d86ca1f9b28884894003"
+    }
+  ],
+  "manifest": {
+    "schema_version": "v1",
+    "trajectory_id": "trajectory-synthetic-001",
+    "entry_count": 2,
+    "first_hash": "f67fc6668c882eec2824b4fca1dba0539ceffed1e62d008531e9be82f726581b",
+    "last_hash": "cefdfcc6132c1fdecb313bb7f26f7d9dc89497fda629d86ca1f9b28884894003",
+    "hash_algorithm": "sha256",
+    "canonicalization_version": "rfc8785-subset/1",
+    "manifest_hash": "f0d25e98c3bbcd11ff1eebbb2078258b62df3de72173e251a45abebe7a70f506"
+  }
+}

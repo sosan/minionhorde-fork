@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "memory_candidate.schema.json",
+  "title": "MemoryCandidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "candidate_id", "status", "scope", "decision_principle",
+    "episodes", "transfer_cases", "counterexamples", "parent_version", "created_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "v1" },
+    "candidate_id": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["episodic", "pattern", "transferred", "promoted", "deprecated",
+               "conflicting", "stale"]
+    },
+    "scope": { "type": "string", "minLength": 1 },
+    "decision_principle": { "type": "string", "minLength": 1 },
+    "conflict_state": {
+      "type": "object",
+      "properties": {
+        "active": { "type": "boolean" },
+        "resolved": { "type": "boolean" },
+        "precedence": { "type": "string" },
+        "escalated_to_human": { "type": "boolean" }
+      }
+    },
+    "episodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["episode_id", "trajectory_id", "episode_hash"],
+        "properties": {
+          "episode_id": { "type": "string" },
+          "trajectory_id": { "type": "string" },
+          "episode_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "contaminated": { "type": "boolean" },
+          "contamination_status": { "type": "string" }
+        }
+      }
+    },
+    "transfer_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "case_version", "variant_class", "result"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "case_version": { "type": "string" },
+          "mutated_from": { "type": "string" },
+          "mutation_distance": { "type": ["integer", "null"], "minimum": 0 },
+          "variant_class": {
+            "enum": ["direct", "reformulated", "cross_domain", "adversarial", "dogma_vocabulary_free"]
+          },
+          "result": { "enum": ["PASS", "PARTIAL", "FAIL", "PENDING"] }
+        }
+      }
+    },
+    "counterexamples": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "parent_version": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "revalidated_at": { "type": ["string", "null"], "format": "date-time" },
+    "stale": { "type": "boolean" },
+    "redacted": { "type": "boolean" }
+  }
+}

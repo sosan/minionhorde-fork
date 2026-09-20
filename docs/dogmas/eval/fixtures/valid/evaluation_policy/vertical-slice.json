@@ -1,0 +1,14 @@
+{
+  "schema_version": "v1",
+  "profile": "vertical_slice",
+  "policy_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "coverage": {
+    "min_transfer_cases_per_variant": 1,
+    "min_samples_per_category": 1
+  },
+  "agreement": {
+    "statistic": "cohen_kappa",
+    "threshold": 0.8,
+    "min_subset_size": 3
+  }
+}

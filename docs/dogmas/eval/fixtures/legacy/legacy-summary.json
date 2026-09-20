@@ -1,0 +1,13 @@
+{
+  "case_id": "legacy/case-01",
+  "model": "legacy-model",
+  "provider": "fixture",
+  "classification": "PASS",
+  "justification": "synthetic legacy summary",
+  "timestamp": "2026-01-01T00:00:00Z",
+  "provenance_status": "legacy_limited",
+  "classification_authority": "unverified",
+  "served_model": "unknown",
+  "sampling_parameters": "unknown",
+  "evidence_mode": "summary"
+}

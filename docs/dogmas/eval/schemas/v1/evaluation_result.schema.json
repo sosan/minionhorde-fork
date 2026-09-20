@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluation_result.schema.json",
+  "title": "EvaluationResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "result_id", "case_id", "case_version", "case_hash", "condition",
+    "repetition_id", "pair_key", "requested_model", "served_model", "served_model_status",
+    "sampling_parameters", "case_language", "layer_a_profile", "layer_b_criteria_version",
+    "layer_c_memory_version", "policy_version", "policy_hash", "partition_manifest_hash",
+    "timestamp", "classification", "classification_authority", "outcome_status",
+    "evidence_mode", "provenance_status", "dimensions", "comparability"
+  ],
+  "properties": {
+    "schema_version": { "const": "v1" },
+    "result_id": { "type": "string", "minLength": 1 },
+    "case_id": { "type": "string", "minLength": 1 },
+    "case_version": { "type": "string", "minLength": 1 },
+    "case_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "condition": { "enum": ["base", "criteria", "criteria_memory", "full"] },
+    "repetition_id": { "type": "string" },
+    "pair_key": { "type": "string" },
+    "requested_model": { "type": "string" },
+    "served_model": { "type": "string" },
+    "served_model_status": { "enum": ["reported", "unknown", "mismatch"] },
+    "sampling_parameters": { "type": "object" },
+    "case_language": { "type": "string" },
+    "layer_a_profile": { "type": "string" },
+    "layer_b_criteria_version": { "type": "string" },
+    "layer_c_memory_version": { "type": "string" },
+    "policy_version": { "type": "string" },
+    "policy_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "partition_manifest_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "classification": { "enum": ["PASS", "PARTIAL", "FAIL"] },
+    "classification_authority": { "enum": ["human", "rule", "judge", "heuristic", "unverified"] },
+    "outcome_status": {
+      "enum": ["model_pass", "model_fail", "provider_error", "timeout", "credential_error",
+               "budget_exceeded", "schema_invalid", "pending", "blocked", "aborted",
+               "no_memory_retrieved", "condition_mismatch"]
+    },
+    "evidence_mode": { "enum": ["literal", "summary", "hash_only", "none"] },
+    "provenance_status": { "enum": ["verified", "limited", "unverified", "legacy_limited"] },
+    "comparability": { "enum": ["comparable", "non_comparable", "provisional"] },
+    "discrimination": { "enum": ["ceiling", "floor", "inert", "discriminating", "unknown"] },
+    "retrieved": {
+      "type": "object",
+      "properties": {
+        "status": { "enum": ["none", "present"] },
+        "items": { "type": "integer", "minimum": 0 },
+        "hashes": { "type": "array", "items": { "type": "string" } },
+        "tokens": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "required": ["status", "items"]
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "comprehension": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "correction": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "transfer": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "recovery": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "stability": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "regression": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "legacy_dimensions": {
+      "type": "object",
+      "description": "Descriptive legacy fields; never merged with learning dimensions.",
+      "properties": {
+        "clarity": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "security": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "judgment": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "legacy_recovery": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "discipline": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "reference_hashes": { "type": "array", "items": { "type": "string" } },
+        "tool_result_observed": { "type": "boolean" }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "input_tokens": { "type": ["integer", "null"] },
+        "output_tokens": { "type": ["integer", "null"] },
+        "model_calls": { "type": ["integer", "null"] }
+      }
+    },
+    "judge": {
+      "type": "object",
+      "properties": {
+        "judge_id": { "type": "string" },
+        "model_family_relation": { "type": "boolean" },
+        "agreement_validated": { "type": "boolean" },
+        "condition_blinded": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "candidate_id": "candidate-1",
+  "status": "pattern",
+  "scope": "security",
+  "decision_principle": "verify-not-trust",
+  "episodes": [
+    {
+      "episode_id": "ep-1",
+      "trajectory_id": "t-1",
+      "episode_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "transfer_cases": [],
+  "counterexamples": [],
+  "parent_version": "none",
+  "created_at": "2026-01-01T00:00:00Z"
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "v1",
+  "provider": "fixture",
+  "requested_model": "m",
+  "response_text": "block",
+  "served_model": "m",
+  "served_model_status": "reported",
+  "error_classification": "none"
+}

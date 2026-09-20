@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "partition_manifest.schema.json",
+  "title": "PartitionManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "partition", "content_hash"],
+  "properties": {
+    "schema_version": { "const": "v1" },
+    "partition": { "enum": ["support", "validation", "transfer", "regression", "audit"] },
+    "content_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "case_version", "case_hash"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "case_version": { "type": "string" },
+          "case_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "domain": { "type": "string" },
+          "variant_class": {
+            "enum": ["direct", "reformulated", "cross_domain", "adversarial", "dogma_vocabulary_free"]
+          }
+        }
+      }
+    }
+  }
+}

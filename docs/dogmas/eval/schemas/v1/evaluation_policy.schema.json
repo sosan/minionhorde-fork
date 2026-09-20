@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluation_policy.schema.json",
+  "title": "EvaluationPolicy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile", "policy_hash"],
+  "properties": {
+    "schema_version": { "const": "v1" },
+    "profile": { "enum": ["vertical_slice", "full_suite"] },
+    "policy_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "primary_claim": { "const": "full_layer_c_stack_improves_transfer_over_layer_b" },
+    "primary_contrast": { "const": "full_vs_criteria" },
+    "primary_dimension": { "const": "transfer" },
+    "primary_transfer_variant": { "enum": ["dogma_vocabulary_free", "reformulated", "cross_domain", "adversarial"] },
+    "secondary_contrasts": { "type": "array", "items": { "enum": ["memory_vs_criteria", "full_vs_memory"] } },
+    "exploratory_contrasts": { "type": "array", "items": { "type": "string" } },
+    "binary_paired_test": { "const": "mcnemar_exact" },
+    "binary_paired_effect": { "const": "risk_difference" },
+    "ci_method_binary_paired": { "const": "paired_score_newcombe_95" },
+    "ci_method_continuous": { "const": "paired_bootstrap_percentile_95" },
+    "secondary_correction": { "const": "holm" },
+    "alpha": { "const": 0.05 },
+    "alternative": { "const": "two_sided" },
+    "min_discordant_pairs_definitive": { "const": 10 },
+    "max_primary_ci_half_width_definitive": { "type": "number", "minimum": 0 },
+    "minimum_important_difference_transfer_absolute_delta": { "type": "number", "minimum": 0 },
+    "equivalence_margin_transfer_absolute_delta": { "type": "number", "minimum": 0 },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "min_transfer_cases_per_variant": { "type": "integer", "minimum": 0 },
+        "min_repetitions_per_case": { "type": "integer", "minimum": 0 },
+        "min_samples_per_category": { "type": "integer", "minimum": 0 },
+        "confirmation_reruns": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["min_transfer_cases_per_variant", "min_samples_per_category"]
+    },
+    "socratic_budget": {
+      "type": "object",
+      "properties": {
+        "max_turns": { "type": "integer", "minimum": 0 },
+        "max_model_calls": { "type": "integer", "minimum": 0 },
+        "max_consecutive_no_progress_turns": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "retrieval": {
+      "type": "object",
+      "properties": {
+        "mode": { "enum": ["exact", "similarity"] },
+        "max_entries_per_case": { "type": "integer", "minimum": 0 },
+        "max_tokens_per_case": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "agreement": {
+      "type": "object",
+      "properties": {
+        "statistic": { "const": "cohen_kappa" },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "min_subset_size": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["statistic", "threshold", "min_subset_size"]
+    },
+    "claims_ttl_days": { "type": "integer", "minimum": 0 },
+    "memory_revalidation_ttl_days": { "type": "integer", "minimum": 0 },
+    "format_fragility": {
+      "type": "object",
+      "properties": {
+        "rewording_count": { "type": "integer", "minimum": 0 },
+        "sensitivity_threshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "status": { "type": "object" }
+  }
+}
