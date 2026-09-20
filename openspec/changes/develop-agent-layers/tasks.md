@@ -95,13 +95,13 @@
 
 - [ ] 9.8 Split provenance hashes into case, prompt template, assembled context, criteria, memory, policy, and partition manifest references; add attribution tests for one-component changes.
 - [ ] 9.9 Preserve legacy dimensions separately from learning dimensions; add migration fixtures proving same-named fields such as `recovery` are never silently merged.
-- [ ] 9.10 Create versioned schemas under `docs/dogmas/eval/schemas/v1/` and mark the existing legacy schema as compatibility-only.
+- [x] 9.10 Create versioned schemas under `docs/dogmas/eval/schemas/v1/` and mark the existing legacy schema as compatibility-only.
 
 ## 10. Readiness conditions
 
 - [ ] 10.1 Create a human-labeled subset with documented selection criteria and size; use it to validate judge agreement, transfer-variant equivalence review, and contamination-similarity calibration.
 - [ ] 10.2 Resolve the suite-versus-partition tension: the vertical-slice profile SHALL use minimal partitions with approved non-comparable reuse, and a full_suite SHALL grow the case inventory before definitive claims; record the chosen partition-policy mapping in the partition manifests.
-- [ ] 10.3 Define and verify vertical-slice acceptance criteria: one controlled case run under the four conditions, a schema-valid verifiable trajectory, a paired contrast with coverage status, and the correct `coverage_status` label emitted.
+- [x] 10.3 Define and verify vertical-slice acceptance criteria: one controlled case run under the four conditions, a schema-valid verifiable trajectory, a paired contrast with coverage status, and the correct `coverage_status` label emitted.
 - [ ] 10.4 Record the default literal-response retention policy value in the evaluation policy: hash-only by default, stored literals with explicit expiry.
 - [ ] 10.5 Choose and record the near-duplicate similarity detector identity and version used for contamination flags.
 - [ ] 10.6 Declare and record the human-labeled agreement statistic (Cohen's kappa by default), threshold, and minimum subset size in the evaluation policy.
