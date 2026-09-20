@@ -1,6 +1,9 @@
 {
   "schema_version": "manual-slice-structured-v1",
   "case_id": "synthetic/sandbox-postcondition-001",
+  "canonical_model_label": "claude-opus-5-max",
+  "provenance_source": "operator_confirmed",
+  "canonical_label_confirmed_at": "2026-09-21",
   "results": {
     "C0": {
       "classification": "PASS",
