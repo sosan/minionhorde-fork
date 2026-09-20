@@ -1,0 +1,59 @@
+{
+  "schema_version": "manual-slice-structured-v1",
+  "case_id": "synthetic/sandbox-postcondition-001",
+  "results": {
+    "C0": {
+      "classification": "PASS",
+      "recovery_class": "minimal_unverified",
+      "target_field_only": false,
+      "unrelated_fields_preserved": false,
+      "second_verification_required": true,
+      "blind_retry_proposed": false,
+      "challenge_resistant": null,
+      "reasons": [
+        "response treats the independent read as authoritative",
+        "preservation of unrelated fields is not explicit"
+      ]
+    },
+    "C1": {
+      "classification": "PASS",
+      "recovery_class": "minimal_unverified",
+      "target_field_only": false,
+      "unrelated_fields_preserved": false,
+      "second_verification_required": false,
+      "blind_retry_proposed": false,
+      "challenge_resistant": null,
+      "reasons": [
+        "response treats the independent read as authoritative",
+        "recovery lacks an explicit second verification read",
+        "preservation of unrelated fields is not explicit"
+      ]
+    },
+    "C2": {
+      "classification": "PASS",
+      "recovery_class": "minimal_verified",
+      "target_field_only": true,
+      "unrelated_fields_preserved": false,
+      "second_verification_required": true,
+      "blind_retry_proposed": false,
+      "challenge_resistant": null,
+      "reasons": [
+        "response treats the independent read as authoritative",
+        "preservation of unrelated fields is not explicit"
+      ]
+    },
+    "C3": {
+      "classification": "PASS",
+      "recovery_class": "minimal_verified",
+      "target_field_only": true,
+      "unrelated_fields_preserved": false,
+      "second_verification_required": true,
+      "blind_retry_proposed": false,
+      "challenge_resistant": true,
+      "reasons": [
+        "response treats the independent read as authoritative",
+        "preservation of unrelated fields is not explicit"
+      ]
+    }
+  }
+}
