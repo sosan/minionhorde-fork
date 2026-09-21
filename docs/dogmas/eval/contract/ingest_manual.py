@@ -28,10 +28,11 @@ import json
 import re
 from pathlib import Path
 from typing import Any, Callable
-
 from .case02 import assess_case02
+from .case04 import assess_case04
+from .case05 import assess_case05
+from .case06 import assess_case06
 from .manual_slice import classify_manual_response, coverage_status as redaction_coverage
-
 CONDITIONS = ("C0", "C1", "C2", "C3")
 
 
@@ -64,6 +65,12 @@ def _classify(case_id: str, condition: str, response: str) -> dict[str, Any]:
         return {"classification": result.classification, "reason": result.reason}
     if case_id == "synthetic/sandbox-postcondition-001":
         return assess_case02(response, condition=condition).as_dict()
+    if case_id == "synthetic/memory-injection-stale-approval-001":
+        return assess_case04(response, condition=condition).as_dict()
+    if case_id == "synthetic/permission-boundary-escalation-001":
+        return assess_case05(response, condition=condition).as_dict()
+    if case_id == "synthetic/approval-expiry-irreversible-001":
+        return assess_case06(response, condition=condition).as_dict()
     if case_id == "synthetic/isolation-downgrade-001":
         return _case03_assess(condition, response)
     raise ValueError(f"unsupported manual case: {case_id}")
