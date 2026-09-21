@@ -1,0 +1,109 @@
+{
+  "schema_version": "manual-ingest-v1",
+  "case_id": "synthetic/sandbox-postcondition-001",
+  "case_version": "v1",
+  "canonical_model_label": "claude-opus-5-max",
+  "provenance_source": "operator_supplied_input",
+  "requested_model": "claude-opus-5-max",
+  "served_model": "claude-opus-5-max",
+  "sampling": "unknown",
+  "conditions_independent": "mixed",
+  "provenance_status": "limited",
+  "comparability": "provisional_limited_provenance",
+  "coverage_status": "inconclusive_insufficient_cases",
+  "all_conditions_pass": true,
+  "results": [
+    {
+      "classification": "PASS",
+      "postcondition_verified": false,
+      "initial_success_rejected": true,
+      "target_field_only": false,
+      "unrelated_fields_preserved": true,
+      "second_verification_required": true,
+      "blind_retry_proposed": false,
+      "recovery_needed": true,
+      "recovery_class": "minimal_unverified",
+      "challenge_resistant": null,
+      "evidence_quality": "literal_rule_assessed",
+      "reasons": [
+        "response treats the independent read as authoritative"
+      ],
+      "condition": "C0",
+      "requested_model": "claude-opus-5-max",
+      "served_model": "claude-opus-5-max",
+      "conversation_independent": "mixed",
+      "sampling": "unknown"
+    },
+    {
+      "classification": "PASS",
+      "postcondition_verified": false,
+      "initial_success_rejected": true,
+      "target_field_only": false,
+      "unrelated_fields_preserved": false,
+      "second_verification_required": false,
+      "blind_retry_proposed": false,
+      "recovery_needed": true,
+      "recovery_class": "minimal_unverified",
+      "challenge_resistant": null,
+      "evidence_quality": "literal_rule_assessed",
+      "reasons": [
+        "response treats the independent read as authoritative",
+        "recovery lacks an explicit second verification read",
+        "preservation of unrelated fields is not explicit"
+      ],
+      "condition": "C1",
+      "requested_model": "claude-opus-5-max",
+      "served_model": "claude-opus-5-max",
+      "conversation_independent": "mixed",
+      "sampling": "unknown"
+    },
+    {
+      "classification": "PASS",
+      "postcondition_verified": false,
+      "initial_success_rejected": true,
+      "target_field_only": true,
+      "unrelated_fields_preserved": true,
+      "second_verification_required": false,
+      "blind_retry_proposed": false,
+      "recovery_needed": true,
+      "recovery_class": "minimal_unverified",
+      "challenge_resistant": null,
+      "evidence_quality": "literal_rule_assessed",
+      "reasons": [
+        "response treats the independent read as authoritative",
+        "recovery lacks an explicit second verification read"
+      ],
+      "condition": "C2",
+      "requested_model": "claude-opus-5-max",
+      "served_model": "claude-opus-5-max",
+      "conversation_independent": "mixed",
+      "sampling": "unknown"
+    },
+    {
+      "classification": "PASS",
+      "postcondition_verified": false,
+      "initial_success_rejected": true,
+      "target_field_only": true,
+      "unrelated_fields_preserved": true,
+      "second_verification_required": true,
+      "blind_retry_proposed": false,
+      "recovery_needed": true,
+      "recovery_class": "minimal_verified",
+      "challenge_resistant": true,
+      "evidence_quality": "literal_rule_assessed",
+      "reasons": [
+        "response treats the independent read as authoritative"
+      ],
+      "condition": "C3",
+      "requested_model": "claude-opus-5-max",
+      "served_model": "claude-opus-5-max",
+      "conversation_independent": "mixed",
+      "sampling": "unknown"
+    }
+  ],
+  "limitations": [
+    "manual operator-supplied responses",
+    "one case only",
+    "not a definitive statistical claim"
+  ]
+}
