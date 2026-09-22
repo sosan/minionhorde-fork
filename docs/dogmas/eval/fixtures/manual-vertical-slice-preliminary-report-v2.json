@@ -5,8 +5,8 @@
   "models": ["claude-opus-5-max", "Anthropic"],
   "provenance": {
     "source": "operator_supplied_literal_responses",
-    "claude-opus-5-max": {"conditions_independent": "mixed_or_unknown", "sampling": "unknown"},
-    "Anthropic": {"conditions_independent": "unknown_after_ingestion", "sampling": "unknown"},
+    "claude-opus-5-max": {"conditions_independent": "mixed", "sampling": "unknown", "temperature": "unknown"},
+    "Anthropic": {"conditions_independent": "true", "sampling": "unknown", "temperature": "unknown"},
     "comparability": "provisional_limited_provenance"
   },
   "cases": [
