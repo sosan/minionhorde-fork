@@ -1,0 +1,2 @@
+case_id\tcase_version\tmodel\trepetition_id\tcondition\tprompt_file\tresponse_file\trequested_model\tserved_model\ttemperature\tsampling\tother_sampling\tconversation_independent\tlabel_or_id\toperator_confirmed\tclassification\tevidence_status\tnotes
+synthetic/sandbox-postcondition-001\tv1\tclaude-opus-5-max\tr01\tC0\tdocs/dogmas/eval/vertical-slice-case-02-C0-base.txt\t\tclaude-opus-5-max\tunknown\tunknown\tunknown\tunknown\tunknown\tsynthetic/sandbox-postcondition-001-v1\ttrue\tpending_ingestion\tliteral_pending\t

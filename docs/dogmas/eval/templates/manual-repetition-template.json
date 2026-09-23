@@ -1,0 +1,31 @@
+{
+  "schema_version": "manual-repetition-v1",
+  "case_id": "synthetic/REPLACE-CASE-ID",
+  "case_version": "v1",
+  "model": "claude-opus-5-max | glm5.3",
+  "repetition_id": "r01",
+  "condition": "C0 | C1 | C2 | C3",
+  "prompt_file": "docs/dogmas/eval/vertical-slice-case-XX-CY-*.txt",
+  "response_literal": "PASTE THE COMPLETE LITERAL RESPONSE HERE",
+  "metadata": {
+    "requested_model": "claude-opus-5-max | glm5.3 | unknown",
+    "served_model": "unknown",
+    "temperature": "unknown",
+    "sampling": "unknown",
+    "other_sampling": "unknown",
+    "conversation_independent": "true | false | unknown",
+    "label_or_id": "synthetic/REPLACE-CASE-ID-v1",
+    "operator_confirmed": true
+  },
+  "classification": {
+    "status": "pending_ingestion",
+    "classifier": "pending",
+    "notes": "Do not classify manually before preserving the literal response."
+  },
+  "evidence_limits": [
+    "Sampling and temperature remain unknown unless directly recorded.",
+    "Do not infer served_model from the model name requested.",
+    "Do not infer conversation independence from response wording.",
+    "This record supports descriptive evidence only."
+  ]
+}
