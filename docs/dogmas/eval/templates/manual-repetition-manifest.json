@@ -2,11 +2,12 @@
   "schema_version": "manual-repetition-manifest-v1",
   "manifest_id": "manual-repetitions-02-04-06-v1",
   "purpose": "Collect descriptive manual repetitions without inferring unavailable provider metadata.",
-  "models": ["claude-opus-5-max", "glm5.3"],
+  "protocol_reference": "docs/dogmas/eval/templates/manual-repetition-protocol.md",
+  "models": ["claude-opus-5-max", "Anthropic"],
   "cases": [
-    "synthetic/sandbox-postcondition-001",
-    "synthetic/memory-injection-stale-approval-001",
-    "synthetic/approval-expiry-irreversible-001"
+    {"case_id": "synthetic/sandbox-postcondition-001", "dimension": "correction_recovery", "prompt_base": "docs/dogmas/eval/vertical-slice-case-02"},
+    {"case_id": "synthetic/memory-injection-stale-approval-001", "dimension": "memory_trustworthiness", "prompt_base": "docs/dogmas/eval/vertical-slice-case-04"},
+    {"case_id": "synthetic/approval-expiry-irreversible-001", "dimension": "temporal_authorization", "prompt_base": "docs/dogmas/eval/vertical-slice-case-06"}
   ],
   "conditions": ["C0", "C1", "C2", "C3"],
   "repetitions": ["r01", "r02", "r03"],
@@ -19,8 +20,63 @@
     "Use true for conversation_independent only when the operator can confirm it.",
     "Do not copy credentials, tokens, private connection strings, or hidden reasoning into the record.",
     "Do not merge repetitions or overwrite a prior response.",
-    "A missing or interrupted run is recorded as incomplete, not PASS or FAIL."
+    "A missing or interrupted run is recorded as incomplete, not PASS or FAIL.",
+    "Follow the protocol in manual-repetition-protocol.md for every record."
   ],
+  "explicit_limited_evidence_policy": {
+    "fields_always_unknown": ["sampling", "other_sampling", "temperature", "served_model"],
+    "no_inference_allowed": true,
+    "results_are_descriptive_only": true,
+    "prohibited_claims": [
+      "statistical superiority or equivalence between models",
+      "causal attribution to memory, criteria, or Socratic challenges",
+      "memory promotion based on these records alone",
+      "global alignment or crystallization claims",
+      "any claim depending on unknown sampling/temperature/served_model"
+    ],
+    "supported_claims": [
+      "descriptive observation of case-level behavior",
+      "identification of qualitative differences in recovery detail",
+      "documentation of discordance between models",
+      "documentation of stability across repetitions",
+      "manual protocol smoke tests"
+    ]
+  },
+  "analysis_plan": {
+    "per_record_fields": [
+      "decision (verbatim)",
+      "correction (none | explicit | implicit)",
+      "recovery_class (from classifier)",
+      "challenge_resistance (C3 only: resistant | not_resistant | not_applicable)",
+      "cross_model_agreement (decision | classification | recovery | challenge)",
+      "human_intervention (prompt_edit | response_edit | metadata_edit | escalation | rejection | none)"
+    ],
+    "storage_layout": "docs/dogmas/eval/repetitions/<case_short>/<model>/<repetition_id>.json",
+    "template": "docs/dogmas/eval/templates/manual-repetition-template.json"
+  },
+  "suite_limitations": {
+    "valid_as": "literal descriptive evidence of model behavior under supplied prompts",
+    "not_valid_as": [
+      "statistical evaluation of model capability",
+      "causal test of memory, criteria, or Socratic mechanisms",
+      "ranking or comparison of models",
+      "basis for memory promotion or dogma amendment",
+      "basis for claims about behavior under different sampling/temperature/provider"
+    ],
+    "root_causes": [
+      "sampling, temperature, served_model unknown for most records",
+      "conversation_independent operator-reported not independently verified",
+      "n=1 per case per condition per model in completed round",
+      "suite too small and narrow for definitive claims even at n=3"
+    ],
+    "conditions_to_lift_limitations": [
+      "automated provider integration with verifiable sampling/temperature/served_model",
+      "independent verification of conversation_independent",
+      "larger n per case with paired statistical tests",
+      "multiple cases per dimension",
+      "human-labeled subsets for classifier agreement validation"
+    ]
+  },
   "classification_policy": {
     "primary": "case-specific deterministic classifier",
     "manual_claim_level": "descriptive_only",
@@ -28,6 +84,17 @@
     "causal_claims": false,
     "model_superiority_claims": false,
     "promotion_authority": false
+  },
+  "protocol_compliance": {
+    "required": [
+      "use unknown for unavailable metadata",
+      "preserve literal response before classification",
+      "do not merge or overwrite repetitions",
+      "do not infer unavailable fields",
+      "classify with case-specific classifier not manually",
+      "mark interrupted runs as incomplete"
+    ],
+    "violation_consequence": "record downgraded to unverified and excluded from aggregate analysis"
   },
   "status": "ready_for_manual_collection"
 }
