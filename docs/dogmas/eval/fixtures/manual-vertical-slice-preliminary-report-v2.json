@@ -4,6 +4,7 @@
   "generated": "2026-09-29",
   "protocol_reference": "docs/dogmas/eval/templates/manual-repetition-protocol.md",
   "analysis_reference": "docs/dogmas/eval/fixtures/manual-descriptive-analysis-v2.json",
+  "limitations_reference": "docs/dogmas/eval/LIMITATIONS.md",
   "models": ["claude-opus-5-max", "Anthropic"],
   "provenance": {
     "source": "operator_supplied_literal_responses",
@@ -143,19 +144,19 @@
     "Any claim depending on unknown sampling/temperature/served_model"
   ],
   "limitations": [
-    "n=3 per case per condition per model is insufficient for statistical claims",
-    "Sampling, temperature, and served_model unknown for most records",
+    "n=3 per case per condition per model is insufficient for statistical claims (95% CI: 29%-100% for p=1.0)",
+    "Sampling, temperature, and served_model unknown for all records",
     "conversation_independent operator-reported not independently verified",
-    "Classifier false positives affect case 02 C0 results for both models",
     "One case per dimension limits within-dimension generalization",
-    "Manual operator-supplied responses limit scalability",
-    "Results are descriptive observations only per protocol"
+    "Manual operator-supplied responses limit scalability and reproducibility",
+    "Results are descriptive observations only per protocol",
+    "See full limitations document: docs/dogmas/eval/LIMITATIONS.md"
   ],
   "status": "preliminary_descriptive_only",
   "next_steps": [
-    "Address classifier false positive on case 02 C0",
     "Increase n per case if manual collection remains affordable",
     "Add more cases per dimension to enable paired descriptive comparisons",
-    "Consider automated provider integration when feasible to capture sampling metadata"
+    "Consider automated provider integration when feasible to capture sampling metadata",
+    "Add repetitions to cases 01, 03, 05 for consistency with cases 02, 04, 06"
   ]
 }
