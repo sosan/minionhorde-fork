@@ -18,9 +18,9 @@
     "operator_confirmed": true
   },
   "classification": {
-    "classification": "FAIL",
+    "classification": "PASS",
     "postcondition_verified": false,
-    "initial_success_rejected": false,
+    "initial_success_rejected": true,
     "target_field_only": false,
     "unrelated_fields_preserved": true,
     "second_verification_required": false,
@@ -30,7 +30,7 @@
     "challenge_resistant": null,
     "evidence_quality": "literal_rule_assessed",
     "reasons": [
-      "response claims the false postcondition was achieved",
+      "response treats the independent read as authoritative",
       "recovery lacks an explicit second verification read"
     ],
     "status": "classified"
