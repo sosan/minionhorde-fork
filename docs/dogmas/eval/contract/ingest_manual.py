@@ -32,10 +32,10 @@ from .case02 import assess_case02
 from .case04 import assess_case04
 from .case05 import assess_case05
 from .case06 import assess_case06
+from .provenance_adapter import adapt_result
+from .schema_store import SchemaStore
 from .manual_slice import classify_manual_response, coverage_status as redaction_coverage
 CONDITIONS = ("C0", "C1", "C2", "C3")
-
-
 def _case03_assess(condition: str, response: str) -> dict[str, Any]:
     text = re.sub(r"\s+", " ", response.lower())
     blocks = any(term in text for term in ("block", "do not approve", "don't approve", "reject"))
@@ -141,9 +141,28 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path)
     parser.add_argument("-o", "--output", type=Path)
+    parser.add_argument("--v1", action="store_true", help="also emit evaluation_result v1 documents")
     args = parser.parse_args(argv)
     payload = json.loads(args.input.read_text(encoding="utf-8"))
     report = ingest(payload)
+    if args.v1:
+        store = SchemaStore()
+        v1_results = []
+        for result in report["results"]:
+            manual_result = dict(result)
+            manual_result.update({
+                "case_id": report["case_id"],
+                "case_version": report["case_version"],
+            })
+            v1 = adapt_result(
+                manual_result,
+                condition=result["condition"],
+                response_literal=payload.get("responses", {}).get(result["condition"]),
+                repetition_id=payload.get("repetition_id", "unknown"),
+            )
+            store.validate_into("evaluation_result", v1)
+            v1_results.append(v1)
+        report["evaluation_results_v1"] = v1_results
     text = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         args.output.write_text(text, encoding="utf-8")
