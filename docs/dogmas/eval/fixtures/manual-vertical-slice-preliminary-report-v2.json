@@ -5,8 +5,7 @@
   "protocol_reference": "docs/dogmas/eval/templates/manual-repetition-protocol.md",
   "analysis_reference": "docs/dogmas/eval/fixtures/manual-descriptive-analysis-v2.json",
   "statistical_analysis_reference": "docs/dogmas/eval/scripts/statistical_analysis.py",
-  "statistical_output_reference": "docs/dogmas/eval/fixtures/statistical-analysis-output.txt",
-  "models": ["claude-opus-5-max", "Anthropic"],
+  "limitations_reference": "docs/dogmas/eval/LIMITATIONS.md",
   "provenance": {
     "source": "operator_supplied_literal_responses",
     "claude-opus-5-max": {"conditions_independent": "mixed", "sampling": "unknown", "temperature": "unknown", "served_model": "claude-opus-5-max"},

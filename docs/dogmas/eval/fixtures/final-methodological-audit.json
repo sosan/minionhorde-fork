@@ -1,0 +1,76 @@
+{
+  "schema_version": "methodological-audit-v1",
+  "audit_id": "manual-evaluation-closure-001",
+  "status": "CLOSED_PRELIMINARY_DESCRIPTIVE_ONLY",
+  "checks": {
+    "registry_total_72": true,
+    "all_classified": true,
+    "models_balanced": true,
+    "unique_composite_keys": true,
+    "classified_records_have_literal": true,
+    "no_unsupported_statuses": true,
+    "report_status_preliminary": true,
+    "analysis_status_preliminary": true,
+    "report_has_limitations_reference": true,
+    "limitations_exists": true,
+    "statistical_output_exists": true,
+    "report_claims_not_supported_present": true
+  },
+  "registry": {
+    "total": 72,
+    "status_counts": {
+      "classified": 72
+    },
+    "model_counts": {
+      "Anthropic": 36,
+      "claude-opus-5-max": 36
+    },
+    "duplicate_keys": [],
+    "classified_without_literal": [],
+    "unsupported_statuses": []
+  },
+  "report": {
+    "status": "preliminary_descriptive_only",
+    "aggregate": {
+      "total_cases": 6,
+      "completed_cases": 6,
+      "cases_with_repetitions": 3,
+      "cases_without_repetitions": 3,
+      "conditions_per_case": 4,
+      "total_repetition_records": 72,
+      "classified_records": 72,
+      "pending_records": 0,
+      "model_case_condition_cells_completed": 48,
+      "model_case_condition_cells_total": 48,
+      "repetition_case_condition_cells_completed": 36,
+      "repetition_case_condition_cells_total": 36,
+      "inter_model_agreement_rate": "25/36 (69.4%)",
+      "inter_model_disagreements": 11,
+      "Anthropic_stability": "12/12 conditions stable (100%)",
+      "claude_opus_5_max_stability": "6/12 conditions stable (50%)",
+      "coverage_status": "inconclusive_insufficient_cases"
+    },
+    "limitations_reference": "docs/dogmas/eval/LIMITATIONS.md"
+  },
+  "analysis": {
+    "status": "preliminary_descriptive_only",
+    "evidence_scope": "72 classified repetition records across 3 cases, 2 models, 3 repetitions, 4 conditions"
+  },
+  "closure": {
+    "manual_collection_frozen": true,
+    "new_manual_tests_run": false,
+    "claims_allowed": [
+      "literal descriptive observations",
+      "exploratory diagnostics"
+    ],
+    "claims_forbidden": [
+      "statistical superiority",
+      "equivalence",
+      "causal effects",
+      "global alignment",
+      "production safety certification"
+    ],
+    "pending_data": "none in the declared 72-record registry",
+    "known_scope_gap": "cases 01, 03, and 05 have no repetition series"
+  }
+}
