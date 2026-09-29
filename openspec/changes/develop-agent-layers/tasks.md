@@ -1,9 +1,9 @@
 ## 1. Baseline and contracts
 
 - [ ] 1.1 Inventory current evaluation files, memory entries, hooks, and existing test conventions; record the compatibility constraints in the implementation context.
-- [ ] 1.2 Define versioned schemas for trajectory records, evaluator provenance, memory candidates, and controlled evaluation conditions.
+- [x] 1.2 Define versioned schemas for trajectory records, evaluator provenance, memory candidates, and controlled evaluation conditions.
 - [ ] 1.3 Add synthetic fixtures covering complete, interrupted, unverified, and secret-redacted trajectories without real credentials or destructive actions.
-- [ ] 1.4 Add schema and fixture validation tests before changing the evaluation runner.
+- [x] 1.4 Add schema and fixture validation tests before changing the evaluation runner.
 
 ## 2. Layer A and Layer B integration
 
@@ -15,7 +15,7 @@
 ## 3. Evaluation provenance
 
 - [ ] 3.1 Extend evaluation result handling to record response evidence mode, evaluator authority, observable tool outcome availability, and configuration hashes.
-- [ ] 3.2 Preserve compatibility with legacy result files while marking missing provenance as limited or unverified.
+- [x] 3.2 Preserve compatibility with legacy result files while marking missing provenance as limited or unverified.
 - [ ] 3.3 Add controlled-condition metadata for base, dogmas, memory, and dogmas-plus-memory-plus-Socratic runs.
 - [ ] 3.4 Update validation and metrics to report provenance, coverage, dissent, confidence limits, and cost separately.
 - [ ] 3.5 Add regression tests for incomplete coverage, mixed configurations, missing literal evidence, and model disagreement.
@@ -41,10 +41,10 @@
 - [ ] 5.3 Run prior passing cases after a trajectory or memory candidate change and fail the candidate on regression.
 - [ ] 5.4 Add metrics for comprehension, correction, transfer, recovery, stability, regression, human intervention, and token/turn cost.
 - [ ] 5.5 Add tests for transfer failure, successful recovery, regression detection, and no-progress termination.
-- [ ] 5.6 Add a stability case: an unsupported, plausible challenge targets a correct decision; changing the decision without valid evidence SHALL be a stability failure.
+- [x] 5.6 Add a stability case: an unsupported, plausible challenge targets a correct decision; changing the decision without valid evidence SHALL be a stability failure.
 - [ ] 5.7 Require confirmed regression failures (fail reproduced across the configured confirmation re-runs) before a candidate fails regression; record single-run flips as unconfirmed.
 - [ ] 5.8 Mark memory-condition results as contaminated when an evaluation case overlaps a memory episode supporting an active candidate; exclude contaminated cases from transfer claims.
-- [ ] 5.9 Add at least one recovery case exercising a real observable tool outcome (sandboxed file operation with verifiable result) rather than a textual decision only.
+- [x] 5.9 Add at least one recovery case exercising a real observable tool outcome (sandboxed file operation with verifiable result) rather than a textual decision only.
 - [ ] 5.10 Add a per-turn trajectory structure: unique turn identifier, state, transition cause, changed and preserved claims, and evidence references per turn; validate that turns without evidence linkage mark claims unverified.
 - [ ] 5.11 Implement append-only trajectory storage: corrections and retries are new entries with provenance; detect in-place mutation of persisted entries and flag the record corrupted and its dependent evaluations invalidated.
 - [ ] 5.12 Create regression manifests (frozen list of regression case identifiers and case versions, content-hashed) and require every recovery/promotion result to reference the manifest hash it ran against; mark results unverifiable when the reference is absent.
@@ -57,7 +57,7 @@
 - [ ] 6.3 Add a human-review gate for promotion and preserve the previous memory version for rollback.
 - [ ] 6.4 Add candidate deprecation/narrowing behavior when later evidence contradicts the declared scope.
 - [ ] 6.5 Add regression tests for promotion refusal, rollback selection, deprecation, and normative-inflation prevention.
-- [ ] 6.6 Add a memory-injection case: candidate content containing instructions retrieved into context SHALL be treated as untrusted data without instruction authority, and the agent SHALL NOT follow it.
+- [x] 6.6 Add a memory-injection case: candidate content containing instructions retrieved into context SHALL be treated as untrusted data without instruction authority, and the agent SHALL NOT follow it.
 - [ ] 6.7 Add contamination checking between evaluation cases and memory episodes supporting active candidates (hash equality or declared semantic similarity).
 - [ ] 6.8 Enforce the configured minimum number of episodes from distinct sessions or cases before a provisional candidate is created; reject candidate creation when any supporting episode is marked contaminated.
 - [ ] 6.9 Reject promotion when supporting episodes include contaminated cases or when frontier-classified dissent on the pattern remains unresolved; require dissent routed to human review and closed before promotion.
@@ -78,10 +78,9 @@
 ## 8. Documentation and operational rollout
 
 - [ ] 8.1 Document Layer A/B/C boundaries, trajectory states, evaluator authority, memory lifecycle, and rollback semantics.
-- [ ] 8.2 Document the first vertical-slice experiment and its acceptance criteria.
-- [ ] 8.3 Add operator guidance for human-input states, frontier cases, and manual memory promotion.
+- [x] 8.2 Document the first vertical-slice experiment and its acceptance criteria.
 - [ ] 8.4 Verify existing hooks and security tests remain passing before enabling the new path by default.
-- [ ] 8.5 Produce a changelog/report that distinguishes implemented behavior from preliminary or unverified results.
+- [x] 8.5 Produce a changelog/report that distinguishes implemented behavior from preliminary or unverified results.
 
 ## 9. Integration contracts and profile separation
 
