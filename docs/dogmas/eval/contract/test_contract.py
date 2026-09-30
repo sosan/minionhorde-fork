@@ -30,6 +30,19 @@ def test_all_modern_schemas_validate(store):
         "coverage": {"min_transfer_cases_per_variant": 1, "min_samples_per_category": 1},
         "agreement": {"statistic": "cohen_kappa", "threshold": 0.8, "min_subset_size": 3},
     })
+    store.validate("evidence_custody", {
+        "custody_id": "custody-1",
+        "state": "OPEN",
+        "created_at": "2026-09-29T00:00:00+00:00",
+        "frozen_at": None,
+        "amended_at": None,
+        "superseded_at": None,
+        "corrupted_at": None,
+        "stored_literal_expires_at": None,
+        "artifacts": {"case": {"role": "case", "path": "case.md", "content_hash": "a" * 64}},
+        "literal_response_hash": None,
+        "notes": "",
+    })
 
 
 def test_invalid_modern_result_is_rejected(store):

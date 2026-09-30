@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence_custody.schema.json",
+  "title": "EvidenceCustody",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["custody_id", "state", "created_at", "artifacts", "literal_response_hash"],
+  "properties": {
+    "custody_id": {"type": "string", "minLength": 1},
+    "state": {"enum": ["OPEN", "FROZEN", "AMENDED", "SUPERSEDED", "CORRUPTED"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "frozen_at": {"type": ["string", "null"], "format": "date-time"},
+    "amended_at": {"type": ["string", "null"], "format": "date-time"},
+    "superseded_at": {"type": ["string", "null"], "format": "date-time"},
+    "corrupted_at": {"type": ["string", "null"], "format": "date-time"},
+    "stored_literal_expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "path", "content_hash"],
+        "properties": {
+          "role": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "literal_response_hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "notes": {"type": "string"}
+  }
+}
