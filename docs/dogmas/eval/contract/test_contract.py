@@ -43,6 +43,13 @@ def test_all_modern_schemas_validate(store):
         "literal_response_hash": None,
         "notes": "",
     })
+    store.validate("trajectory_runtime", {
+        "trajectory_id": "traj-1",
+        "state": "COMPLETED",
+        "head_hash": "a" * 64,
+        "entries": [],
+        "turns": [],
+    })
 
 
 def test_invalid_modern_result_is_rejected(store):

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trajectory_runtime.schema.json",
+  "title": "TrajectoryRuntime",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["trajectory_id", "state", "head_hash", "entries", "turns"],
+  "properties": {
+    "trajectory_id": {"type": "string", "minLength": 1},
+    "state": {
+      "enum": ["INIT", "INTERPRET", "REFORMULATE", "CHALLENGE", "EVIDENCE_CHECK", "CORRECT", "AUDIT", "HUMAN_INPUT", "COMPLETED", "INTERRUPTED", "ABORTED"]
+    },
+    "head_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sequence", "entry_type", "payload", "previous_hash", "entry_hash", "created_at"],
+        "properties": {
+          "sequence": {"type": "integer", "minimum": 0},
+          "entry_type": {"type": "string", "minLength": 1},
+          "payload": {"type": "object"},
+          "previous_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "entry_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "turns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["turn_id", "sequence", "state", "transition_cause", "created_at"],
+        "properties": {
+          "turn_id": {"type": "string", "minLength": 1},
+          "sequence": {"type": "integer", "minimum": 0},
+          "state": {"type": "string"},
+          "transition_cause": {"type": "string"},
+          "claims": {"type": "array", "items": {"type": "string"}},
+          "facts": {"type": "array", "items": {"type": "string"}},
+          "inferences": {"type": "array", "items": {"type": "string"}},
+          "assumptions": {"type": "array", "items": {"type": "string"}},
+          "uncertainties": {"type": "array", "items": {"type": "string"}},
+          "challenges": {"type": "array", "items": {"type": "string"}},
+          "changed_claims": {"type": "array", "items": {"type": "string"}},
+          "preserved_claims": {"type": "array", "items": {"type": "string"}},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}},
+          "evidence_linked": {"type": "boolean"},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    }
+  }
+}
