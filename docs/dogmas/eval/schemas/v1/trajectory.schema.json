@@ -46,9 +46,12 @@
       "type": "array",
       "items": { "$ref": "#/$defs/challenge" }
     },
-    "cost": { "$ref": "#/$defs/cost" },
     "custody": { "$ref": "#/$defs/custody" },
     "custody_state": { "enum": ["OPEN", "FROZEN", "AMENDED", "SUPERSEDED", "CORRUPTED"] },
+    "evaluation_validity": { "enum": ["valid", "limited", "invalidated", null] },
+    "invalidation_reason": { "type": ["string", "null"] },
+    "actors": { "type": "object" },
+    "human_reviews": { "type": "array", "items": { "type": "object" } },
     "terminal_state": { "enum": ["COMPLETED", "ABORTED", "FAILED"] },
     "resumable_state": { "enum": ["BLOCKED", "HUMAN_ESCALATION"] },
     "terminal_reason": { "type": "string" },
