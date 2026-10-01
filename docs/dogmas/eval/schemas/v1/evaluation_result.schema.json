@@ -81,9 +81,23 @@
       "type": "object",
       "properties": {
         "reference_hashes": { "type": "array", "items": { "type": "string" } },
-        "tool_result_observed": { "type": "boolean" }
+        "tool_result_observed": { "type": "boolean" },
+        "custody_id": { "type": ["string", "null"] },
+        "custody_state": { "enum": ["OPEN", "FROZEN", "AMENDED", "SUPERSEDED", "CORRUPTED", null] }
       }
     },
+    "evaluation_validity": { "enum": ["valid", "limited", "invalidated", null] },
+    "invalidation_reason": { "type": ["string", "null"] },
+    "actors": {
+      "type": "object",
+      "properties": {
+        "producer": { "type": ["object", "null"] },
+        "classifier": { "type": ["object", "null"] },
+        "custodian": { "type": ["object", "null"] },
+        "reviewer": { "type": ["object", "null"] }
+      }
+    },
+    "human_reviews": { "type": "array", "items": { "type": "object" } },
     "cost": {
       "type": "object",
       "properties": {

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "human_review.schema.json",
+  "title": "HumanReview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["review_id", "reviewer", "state", "dissent", "evidence_blinded"],
+  "properties": {
+    "review_id": {"type": "string", "minLength": 1},
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "role", "independence"],
+      "properties": {
+        "actor_id": {"type": "string", "minLength": 1},
+        "role": {"const": "reviewer"},
+        "model_family": {"type": ["string", "null"]},
+        "independence": {"enum": ["independent", "dependent", "unknown"]}
+      }
+    },
+    "state": {"enum": ["OPEN", "ESCALATED", "CLOSED", "SUPERSEDED"]},
+    "decision": {"type": ["string", "null"]},
+    "rationale_hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "evidence_blinded": {"type": "boolean"},
+    "dissent": {"type": "boolean"},
+    "dissent_reason": {"type": ["string", "null"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "closed_at": {"type": ["string", "null"], "format": "date-time"},
+    "supersedes_review_id": {"type": ["string", "null"]}
+  }
+}
