@@ -99,3 +99,29 @@ def apply_custody_to_trajectory(provenance: TrajectoryProvenance) -> dict[str, A
     if not valid:
         raise TrajectoryError(f"snapshot missing required fields: {missing}")
     return snapshot
+
+
+def validate_against_schema(
+    snapshot: dict[str, Any],
+    schema_path: str = "docs/dogmas/eval/schemas/v1/trajectory.schema.json",
+) -> tuple[bool, list[str]]:
+    """Validate a trajectory snapshot against the JSON schema."""
+    import json
+    from pathlib import Path
+
+    try:
+        from jsonschema import validate, ValidationError, Draft202012Validator
+    except ImportError:
+        return False, ["jsonschema package not installed"]
+
+    schema_file = Path(schema_path)
+    if not schema_file.exists():
+        return False, [f"schema file not found: {schema_path}"]
+
+    schema = json.loads(schema_file.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+    errors = list(validator.iter_errors(snapshot))
+    if errors:
+        messages = [f"{err.json_path}: {err.message}" for err in errors]
+        return False, messages
+    return True, []

@@ -6,7 +6,12 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent))
-from trajectory_provenance import TrajectoryProvenance, validate_trajectory_snapshot, apply_custody_to_trajectory
+from trajectory_provenance import (
+    TrajectoryProvenance,
+    apply_custody_to_trajectory,
+    validate_against_schema,
+    validate_trajectory_snapshot,
+)
 from trajectory_runtime import Trajectory
 from evidence_custody import create_custody
 from review import Actor, HumanReview
@@ -126,3 +131,8 @@ def test_apply_custody_to_trajectory(tmp_path: Path) -> None:
     assert record["trajectory_id"] == "traj-8"
     assert record["custody_id"] == "custody-8"
     assert record["evaluation_validity"] == "valid"
+def test_validate_against_schema_reports_invalid_record() -> None:
+    valid, errors = validate_against_schema({"trajectory_id": "traj-1"})
+    assert not valid
+    assert errors
+    assert any("schema_version" in error for error in errors)
