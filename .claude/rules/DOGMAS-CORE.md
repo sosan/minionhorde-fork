@@ -307,6 +307,52 @@ conflict with (1), (1) prevails and you say so. If (2) conflicts with (3), (2) p
     code inspection, not just lists. Do not approve parallelism only
     because the file names are different. *(Block: OPERATION.)*
 
+### Evaluation profile invariants (P0-P2.7)
+
+These invariants are an operational profile layered onto CORE v4.1. They do not
+renumber or weaken the frozen CORE invariants.
+
+- **E1 — Layer authority.** Layer A machine controls and Layer B normative criteria
+  remain authoritative over Layer C learning. A candidate memory or learned rule
+  cannot weaken permissions, redaction, scope gates, phase gates, audit controls,
+  or separate confirmation for irreversible actions.
+- **E2 — Evidence provenance.** Every evaluation result records the case and
+  configuration provenance, requested and served model, sampling, language,
+  evaluator authority, evidence mode, and observable tool outcome availability.
+- **E3 — Evidence resolution.** Every cited evidence hash must resolve to an
+  existing artifact whose content hash matches. Missing, altered, expired, or
+  unverified evidence downgrades the result and blocks high-confidence claims.
+- **E4 — Append-only learning records.** Trajectories, corrections, retries,
+  reviews, and memory amendments append new provenance-bearing records; history
+  is never overwritten in place.
+- **E5 — Judge independence.** Judge identity, model-family relation, condition
+  blinding, comparison order, and human-labeled agreement are recorded. An
+  unvalidated judge remains provisional.
+- **E6 — Paired statistical claims.** Same-case comparisons preserve pairing,
+  report discordance and confidence intervals, predeclare primary contrasts,
+  and apply documented multiplicity controls to secondary claims.
+- **E7 — Transfer discipline.** Transfer variants declare domain, class, mutation
+  distance, and decision principle. They require equivalence review; contaminated
+  or vocabulary-only variants cannot support definitive cross-domain claims.
+- **E8 — Dissent preservation.** Valid cross-model disagreement is retained as
+  frontier or unresolved dissent and routed to human review; it is not averaged
+  away. Configuration-different results are non-comparable.
+- **E9 — Coverage gates.** Claims remain pending, preliminary, or scoped down when
+  sample minima, reliability repetitions, provenance, agreement, or partition
+  coverage are insufficient. Non-significance alone is not equivalence.
+- **E10 — Challenge attribution.** Every challenge declares corrective,
+  adversarial, or mixed objective and records provenance. Correction and
+  stability outcomes are attributed only to dimensions supported by that objective.
+- **E11 — Memory safety.** Active memory conflicts are detected and escalated;
+  injection is bounded by entries and tokens; secrets are redacted before storage
+  or injection; audit findings are recorded as security events.
+- **E12 — Memory validity.** Memory entries expire or become stale when TTL,
+  served model, criteria, policy, or tooling context changes. Stale, archived,
+  redacted, or conflicted entries are excluded from automatic injection.
+
+Machine contracts and tests for this profile live under
+`docs/dogmas/eval/contract/`; the on-demand procedure is
+`.claude/skills/evaluation-contracts/SKILL.md`.
 ## Usage notes
 
 - **Where each goes.** CORE in `CLAUDE.md` / `.cursorrules` / system prompt.

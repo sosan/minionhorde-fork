@@ -61,7 +61,7 @@ install_files() {
     mkdir -p "$TARGET/.claude/hooks"
     mkdir -p "$TARGET/.claude/rules"
     mkdir -p "$TARGET/.claude/skills/sdlc-workflow"
-    mkdir -p "$TARGET/docs/templates"
+    mkdir -p "$TARGET/.claude/skills/evaluation-contracts"
     mkdir -p "$TARGET/docs/dogmas"
 
     cp "$SCRIPT_DIR/CLAUDE.md" "$TARGET/CLAUDE.md"
@@ -70,7 +70,7 @@ install_files() {
     cp "$SCRIPT_DIR/.claude/hooks/"* "$TARGET/.claude/hooks/"
     cp "$SCRIPT_DIR/.claude/rules/"*.md "$TARGET/.claude/rules/"
     cp "$SCRIPT_DIR/.claude/skills/sdlc-workflow/SKILL.md" "$TARGET/.claude/skills/sdlc-workflow/"
-    cp "$SCRIPT_DIR/templates/context-files/"*-Claude.md "$TARGET/docs/templates/"
+    cp "$SCRIPT_DIR/.claude/skills/evaluation-contracts/SKILL.md" "$TARGET/.claude/skills/evaluation-contracts/"
     cp -R "$SCRIPT_DIR/docs/dogmas/." "$TARGET/docs/dogmas/"
 }
 
@@ -88,7 +88,7 @@ verify_install() {
         .claude/rules/DOGMAS-CORE.md \
         .claude/rules/DOGMAS-REF-seed.md \
         .claude/skills/sdlc-workflow/SKILL.md \
-        docs/templates/PRD-Claude.md \
+        .claude/skills/evaluation-contracts/SKILL.md \
         docs/templates/SPEC-Claude.md \
         docs/templates/PROJECT_CONTEXT-Claude.md \
         docs/dogmas/DOGMAS.md \
