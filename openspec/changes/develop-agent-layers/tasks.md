@@ -30,8 +30,8 @@
 - [x] 4.1 Implement a bounded state machine for INIT, INTERPRET, REFORMULATE, CHALLENGE, EVIDENCE_CHECK, CORRECT, AUDIT, and terminal/human-input states.
 - [x] 4.2 Record claims, facts, inferences, assumptions, uncertainties, challenges, evidence references, changed claims, and preserved claims per turn.
 - [x] 4.3 Implement one safe synthetic calibration case with one deliberate mistake and one evidence-based challenge.
-- [ ] 4.4 Add tests that distinguish comprehension pass from correction pass and reject unsupported changes.
-- [ ] 4.5 Add tests proving repeated prompting without a causal change is not classified as recovery.
+- [x] 4.4 Add tests that distinguish comprehension pass from correction pass: a reformulation can pass comprehension without proving behavioral correction, and a correction requires linked causal evidence.
+- [x] 4.5 Add repeated-prompting tests showing that repeating the same prompt without a causal context or evidence change does not count as recovery; require a new evidence transition for recovery attribution.
 - [ ] 4.6 Record challenge provenance: generator authority, identity and version, requested and served generator model, sampling parameters, target claim or turn, challenge and delivered content hashes, evidence references, and human edit or selection events; flag shared model family with the evaluated agent.
 
 ## 5. Transfer, recovery, and regression
