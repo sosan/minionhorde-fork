@@ -366,3 +366,17 @@ Exclusion of cases from a primary contrast — including `no_memory_retrieved`, 
 #### Scenario: Exclusion rules change after results
 - **WHEN** case-inclusion or exclusion rules are changed after observing results
 - **THEN** the comparison SHALL be labeled post-hoc, SHALL require justification, and SHALL NOT carry the authority of a pre-registered analysis
+## Implementation status (audited)
+
+The following requirement areas have verified contract implementations and focused tests:
+
+- Judge bias controls and provisional classification: `docs/dogmas/eval/contract/p2_1.py` and `test_p2_1.py`.
+- Paired comparison, evidence-reference resolution, and literal retention: `p2_1.py` and `test_p2_1.py`.
+- Transfer variants and equivalence review: `transfer_variants.py` and `test_transfer_variants.py`.
+- Statistical discrimination, TOST, claim revalidation, and pre-registration: `p2_3.py` and `test_p2_3.py`.
+- Cross-model comparability, frontier dissent, format fragility, thresholds, and language fields: `p2_4.py` and `test_p2_4.py`.
+- Human-label calibration, contamination tiers, retrieval modes, domain metadata, and reliability budgets: `p2_5.py` and `test_p2_5.py`.
+- Challenge objectives and outcome attribution: `p2_6.py` and `test_p2_6.py`.
+- Memory conflicts, injection budgets, redaction audits, and TTL/context revalidation: `p2_7.py` and `test_p2_7.py`.
+
+These implementations are contract-level and do not by themselves prove provider execution, complete-suite coverage, partition-policy adoption, anonymized reporting, or production readiness. Requirements without a verified runner integration remain pending in `tasks.md`.

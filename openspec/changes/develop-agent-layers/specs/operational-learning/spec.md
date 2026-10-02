@@ -263,3 +263,22 @@ Every artifact SHALL record its schema version. A newer reader SHALL support ver
 #### Scenario: A migration changes semantic meaning
 - **WHEN** a schema migration cannot preserve a field's semantic meaning
 - **THEN** the field SHALL be marked unknown or non-comparable, and dependent claims SHALL be downgraded rather than silently remapped
+## Implementation status (audited)
+
+Verified contract-level implementations and focused tests are available for:
+
+- Bounded trajectory state, per-turn structured records, append-only integrity,
+  mutation detection, recovery confirmation, and non-minimal correction checks:
+  `trajectory_runtime.py`, `trajectory_provenance.py`, and their tests.
+- Challenge provenance and declared objectives: `p2_6.py` and `test_p2_6.py`.
+- Transfer variants and equivalence review: `transfer_variants.py` and its tests.
+- Memory conflicts, injection budgets, redaction/audit events, and stale-entry
+  revalidation: `p2_7.py` and `test_p2_7.py`.
+- Retrieval mode metadata, contamination tiers, calibration, and reliability
+  budgets: `p2_5.py` and `test_p2_5.py`.
+
+The following remain pending as full integrations: versioned memory candidate
+lifecycle and promotion/rollback, regression manifests, retrieval metadata wired
+into every trajectory, condition-content verification, crash recovery and
+ordered journaled appends, schema migration adapters, and complete recovery /
+transfer metrics. See `tasks.md` for the authoritative checklist.

@@ -93,3 +93,19 @@ Layer C SHALL NOT modify Layer A or Layer B. When evaluation evidence contradict
 #### Scenario: An amendment is applied without regression
 - **WHEN** a Layer B amendment is applied without re-running the evaluation suite
 - **THEN** the amendment SHALL be marked unverified and SHALL NOT be treated as a stable criterion change
+## Implementation status (audited)
+
+Verified supporting artifacts currently exist for the field-language policy and
+Layer A/B/C operational profile documentation:
+
+- `.claude/rules/DOGMAS-CORE.md` contains E1-E12 evaluation invariants.
+- `.claude/rules/DOGMAS-REF-seed.md` contains the R12 evaluation procedure.
+- `.claude/skills/evaluation-contracts/SKILL.md` describes contract loading and
+  validation.
+- `docs/dogmas/eval/contract/p2_4.py` covers language field classification and
+  automation thresholds; `p2_4.py` tests cover those behaviors.
+
+The serialized Layer A/B profiles, automatic enforcement that Layer C cannot
+change Layer A/B, and structured Layer C-to-Layer B amendment proposals are not
+yet fully integrated into evaluation records. Those scenarios remain pending
+in `tasks.md`.
