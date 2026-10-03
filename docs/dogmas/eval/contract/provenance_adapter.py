@@ -53,8 +53,18 @@ def adapt_result(
     repetition_id: str = "unknown",
     case_language: str = "en",
     timestamp: str | None = None,
+    layer_a_profile: str = "unknown",
+    layer_b_criteria_version: str = "unknown",
+    layer_c_memory_version: str = "unknown",
 ) -> dict[str, Any]:
-    """Convert one manual condition result into an EvaluationResult v1."""
+    """Convert one manual condition result into an EvaluationResult v1.
+
+    Profile metadata is captured here as descriptive identifiers only;
+    capture never alters enforcement. ``layer_a_profile`` and
+    ``layer_b_criteria_version`` default to ``"unknown"`` so existing
+    callers without profile capture keep their behavior; callers with
+    active profiles pass them in (or use ``adapt_result_with_profiles``).
+    """
     classification = manual.get("classification", "PARTIAL")
     requested = manual.get("requested_model", "unknown")
     served = manual.get("served_model", "unknown")
@@ -81,9 +91,9 @@ def adapt_result(
         "served_model_status": served_status,
         "sampling_parameters": sampling_parameters,
         "case_language": case_language,
-        "layer_a_profile": "unknown",
-        "layer_b_criteria_version": "unknown",
-        "layer_c_memory_version": "unknown",
+        "layer_a_profile": layer_a_profile,
+        "layer_b_criteria_version": layer_b_criteria_version,
+        "layer_c_memory_version": layer_c_memory_version,
         "policy_version": "unknown",
         "policy_hash": _hash("unknown-policy"),
         "partition_manifest_hash": _hash("unknown-partition"),
@@ -104,3 +114,35 @@ def adapt_result(
         "cost": {"input_tokens": None, "output_tokens": None, "model_calls": None},
         "judge": {"judge_id": "rule-classifier", "model_family_relation": False, "agreement_validated": False, "condition_blinded": False},
     }
+
+
+def adapt_result_with_profiles(
+    manual: dict[str, Any],
+    *,
+    condition: str,
+    layer_a_profile: str = "unknown",
+    layer_b_criteria_version: str = "unknown",
+    layer_c_memory_version: str = "unknown",
+    response_literal: str | None = None,
+    repetition_id: str = "unknown",
+    case_language: str = "en",
+    timestamp: str | None = None,
+) -> dict[str, Any]:
+    """Listable API for callers that already know the active Layer A/B profiles.
+
+    The profile values are captured on the record as identifiers; enforcement
+    is never changed by the capture itself. Mismatch between the record and
+    the actual runtime profile must be caught by the Layer A profile
+    validation step, not by this adapter.
+    """
+    return adapt_result(
+        manual,
+        condition=condition,
+        response_literal=response_literal,
+        repetition_id=repetition_id,
+        case_language=case_language,
+        timestamp=timestamp,
+        layer_a_profile=layer_a_profile,
+        layer_b_criteria_version=layer_b_criteria_version,
+        layer_c_memory_version=layer_c_memory_version,
+    )
