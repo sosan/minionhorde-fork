@@ -1,0 +1,71 @@
+{
+  "schema_version": "v1",
+  "trajectory_id": "trajectory-unverified-001",
+  "case_id": "synthetic/expired-evidence",
+  "case_version": "v1",
+  "case_hash": "c72a26a46f35be5bf084843b438baad44ddc252d4729daab7eee8bc55b30f93d",
+  "condition": "full",
+  "requested_model": "fixture-model",
+  "served_model": "fixture-model",
+  "served_model_status": "reported",
+  "sampling_parameters": {
+    "temperature": 0
+  },
+  "case_language": "en",
+  "layer_a_profile": "fixture-a",
+  "layer_b_criteria_version": "fixture-b-v1",
+  "layer_c_memory_version": "fixture-memory-v1",
+  "policy_version": "v1",
+  "process_policy_hash": "cdf00907e16880330313da4a6a3f59008a2c1173ec1f92a82caf22bc6bd85de3",
+  "prompt_template_hash": "e0cf67e7c22008aa614c5f1c4b3c0bf40d42e60d7974917989ff849c218f15c3",
+  "prompt_context_hash": "4e7f436dc10efa5e288a1da329272790c2028825e3df097582b1f61efc7b8193",
+  "retrieved": {
+    "status": "none",
+    "items": 0,
+    "tokens": 0,
+    "hashes": []
+  },
+  "memory_injected": false,
+  "criteria_injected": false,
+  "custody_state": "OPEN",
+  "terminal_state": "FAILED",
+  "evaluation_validity": "limited",
+  "invalidation_reason": "stored literal expired; evidence_mode=hash_only",
+  "entries": [
+    {
+      "turn_id": "turn-001",
+      "state": "INIT",
+      "transition_cause": "fixture-start",
+      "summary": {
+        "decision": "expired",
+        "fixture": true
+      },
+      "content_hash": "6407ae015e63616d4d8a28e1c842a4bed4bfe6633929a0121bb90cbe1addb1bc",
+      "prev_hash": null
+    },
+    {
+      "turn_id": "turn-002",
+      "state": "EVIDENCE_CHECK",
+      "transition_cause": "fixture-evidence-expired",
+      "summary": {
+        "decision": "downgrade",
+        "evidence_mode": "hash_only",
+        "stored_literal_expires_at": "2024-01-01T00:00:00Z",
+        "placeholder": "EXPIRED-REDACTED",
+        "fixture": true
+      },
+      "prev_hash": "6407ae015e63616d4d8a28e1c842a4bed4bfe6633929a0121bb90cbe1addb1bc",
+      "content_hash": "485cb7219dd7b7f34238a9e6f5f0b6bc930b79b3db39335cb82fdb9ddc773efd"
+    }
+  ],
+  "manifest": {
+    "schema_version": "v1",
+    "trajectory_id": "trajectory-unverified-001",
+    "entry_count": 2,
+    "first_hash": "6407ae015e63616d4d8a28e1c842a4bed4bfe6633929a0121bb90cbe1addb1bc",
+    "last_hash": "485cb7219dd7b7f34238a9e6f5f0b6bc930b79b3db39335cb82fdb9ddc773efd",
+    "hash_algorithm": "sha256",
+    "canonicalization_version": "rfc8785-subset/1",
+    "manifest_hash": "d289e3958c307677d80e1340f5d9ad50243bae5cf8ae513fff213ea49ec99aa2"
+  }
+}

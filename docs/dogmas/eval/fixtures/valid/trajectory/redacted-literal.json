@@ -1,0 +1,70 @@
+{
+  "schema_version": "v1",
+  "trajectory_id": "trajectory-redacted-001",
+  "case_id": "synthetic/secret-redacted",
+  "case_version": "v1",
+  "case_hash": "29445f2dc5c15d643cfc6512c7de6e4b98b492b27629a4d564c9addf6666af23",
+  "condition": "full",
+  "requested_model": "fixture-model",
+  "served_model": "fixture-model",
+  "served_model_status": "reported",
+  "sampling_parameters": {
+    "temperature": 0
+  },
+  "case_language": "en",
+  "layer_a_profile": "fixture-a",
+  "layer_b_criteria_version": "fixture-b-v1",
+  "layer_c_memory_version": "fixture-memory-v1",
+  "policy_version": "v1",
+  "process_policy_hash": "cdf00907e16880330313da4a6a3f59008a2c1173ec1f92a82caf22bc6bd85de3",
+  "prompt_template_hash": "e0cf67e7c22008aa614c5f1c4b3c0bf40d42e60d7974917989ff849c218f15c3",
+  "prompt_context_hash": "4e7f436dc10efa5e288a1da329272790c2028825e3df097582b1f61efc7b8193",
+  "retrieved": {
+    "status": "none",
+    "items": 0,
+    "tokens": 0,
+    "hashes": []
+  },
+  "memory_injected": false,
+  "criteria_injected": false,
+  "custody_state": "FROZEN",
+  "terminal_state": "COMPLETED",
+  "evaluation_validity": "limited",
+  "invalidation_reason": "stored literal contained a secret; evidence_mode=hash_only",
+  "entries": [
+    {
+      "turn_id": "turn-001",
+      "state": "INIT",
+      "transition_cause": "fixture-start",
+      "summary": {
+        "decision": "redact",
+        "fixture": true
+      },
+      "content_hash": "1062a089a6cc1f79c278fd75f70b551ec4a12c8d1940c5d08bc77fb5280b7d19",
+      "prev_hash": null
+    },
+    {
+      "turn_id": "turn-002",
+      "state": "AUDIT",
+      "transition_cause": "fixture-redacted-evidence",
+      "summary": {
+        "decision": "block",
+        "literal_redacted": true,
+        "redaction_marker": "[REDACTED:github_pat]",
+        "fixture": true
+      },
+      "prev_hash": "1062a089a6cc1f79c278fd75f70b551ec4a12c8d1940c5d08bc77fb5280b7d19",
+      "content_hash": "180c2fde34c32ff99d507b95baa20e86d19d7daecc217ce28e64035b38a43082"
+    }
+  ],
+  "manifest": {
+    "schema_version": "v1",
+    "trajectory_id": "trajectory-redacted-001",
+    "entry_count": 2,
+    "first_hash": "1062a089a6cc1f79c278fd75f70b551ec4a12c8d1940c5d08bc77fb5280b7d19",
+    "last_hash": "180c2fde34c32ff99d507b95baa20e86d19d7daecc217ce28e64035b38a43082",
+    "hash_algorithm": "sha256",
+    "canonicalization_version": "rfc8785-subset/1",
+    "manifest_hash": "1b1b41b63611debe4e11d6b58620c2f50b75507867dd998dfc49bf60192b50e7"
+  }
+}

@@ -86,12 +86,24 @@ class TrajectoryError(Exception):
 class Trajectory:
     """Bounded, append-only trajectory with a verifiable hash chain."""
 
-    def __init__(self, trajectory_id: str, *, max_turns: int = 32) -> None:
+    def __init__(
+        self,
+        trajectory_id: str,
+        *,
+        max_turns: int = 32,
+        no_progress_limit: int = 3,
+        learning_loop: bool = False,
+    ) -> None:
         self.trajectory_id = trajectory_id
         self.max_turns = max_turns
+        self.no_progress_limit = no_progress_limit
+        self.learning_loop = learning_loop
         self.state = "INIT"
         self._entries: list[AppendEntry] = []
         self._turns: list[Turn] = []
+        self._seen_evidence: set[str] = set()
+        self._seen_changed_claims: set[str] = set()
+        self._no_progress_streak = 0
         self._lock = threading.Lock()
 
     @property
@@ -106,6 +118,10 @@ class Trajectory:
     def head_hash(self) -> str:
         return self._entries[-1].entry_hash if self._entries else "0" * 64
 
+    @property
+    def no_progress_streak(self) -> int:
+        return self._no_progress_streak
+
     def _append(self, entry_type: str, payload: dict[str, Any]) -> AppendEntry:
         sequence = len(self._entries)
         previous = self.head_hash
@@ -113,6 +129,19 @@ class Trajectory:
         entry = AppendEntry(sequence, entry_type, payload, previous, _hash(envelope))
         self._entries.append(entry)
         return entry
+
+    def _evaluate_progress(self, turn: Turn) -> bool:
+        """A turn makes progress when it adds new evidence refs or changes a claim.
+
+        Repeated prompting that reuses the same evidence and does not change
+        a claim is not progress; the trajectory is then aborted once the
+        consecutive streak reaches ``no_progress_limit``.
+        """
+        new_evidence = set(turn.evidence_refs) - self._seen_evidence
+        new_changes = set(turn.changed_claims) - self._seen_changed_claims
+        self._seen_evidence.update(turn.evidence_refs)
+        self._seen_changed_claims.update(turn.changed_claims)
+        return bool(new_evidence or new_changes)
 
     def transition(self, target: str, cause: str) -> Turn:
         with self._lock:
@@ -122,6 +151,24 @@ class Trajectory:
                 raise TrajectoryError(f"trajectory is terminal: {self.state}")
             if target not in TRANSITIONS.get(self.state, set()):
                 raise TrajectoryError(f"invalid transition {self.state} -> {target}")
+            if self.learning_loop and self._turns:
+                if not self._evaluate_progress(self._turns[-1]):
+                    if self._no_progress_streak >= self.no_progress_limit:
+                        self.state = "ABORTED"
+                        self._append(
+                            "state",
+                            {
+                                "state": "ABORTED",
+                                "cause": "no_progress_exceeded",
+                                "streak": self._no_progress_streak,
+                            },
+                        )
+                        raise TrajectoryError(
+                            f"no progress for {self._no_progress_streak} consecutive turns"
+                        )
+                    self._no_progress_streak += 1
+                else:
+                    self._no_progress_streak = 0
             if len(self._turns) >= self.max_turns:
                 self.state = "ABORTED"
                 self._append("state", {"state": "ABORTED", "cause": "max_turns_exceeded"})
