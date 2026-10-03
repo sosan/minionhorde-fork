@@ -1,16 +1,16 @@
 ## 1. Baseline and contracts
 
-- [ ] 1.1 Inventory current evaluation files, memory entries, hooks, and existing test conventions; record the compatibility constraints in the implementation context.
+- [x] 1.1 Inventory current evaluation files, memory entries, hooks, and existing test conventions; record the compatibility constraints in the implementation context.
 - [x] 1.2 Define versioned schemas for trajectory records, evaluator provenance, memory candidates, and controlled evaluation conditions.
-- [ ] 1.3 Add synthetic fixtures covering complete, interrupted, unverified, and secret-redacted trajectories without real credentials or destructive actions.
+- [x] 1.3 Add synthetic fixtures covering complete, interrupted, unverified, and secret-redacted trajectories without real credentials or destructive actions.
 - [x] 1.4 Add schema and fixture validation tests before changing the evaluation runner.
 
 ## 2. Layer A and Layer B integration
 
-- [ ] 2.1 Define the serialized Layer A control profile and Layer B criteria profile consumed by an evaluation record.
-- [ ] 2.2 Integrate version/profile capture without weakening existing permissions, redaction, audit, phase-gate, scope, or irreversible-action controls.
-- [ ] 2.3 Add tests proving Layer C recommendations cannot override Layer A/B controls or authorize irreversible operations.
-- [ ] 2.4 Add bounded-budget and no-progress stop checks for interactions that enter the learning loop.
+- [x] 2.1 Define the serialized Layer A control profile and Layer B criteria profile consumed by an evaluation record.
+- [x] 2.2 Integrate version/profile capture without weakening existing permissions, redaction, audit, phase-gate, scope, or irreversible-action controls.
+- [x] 2.3 Add tests proving Layer C recommendations cannot override Layer A/B controls or authorize irreversible operations.
+- [x] 2.4 Add bounded-budget and no-progress stop checks for interactions that enter the learning loop.
 
 ## 3. Evaluation provenance
 
@@ -32,7 +32,7 @@
 - [x] 4.3 Implement one safe synthetic calibration case with one deliberate mistake and one evidence-based challenge.
 - [x] 4.4 Add tests that distinguish comprehension pass from correction pass: a reformulation can pass comprehension without proving behavioral correction, and a correction requires linked causal evidence.
 - [x] 4.5 Add repeated-prompting tests showing that repeating the same prompt without a causal context or evidence change does not count as recovery; require a new evidence transition for recovery attribution.
-- [ ] 4.6 Record challenge provenance: generator authority, identity and version, requested and served generator model, sampling parameters, target claim or turn, challenge and delivered content hashes, evidence references, and human edit or selection events; flag shared model family with the evaluated agent.
+- [x] 4.6 Record challenge provenance: generator authority, identity and version, requested and served generator model, sampling parameters, target claim or turn, challenge and delivered content hashes, evidence references, and human edit or selection events; flag shared model family with the evaluated agent.
 
 ## 5. Transfer, recovery, and regression
 

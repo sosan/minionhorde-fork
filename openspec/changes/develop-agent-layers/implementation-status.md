@@ -8,10 +8,17 @@ This audit compares `tasks.md` with artifacts currently present in the repositor
 
 The following tasks are now marked `[x]` in `tasks.md`:
 
+- 1.1 — compatibility constraints recorded in `docs/dogmas/eval/COMPATIBILITY.md`.
 - 1.2 — versioned schemas exist under `docs/dogmas/eval/schemas/v1/`.
+- 1.3 — synthetic fixtures cover complete, interrupted, unverified, and secret-redacted trajectories under `fixtures/valid/trajectory/`; builders and tests in `contract/`.
 - 1.4 — schema/fixture validation tests exist and pass.
+- 2.1 — Layer A/B serialized profiles (`layer_a_profile.schema.json`, `layer_b_profile.schema.json`, `contract/layer_profiles.py`).
+- 2.2 — profile capture integrated into the provenance adapter without weakening enforcement fields.
+- 2.3 — Layer C override/irreversible-authorization rejection tests exist and pass.
+- 2.4 — learning-loop bounded-budget and no-progress stop checks in `trajectory_runtime.py` with focused tests.
 - 3.2 — legacy migration preserves limited provenance and has focused tests.
 - 4.3 — safe synthetic calibration/recovery case exists in the vertical slice.
+- 4.6 — challenge provenance (generator authority/identity/version, requested and served model, sampling, target turn, challenge/delivered hashes, evidence references, human edit events, shared-model-family flag) recorded on `ChallengeProvenance` with focused tests.
 - 5.6 — stability case with unsupported challenge exists and is classified.
 - 5.9 — sandboxed observable recovery case exists.
 - 6.6 — memory-injection boundary case exists.
@@ -33,7 +40,8 @@ These completions do not imply that every scenario in the related spec is implem
 
 ### P1 — Trajectory and recovery integrity
 
-- 4.1–4.6: bounded Socratic state machine, per-turn claims/evidence, challenge provenance, and correction-vs-comprehension tests.
+- 4.1–4.5: bounded Socratic state machine, per-turn claims/evidence, and correction-vs-comprehension tests (4.6 challenge provenance now implemented).
+- 5.3–5.5, 5.7, 5.10–5.13: regression manifests, confirmed failures, append-only trajectories, concurrent append safety, and non-minimal correction detection.
 - 5.3–5.5, 5.7, 5.10–5.13: regression manifests, confirmed failures, append-only trajectories, concurrent append safety, and non-minimal correction detection.
 - 10.12, 10.26–10.27: custody states, ordered appends, crash recovery, and schema-preserving evolution.
 
