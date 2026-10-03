@@ -37,17 +37,17 @@
 ## 5. Transfer, recovery, and regression
 
 - [x] 5.1 Create direct, reformulated, cross-domain, adversarial, and dogma-vocabulary-free variants for the vertical-slice pattern.
-- [ ] 5.2 Add an intentionally recoverable failure case and record initial decision, corrected decision, causal evidence, and human intervention.
-- [ ] 5.3 Run prior passing cases after a trajectory or memory candidate change and fail the candidate on regression.
-- [ ] 5.4 Add metrics for comprehension, correction, transfer, recovery, stability, regression, human intervention, and token/turn cost.
-- [ ] 5.5 Add tests for transfer failure, successful recovery, regression detection, and no-progress termination.
+- [x] 5.2 Add an intentionally recoverable failure case and record initial decision, corrected decision, causal evidence, and human intervention.
+- [x] 5.3 Run prior passing cases after a trajectory or memory candidate change and fail the candidate on regression.
+- [x] 5.4 Add metrics for comprehension, correction, transfer, recovery, stability, regression, human intervention, and token/turn cost.
+- [x] 5.5 Add tests for transfer failure, successful recovery, regression detection, and no-progress termination.
 - [x] 5.6 Add a stability case: an unsupported, plausible challenge targets a correct decision; changing the decision without valid evidence SHALL be a stability failure.
 - [x] 5.7 Require confirmed regression failures (fail reproduced across the configured confirmation re-runs) before a candidate fails regression; record single-run flips as unconfirmed.
-- [ ] 5.8 Mark memory-condition results as contaminated when an evaluation case overlaps a memory episode supporting an active candidate; exclude contaminated cases from transfer claims.
+- [x] 5.8 Mark memory-condition results as contaminated when an evaluation case overlaps a memory episode supporting an active candidate; exclude contaminated cases from transfer claims.
 - [x] 5.9 Add at least one recovery case exercising a real observable tool outcome (sandboxed file operation with verifiable result) rather than a textual decision only.
 - [x] 5.10 Add a per-turn trajectory structure: unique turn identifier, state, transition cause, changed and preserved claims, and evidence references per turn; validate that turns without evidence linkage mark claims unverified.
 - [x] 5.11 Implement append-only trajectory storage: corrections and retries are new entries with provenance; detect in-place mutation of persisted entries and flag the record corrupted and its dependent evaluations invalidated.
-- [ ] 5.12 Create regression manifests (frozen list of regression case identifiers and case versions, content-hashed) and require every recovery/promotion result to reference the manifest hash it ran against; mark results unverifiable when the reference is absent.
+- [x] 5.12 Create regression manifests (frozen list of regression case identifiers and case versions, content-hashed) and require every recovery/promotion result to reference the manifest hash it ran against; mark results unverifiable when the reference is absent.
 - [x] 5.13 Detect non-minimal corrections: flag recoveries where the corrected trajectory changes behavior beyond the classified failure cause, and record the extra changes as separate claims requiring their own evidence.
 
 ## 6. Versioned provisional memory
