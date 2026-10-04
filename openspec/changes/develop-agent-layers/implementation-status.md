@@ -24,9 +24,11 @@ The following tasks are now marked `[x]` in `tasks.md`:
 - 5.4 — comprehension/correction/transfer/recovery/stability/regression/human-intervention/token-turn metrics (`contract/metrics.py`).
 - 5.5 — behavior tests for transfer failure, successful recovery, regression detection, and no-progress termination exist and pass.
 - 5.6 — stability case with unsupported challenge exists and is classified.
+- 5.7 — confirmed regression failures contract in `trajectory_runtime.confirm_regression_failures`; edge coverage in `test_5_7_confirm_regression.py` (default threshold, single-run flips unconfirmed, threshold-3, all-pass/all-fail, counts).
 - 5.8 — memory-condition contamination marking and transfer exclusion (`contract/memory_contamination.py`).
 - 5.9 — sandboxed observable recovery case exists.
 - 5.12 — frozen content-hashed regression manifests and unverifiable-result downgrade on missing/mismatched reference (`contract/regression_manifest.py`).
+- 5.13 — non-minimal correction detection contract in `trajectory_runtime.detect_non_minimal_correction`; edge coverage in `test_5_13_non_minimal_correction.py` (identical, allowed-only, added/removed keys, multiple extras sorted, no allowed fields).
 - 6.6 — memory-injection boundary case exists.
 - 7.3 — coverage gates and preliminary claim status are emitted by the manual evaluation path.
 - 8.2 — first vertical-slice experiment and acceptance criteria are documented.
@@ -47,7 +49,7 @@ These completions do not imply that every scenario in the related spec is implem
 ### P1 — Trajectory and recovery integrity
 
 - 4.1–4.5: bounded Socratic state machine, per-turn claims/evidence, and correction-vs-comprehension tests (4.6 challenge provenance now implemented).
-- 5.10–5.11, 5.13: append-only trajectories and non-minimal correction detection (5.2–5.5, 5.7, 5.12 now verified complete — see "Verified completed tasks").
+- 5.10–5.11: append-only trajectories (5.2–5.5, 5.7, 5.12, 5.13 now verified complete — see "Verified completed tasks").
 - 10.12, 10.26–10.27: custody states, ordered appends, crash recovery, and schema-preserving evolution.
 
 ### P1 — Versioned memory lifecycle
