@@ -1,0 +1,140 @@
+[
+  {
+    "error_classification": "none",
+    "error_message": "",
+    "latency_ms": 0,
+    "provider": "echo",
+    "request_id": "echo-dfc54141738baf90",
+    "requested_model": "safe/echo-v0",
+    "response_hash": "a59100f6dce78db6540fa74a826bfb833c82461971797d5ebcddd3b26810f5a1",
+    "retries": 0,
+    "sampling_parameters": {
+      "raw": "echo-deterministic",
+      "temperature": 0.0
+    },
+    "schema_version": "v1",
+    "served_model": "safe/echo-v0",
+    "served_model_status": "reported",
+    "timestamp": "2026-10-05T08:25:28.388371+00:00",
+    "usage": {
+      "input_tokens": 41,
+      "output_tokens": 23,
+      "total_tokens": 64
+    }
+  },
+  {
+    "error_classification": "none",
+    "error_message": "",
+    "latency_ms": 0,
+    "provider": "echo",
+    "request_id": "echo-68c978963835c678",
+    "requested_model": "safe/echo-v0",
+    "response_hash": "5a5520c56e627974fa25b5851aba5451d39d613d81e80dca2a9110358f02281f",
+    "retries": 0,
+    "sampling_parameters": {
+      "raw": "echo-deterministic",
+      "temperature": 0.0
+    },
+    "schema_version": "v1",
+    "served_model": "safe/echo-v0",
+    "served_model_status": "reported",
+    "timestamp": "2026-10-05T08:25:28.393769+00:00",
+    "usage": {
+      "input_tokens": 41,
+      "output_tokens": 23,
+      "total_tokens": 64
+    }
+  },
+  {
+    "error_classification": "none",
+    "error_message": "",
+    "latency_ms": 0,
+    "provider": "echo",
+    "request_id": "echo-3d7a7830fc788ae5",
+    "requested_model": "safe/echo-v0",
+    "response_hash": "965ff3d7a47dc18332be208af18588b3a936055120045cfe48a8e9530ee2b08b",
+    "retries": 0,
+    "sampling_parameters": {
+      "raw": "echo-deterministic",
+      "temperature": 0.0
+    },
+    "schema_version": "v1",
+    "served_model": "safe/echo-v0",
+    "served_model_status": "reported",
+    "timestamp": "2026-10-05T08:25:28.399090+00:00",
+    "usage": {
+      "input_tokens": 41,
+      "output_tokens": 23,
+      "total_tokens": 64
+    }
+  },
+  {
+    "error_classification": "none",
+    "error_message": "",
+    "latency_ms": 0,
+    "provider": "echo",
+    "request_id": "echo-37af01396df9ca34",
+    "requested_model": "safe/echo-v0",
+    "response_hash": "0a2317b007dc52dee0191b664460ab951efc851c37a4ae3c3132d54d0f5b3d3d",
+    "retries": 0,
+    "sampling_parameters": {
+      "raw": "echo-deterministic",
+      "temperature": 0.0
+    },
+    "schema_version": "v1",
+    "served_model": "safe/echo-v0",
+    "served_model_status": "reported",
+    "timestamp": "2026-10-05T08:25:28.402232+00:00",
+    "usage": {
+      "input_tokens": 41,
+      "output_tokens": 23,
+      "total_tokens": 64
+    }
+  },
+  {
+    "error_classification": "none",
+    "error_message": "",
+    "latency_ms": 0,
+    "provider": "echo",
+    "request_id": "echo-ec044b862cb8dc85",
+    "requested_model": "safe/echo-v0",
+    "response_hash": "36f2eade6f265d13a69e67df9777b314c6d565a296524aa80b9fd08cf606d25c",
+    "retries": 0,
+    "sampling_parameters": {
+      "raw": "echo-deterministic",
+      "temperature": 0.0
+    },
+    "schema_version": "v1",
+    "served_model": "safe/echo-v0",
+    "served_model_status": "reported",
+    "timestamp": "2026-10-05T08:25:28.403028+00:00",
+    "usage": {
+      "input_tokens": 41,
+      "output_tokens": 23,
+      "total_tokens": 64
+    }
+  },
+  {
+    "error_classification": "none",
+    "error_message": "",
+    "latency_ms": 0,
+    "provider": "echo",
+    "request_id": "echo-08b595e66358fb83",
+    "requested_model": "safe/echo-v0",
+    "response_hash": "010dcb4d8a76bcc83b3c45fbdd1d8db18670c9fe61240bcd984baf7b8f0a513b",
+    "retries": 0,
+    "sampling_parameters": {
+      "raw": "echo-deterministic",
+      "temperature": 0.0
+    },
+    "schema_version": "v1",
+    "served_model": "safe/echo-v0",
+    "served_model_status": "reported",
+    "timestamp": "2026-10-05T08:25:28.404476+00:00",
+    "usage": {
+      "input_tokens": 41,
+      "output_tokens": 23,
+      "total_tokens": 64
+    }
+  }
+]

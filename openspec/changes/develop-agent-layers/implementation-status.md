@@ -31,6 +31,10 @@ The following tasks are now marked `[x]` in `tasks.md`:
 - 5.13 — non-minimal correction detection contract in `trajectory_runtime.detect_non_minimal_correction`; edge coverage in `test_5_13_non_minimal_correction.py` (identical, allowed-only, added/removed keys, multiple extras sorted, no allowed fields).
 - 6.6 — memory-injection boundary case exists.
 - 7.3 — coverage gates and preliminary claim status are emitted by the manual evaluation path.
+- 7.1 — provider adapters (echo, anthropic, openai) return envelopes validated against `adapter_envelope.schema.json`; secrets are read from env only, never persisted; `contract.providers.envelope_has_secret` detects accidental leaks.
+- 7.3 — `contract/coverage_gates.py` gates high-confidence scopes on repetition, provenance, category coverage, contamination, and legacy evidence; downgrade vs block semantics are documented per scope.
+- 7.4 — `contract/anonymizer.py` builds anonymized reports: scrubs secret patterns and internal paths, keeps allowed top-level keys, computes prompt and response hashes, defaults to `evidence_mode: hash_only`.
+- 7.5 — `contract/safe_runner.py` runs the full safe suite (6 cases × 4 conditions) with the `echo` adapter; emits manifest, envelopes, classifications, anonymized report, and coverage gates; baseline artifacts in `fixtures/baseline-safe-run/` and `docs/dogmas/eval/BASELINE_SAFE_RUN.md`.
 - 8.2 — first vertical-slice experiment and acceptance criteria are documented.
 - 8.5 — preliminary report distinguishes descriptive evidence and limitations.
 - 9.10 — versioned schemas exist and legacy schema remains compatibility-only.

@@ -65,11 +65,11 @@
 
 ## 7. Cross-model evaluation and reporting
 
-- [ ] 7.1 Extend provider adapters and local execution paths to run the controlled conditions without exposing credentials or persisting secrets.
+- [x] 7.1 Extend provider adapters and local execution paths to run the controlled conditions without exposing credentials or persisting secrets.
 - [x] 7.2 Add cross-model intersection reporting that preserves frontier dissent instead of averaging it away.
-- [ ] 7.3 Add coverage gates that block high-confidence crystallization and alignment claims when repetition, provenance, or category coverage is insufficient.
-- [ ] 7.4 Add an anonymized report format containing only permitted evidence and non-sensitive metadata.
-- [ ] 7.5 Run the full safe evaluation suite and document baseline state, failures, limitations, and observed transfer results.
+- [x] 7.3 Add coverage gates that block high-confidence crystallization and alignment claims when repetition, provenance, or category coverage is insufficient.
+- [x] 7.4 Add an anonymized report format containing only permitted evidence and non-sensitive metadata.
+- [x] 7.5 Run the full safe evaluation suite and document baseline state, failures, limitations, and observed transfer results.
 - [x] 7.6 Verify equal served model and sampling configuration across models before classifying a case as frontier dissent; classify configuration-different disagreements as non-comparable.
 - [x] 7.7 Define automation phase-transition thresholds as confidence intervals with configured minimum samples per category; a transition SHALL NOT be evaluated below the minimum sample.
 - [x] 7.8 Define the artifact-language policy in code and schemas: English for machine-validated artifacts, operator language for human-facing reports, original language for evaluation cases, with the language field mandatory in provenance records.
