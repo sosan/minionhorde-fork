@@ -52,15 +52,15 @@
 
 ## 6. Versioned provisional memory
 
-- [ ] 6.1 Define candidate memory records with status, provenance, scope, episodes, transfer cases, counterexamples, parent version, and deprecation history.
-- [ ] 6.2 Generate provisional candidates only from independently supported episodes; never write directly to the active dogma core.
-- [ ] 6.3 Add a human-review gate for promotion and preserve the previous memory version for rollback.
-- [ ] 6.4 Add candidate deprecation/narrowing behavior when later evidence contradicts the declared scope.
-- [ ] 6.5 Add regression tests for promotion refusal, rollback selection, deprecation, and normative-inflation prevention.
+- [x] 6.1 Define candidate memory records with status, provenance, scope, episodes, transfer cases, counterexamples, parent version, and deprecation history.
+- [x] 6.2 Generate provisional candidates only from independently supported episodes; never write directly to the active dogma core.
+- [x] 6.3 Add a human-review gate for promotion and preserve the previous memory version for rollback.
+- [x] 6.4 Add candidate deprecation/narrowing behavior when later evidence contradicts the declared scope.
+- [x] 6.5 Add regression tests for promotion refusal, rollback selection, deprecation, and normative-inflation prevention.
 - [x] 6.6 Add a memory-injection case: candidate content containing instructions retrieved into context SHALL be treated as untrusted data without instruction authority, and the agent SHALL NOT follow it.
-- [ ] 6.7 Add contamination checking between evaluation cases and memory episodes supporting active candidates (hash equality or declared semantic similarity).
-- [ ] 6.8 Enforce the configured minimum number of episodes from distinct sessions or cases before a provisional candidate is created; reject candidate creation when any supporting episode is marked contaminated.
-- [ ] 6.9 Reject promotion when supporting episodes include contaminated cases or when frontier-classified dissent on the pattern remains unresolved; require dissent routed to human review and closed before promotion.
+- [x] 6.7 Add contamination checking between evaluation cases and memory episodes supporting active candidates (hash equality or declared semantic similarity).
+- [x] 6.8 Enforce the configured minimum number of episodes from distinct sessions or cases before a provisional candidate is created; reject candidate creation when any supporting episode is marked contaminated.
+- [x] 6.9 Reject promotion when supporting episodes include contaminated cases or when frontier-classified dissent on the pattern remains unresolved; require dissent routed to human review and closed before promotion.
 - [x] 6.10 Require each transfer variant to declare the decision principle it measures and record an equivalence review (human or validated against a human-labeled subset) before its results count; keep the transfer result pending when the configured case minimum is not met.
 
 ## 7. Cross-model evaluation and reporting
