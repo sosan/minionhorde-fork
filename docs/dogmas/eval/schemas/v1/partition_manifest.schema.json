@@ -9,6 +9,24 @@
     "schema_version": { "const": "v1" },
     "partition": { "enum": ["support", "validation", "transfer", "regression", "audit"] },
     "content_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "minimal_partitions",
+        "non_comparable_reuse",
+        "definitive_claims_allowed",
+        "case_inventory_growth_required"
+      ],
+      "properties": {
+        "profile_id": { "type": "string" },
+        "minimal_partitions": { "type": "boolean" },
+        "non_comparable_reuse": { "enum": ["approved", "forbidden"] },
+        "definitive_claims_allowed": { "type": "boolean" },
+        "case_inventory_growth_required": { "type": "boolean" }
+      }
+    },
     "cases": {
       "type": "array",
       "items": {

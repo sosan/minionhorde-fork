@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 try:
@@ -101,11 +102,51 @@ def apply_custody_to_trajectory(provenance: TrajectoryProvenance) -> dict[str, A
     return snapshot
 
 
+def _resolve_schema_path(schema_path: str | Path | None) -> Path:
+    """Resolve the trajectory schema independent of the working directory.
+
+    An explicit ``schema_path`` is used as-is. Otherwise the schema is
+    located by walking up from this module's directory until
+    ``docs/dogmas/eval/schemas/v1/trajectory.schema.json`` resolves, so
+    validation behaves identically regardless of where pytest is invoked
+    from.
+    """
+    if schema_path is not None:
+        return Path(schema_path)
+    module_dir = Path(__file__).resolve().parent
+    for candidate in (module_dir, *module_dir.parents):
+        path = (
+            candidate
+            / "docs"
+            / "dogmas"
+            / "eval"
+            / "schemas"
+            / "v1"
+            / "trajectory.schema.json"
+        )
+        if path.exists():
+            return path
+    return (
+        module_dir.parents[3]
+        / "docs"
+        / "dogmas"
+        / "eval"
+        / "schemas"
+        / "v1"
+        / "trajectory.schema.json"
+    )
+
+
 def validate_against_schema(
     snapshot: dict[str, Any],
-    schema_path: str = "docs/dogmas/eval/schemas/v1/trajectory.schema.json",
+    schema_path: str | Path | None = None,
 ) -> tuple[bool, list[str]]:
-    """Validate a trajectory snapshot against the JSON schema."""
+    """Validate a trajectory snapshot against the JSON schema.
+
+    ``schema_path`` defaults to the trajectory schema resolved relative to
+    this module (see ``_resolve_schema_path``), so validation does not
+    depend on the current working directory.
+    """
     import json
     from pathlib import Path
 
@@ -114,9 +155,9 @@ def validate_against_schema(
     except ImportError:
         return False, ["jsonschema package not installed"]
 
-    schema_file = Path(schema_path)
+    schema_file = _resolve_schema_path(schema_path)
     if not schema_file.exists():
-        return False, [f"schema file not found: {schema_path}"]
+        return False, [f"schema file not found: {schema_file}"]
 
     schema = json.loads(schema_file.read_text(encoding="utf-8"))
     validator = Draft202012Validator(schema)

@@ -114,6 +114,19 @@
         "agreement_validated": { "type": "boolean" },
         "condition_blinded": { "type": "boolean" }
       }
+    },
+    "missingness": {
+      "type": "object",
+      "description": "Per-field missingness flags; downstream consumers use this to separate model-outcome denominators from environment failures (task 9.2, 9.4).",
+      "additionalProperties": false,
+      "properties": {
+        "served_model": { "type": "boolean" },
+        "sampling": { "type": "boolean" },
+        "evidence_reference": { "type": "boolean" },
+        "policy_hash": { "type": "boolean" },
+        "partition_manifest_hash": { "type": "boolean" },
+        "judge": { "type": "boolean" }
+      }
     }
   }
 }

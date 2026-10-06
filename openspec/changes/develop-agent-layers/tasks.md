@@ -14,12 +14,12 @@
 
 ## 3. Evaluation provenance
 
-- [ ] 3.1 Extend evaluation result handling to record response evidence mode, evaluator authority, observable tool outcome availability, and configuration hashes.
+- [x] 3.1 Extend evaluation result handling to record response evidence mode, evaluator authority, observable tool outcome availability, and configuration hashes.
 - [x] 3.2 Preserve compatibility with legacy result files while marking missing provenance as limited or unverified.
-- [ ] 3.3 Add controlled-condition metadata for base, dogmas, memory, and dogmas-plus-memory-plus-Socratic runs.
-- [ ] 3.4 Update validation and metrics to report provenance, coverage, dissent, confidence limits, and cost separately.
-- [ ] 3.5 Add regression tests for incomplete coverage, mixed configurations, missing literal evidence, and model disagreement.
-- [ ] 3.6 Record requested model, served model reported by the provider, sampling parameters, and case language in every evaluation result; mark comparisons non-comparable when served model or sampling differ.
+- [x] 3.3 Add controlled-condition metadata for base, dogmas, memory, and dogmas-plus-memory-plus-Socratic runs.
+- [x] 3.4 Update validation and metrics to report provenance, coverage, dissent, confidence limits, and cost separately.
+- [x] 3.5 Add regression tests for incomplete coverage, mixed configurations, missing literal evidence, and model disagreement.
+- [x] 3.6 Record requested model, served model reported by the provider, sampling parameters, and case language in every evaluation result; mark comparisons non-comparable when served model or sampling differ.
 - [x] 3.7 Implement judge bias controls: record judge identity and model-family relation to the evaluated model, swap comparison order for comparative judgments, and mark judge classifications provisional until agreement is validated against a human-labeled subset.
 - [x] 3.8 Add paired per-case comparison (McNemar or paired bootstrap) with confidence intervals for all cross-condition claims; report aggregate pass rates only alongside the paired analysis.
 - [x] 3.9 Implement evidence-reference resolution: verify every cited artifact exists and its content hash matches the recorded hash; mark results unverified on mismatch or missing artifact, and downgrade expired stored literals to hash-only provenance.
@@ -77,29 +77,29 @@
 
 ## 8. Documentation and operational rollout
 
-- [ ] 8.1 Document Layer A/B/C boundaries, trajectory states, evaluator authority, memory lifecycle, and rollback semantics.
+- [x] 8.1 Document Layer A/B/C boundaries, trajectory states, evaluator authority, memory lifecycle, and rollback semantics.
 - [x] 8.2 Document the first vertical-slice experiment and its acceptance criteria.
-- [ ] 8.4 Verify existing hooks and security tests remain passing before enabling the new path by default.
+- [x] 8.4 Verify existing hooks and security tests remain passing before enabling the new path by default.
 - [x] 8.5 Produce a changelog/report that distinguishes implemented behavior from preliminary or unverified results.
 
 ## 9. Integration contracts and profile separation
 
-- [ ] 9.1 Define a common provider-adapter contract returning response text, served model, sampling, usage, latency, request id, and error classification; record unsupported metadata as `unknown`.
-- [ ] 9.2 Extend the evaluation record schema with condition, case version, case hash, repetition id, pair key, policy and partition manifest references, provenance, evidence mode, outcome status, dimensions, cost observables, and missingness.
-- [ ] 9.3 Define explicit legacy migration: import legacy results as `legacy_limited` descriptive evidence that cannot support causal, transfer, promotion, or Layer C improvement claims.
-- [ ] 9.4 Separate environment failures (provider error, timeout, credentials, budget, schema-invalid, pending) from model outcomes in outcome status and denominators.
-- [ ] 9.5 Implement a `vertical_slice` profile (decision 1c values) distinct from a `full_suite` profile, keeping vertical-slice results preliminary and without promotion authority.
-- [ ] 9.6 Scope reported claims to case, dimension, candidate, category, model, or global levels, restricting the first increment to provisional candidate- and dimension-level claims.
-- [ ] 9.7 Add scenarios and fixtures for pair-key construction, retry-after-failure, legacy-limited labels, environment-failure classification, and claim-scope downgrade.
+- [x] 9.1 Define a common provider-adapter contract returning response text, served model, sampling, usage, latency, request id, and error classification; record unsupported metadata as `unknown`.
+- [x] 9.2 Extend the evaluation record schema with condition, case version, case hash, repetition id, pair key, policy and partition manifest references, provenance, evidence mode, outcome status, dimensions, cost observables, and missingness.
+- [x] 9.3 Define explicit legacy migration: import legacy results as `legacy_limited` descriptive evidence that cannot support causal, transfer, promotion, or Layer C improvement claims.
+- [x] 9.4 Separate environment failures (provider error, timeout, credentials, budget, schema-invalid, pending) from model outcomes in outcome status and denominators.
+- [x] 9.5 Implement a `vertical_slice` profile (decision 1c values) distinct from a `full_suite` profile, keeping vertical-slice results preliminary and without promotion authority.
+- [x] 9.6 Scope reported claims to case, dimension, candidate, category, model, or global levels, restricting the first increment to provisional candidate- and dimension-level claims.
+- [x] 9.7 Add scenarios and fixtures for pair-key construction, retry-after-failure, legacy-limited labels, environment-failure classification, and claim-scope downgrade.
 
-- [ ] 9.8 Split provenance hashes into case, prompt template, assembled context, criteria, memory, policy, and partition manifest references; add attribution tests for one-component changes.
-- [ ] 9.9 Preserve legacy dimensions separately from learning dimensions; add migration fixtures proving same-named fields such as `recovery` are never silently merged.
+- [x] 9.8 Split provenance hashes into case, prompt template, assembled context, criteria, memory, policy, and partition manifest references; add attribution tests for one-component changes.
+- [x] 9.9 Preserve legacy dimensions separately from learning dimensions; add migration fixtures proving same-named fields such as `recovery` are never silently merged.
 - [x] 9.10 Create versioned schemas under `docs/dogmas/eval/schemas/v1/` and mark the existing legacy schema as compatibility-only.
 
 ## 10. Readiness conditions
 
 - [x] 10.1 Create a human-labeled subset with documented selection criteria and size; use it to validate judge agreement, transfer-variant equivalence review, and contamination-similarity calibration.
-- [ ] 10.2 Resolve the suite-versus-partition tension: the vertical-slice profile SHALL use minimal partitions with approved non-comparable reuse, and a full_suite SHALL grow the case inventory before definitive claims; record the chosen partition-policy mapping in the partition manifests.
+- [x] 10.2 Resolve the suite-versus-partition tension: the vertical-slice profile SHALL use minimal partitions with approved non-comparable reuse, and a full_suite SHALL grow the case inventory before definitive claims; record the chosen partition-policy mapping in the partition manifests.
 - [x] 10.3 Define and verify vertical-slice acceptance criteria: one controlled case run under the four conditions, a schema-valid verifiable trajectory, a paired contrast with coverage status, and the correct `coverage_status` label emitted.
 - [x] 10.4 Record the default literal-response retention policy value in the evaluation policy: hash-only by default, stored literals with explicit expiry.
 - [x] 10.5 Choose and record the near-duplicate similarity detector identity and version used for contamination flags.
@@ -111,9 +111,9 @@
 - [x] 10.11 Record producer, classifier, custodian, and reviewer actors with independence status on trajectory and evaluation artifacts; degrade claims when actors coincide or independence is unknown.
 - [x] 10.12 Implement evidence custody lifecycle states `OPEN`, `FROZEN`, `AMENDED`, `SUPERSEDED`, and `CORRUPTED` with observation/recording/evaluation/amendment timestamps and no overwrite after freeze.
 - [x] 10.13 Implement structured human review and escalation records (reviewer identity, blinded evidence, decision, rationale hash, timestamp, superseded review) and open-dissent handling for reviewer disagreement.
-- [ ] 10.14 Implement structured Layer C → Layer B amendment proposals (current criterion, contradicting evidence, proposed text or precedence change, affected precedences) that are human-approved and never self-applied; require a regression re-run of the evaluation suite before an amendment is treated as stable.
-- [ ] 10.15 Record memory retrieval per trajectory (retrieved items, hashes, token count, or `retrieved: none`); mark empty-retrieval cases `no_memory_retrieved` and exclude them from `full_vs_criteria` and `full_vs_memory`.
-- [ ] 10.16 Verify condition content per record (`memory_injected`, `criteria_injected` with hashes); mark `condition_mismatch` when the label does not match injected content and exclude from contrasts.
+- [x] 10.14 Implement structured Layer C → Layer B amendment proposals (current criterion, contradicting evidence, proposed text or precedence change, affected precedences) that are human-approved and never self-applied; require a regression re-run of the evaluation suite before an amendment is treated as stable.
+- [x] 10.15 Record memory retrieval per trajectory (retrieved items, hashes, token count, or `retrieved: none`); mark empty-retrieval cases `no_memory_retrieved` and exclude them from `full_vs_criteria` and `full_vs_memory`.
+- [x] 10.16 Verify condition content per record (`memory_injected`, `criteria_injected` with hashes); mark `condition_mismatch` when the label does not match injected content and exclude from contrasts.
 - [x] 10.17 Classify each case's discriminating power (`ceiling`, `floor`, `inert`, `discriminating`), report the primary contrast over discriminating cases, and record mutation distance so surface renames are excluded from cross-domain transfer.
 - [x] 10.18 Add a pre-registered equivalence procedure (TOST with margin Δ) so a "no useful difference" conclusion requires the interval to fall within ±Δ; forbid equivalence claims from non-significant superiority results.
 - [x] 10.19 Add claim validity and revalidation: served model, criteria, memory, and policy version changes or a configured time-to-live invalidate a claim until revalidated; mark stale claims in reports.
@@ -123,5 +123,5 @@
 - [x] 10.23 Redact memory candidates against secret patterns before storage and run periodic memory audits that remove leaked values, re-version entries, and report security events.
 - [x] 10.24 Revalidate memory entries on time-to-live or model/criteria/policy/tooling context change; mark stale entries and exclude them from automatic injection until revalidated.
 - [x] 10.25 Record challenge objective (`corrective`, `adversarial`, or `mixed`) alongside challenge provenance; attribute corrections and stability outcomes consistently with the declared objective.
-- [ ] 10.26 Implement ordered concurrent appends (single writer, lock, or monotonic allocator) with atomic or journaled writes and crash recovery that retains the last valid manifest and marks incomplete writes aborted.
-- [ ] 10.27 Implement schema versioning on artifacts with versioned readers or separately hashed migration artifacts; never rewrite history in place and downgrade claims whose migration loses semantic meaning.
+- [x] 10.26 Implement ordered concurrent appends (single writer, lock, or monotonic allocator) with atomic or journaled writes and crash recovery that retains the last valid manifest and marks incomplete writes aborted.
+- [x] 10.27 Implement schema versioning on artifacts with versioned readers or separately hashed migration artifacts; never rewrite history in place and downgrade claims whose migration loses semantic meaning.

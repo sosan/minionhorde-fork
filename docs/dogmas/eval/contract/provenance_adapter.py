@@ -113,6 +113,14 @@ def adapt_result(
         },
         "cost": {"input_tokens": None, "output_tokens": None, "model_calls": None},
         "judge": {"judge_id": "rule-classifier", "model_family_relation": False, "agreement_validated": False, "condition_blinded": False},
+        "missingness": {
+            "served_model": served == "unknown" or not served,
+            "sampling": sampling == "unknown" or not sampling,
+            "evidence_reference": not bool(response_literal and response_literal.strip()),
+            "policy_hash": True,
+            "partition_manifest_hash": True,
+            "judge": False,
+        },
     }
 
 

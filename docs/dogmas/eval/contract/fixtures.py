@@ -256,3 +256,167 @@ def redacted_trajectory_fixture(*, condition: str = "full") -> dict:
         "entries": entries,
         "manifest": manifest,
     }
+
+
+def pair_key_fixture(*, case_id: str = "synthetic/pair-key-001", repetition_id: str = "rep-001", condition: str = "base") -> dict:
+    """Scenario fixture for pair-key construction (task 9.7.1).
+
+    Two records that share case+repetition+condition MUST share the
+    same ``pair_key``; records that differ in any of those three MUST
+    receive a different pair key. The fixture is schema-valid.
+    """
+    case = {"case_id": case_id, "case_version": "v1", "domain": "stability"}
+    case_hash = _hash(case)
+    return {
+        "schema_version": "v1",
+        "result_id": f"result-{case_id}-{repetition_id}-{condition}",
+        "case_id": case_id,
+        "case_version": "v1",
+        "case_hash": case_hash,
+        "condition": condition,
+        "repetition_id": repetition_id,
+        "pair_key": f"{case_id}:{repetition_id}:{condition}",
+        "requested_model": "fixture-model",
+        "served_model": "fixture-model",
+        "served_model_status": "reported",
+        "sampling_parameters": {"temperature": 0},
+        "case_language": "en",
+        "layer_a_profile": "fixture-a",
+        "layer_b_criteria_version": "fixture-b-v1",
+        "layer_c_memory_version": "fixture-memory-v1",
+        "policy_version": "v1",
+        "policy_hash": _hash({"policy": "vertical_slice", "version": "v1"}),
+        "partition_manifest_hash": _hash({"partition": "validation", "version": "v1"}),
+        "timestamp": FIXTURE_TIME,
+        "classification": "PASS",
+        "classification_authority": "rule",
+        "outcome_status": "model_pass",
+        "evidence_mode": "literal",
+        "provenance_status": "verified",
+        "comparability": "comparable",
+        "discrimination": "discriminating",
+        "retrieved": {"status": "none", "items": 0},
+        "dimensions": {"comprehension": 1, "correction": 1, "transfer": None, "recovery": None, "stability": 1, "regression": None},
+        "evidence": {"reference_hashes": [_hash({"evidence": "synthetic"})], "tool_result_observed": False},
+        "cost": {"input_tokens": 10, "output_tokens": 5, "model_calls": 1},
+        "judge": {"judge_id": "rule-classifier", "model_family_relation": False, "agreement_validated": False, "condition_blinded": False},
+        "missingness": {"served_model": False, "sampling": False, "evidence_reference": False, "policy_hash": True, "partition_manifest_hash": True, "judge": False},
+    }
+
+
+def retry_after_failure_fixture(*, case_id: str = "synthetic/retry-after-failure-001") -> dict:
+    """Scenario fixture for retry-after-failure (task 9.7.2).
+
+    The first attempt is an environment failure (``timeout``); the retry
+    is a fresh pair (new repetition_id, same case+condition) that
+    succeeds. Each attempt produces its own evaluation record so the
+    environment failure never contributes to the model-outcome
+    denominator.
+    """
+    first_attempt = environment_failure_fixture(
+        case_id=case_id,
+        outcome_status="timeout",
+        repetition_id="rep-001-attempt-1",
+    )
+    retry = pair_key_fixture(
+        case_id=case_id,
+        repetition_id="rep-001-attempt-2",
+        condition="base",
+    )
+    return {"first_attempt": first_attempt, "retry": retry}
+
+
+def environment_failure_fixture(*, case_id: str = "synthetic/env-failure-001", outcome_status: str = "timeout", repetition_id: str = "rep-001") -> dict:
+    """Scenario fixture for environment-failure classification (task 9.7.4).
+
+    The record carries an environment-failure outcome (``timeout`` by
+    default) and a ``missingness`` flag marking the response as absent.
+    It MUST be excluded from any model-outcome denominator.
+    """
+    assert outcome_status in {
+        "provider_error", "timeout", "credential_error",
+        "budget_exceeded", "schema_invalid", "pending", "blocked", "aborted",
+    }
+    case = {"case_id": case_id, "case_version": "v1", "domain": "stability"}
+    case_hash = _hash(case)
+    return {
+        "schema_version": "v1",
+        "result_id": f"result-{case_id}-{repetition_id}-{outcome_status}",
+        "case_id": case_id,
+        "case_version": "v1",
+        "case_hash": case_hash,
+        "condition": "base",
+        "repetition_id": repetition_id,
+        "pair_key": f"{case_id}:{repetition_id}:base",
+        "requested_model": "fixture-model",
+        "served_model": "unknown",
+        "served_model_status": "unknown",
+        "sampling_parameters": {"temperature": 0},
+        "case_language": "en",
+        "layer_a_profile": "fixture-a",
+        "layer_b_criteria_version": "fixture-b-v1",
+        "layer_c_memory_version": "fixture-memory-v1",
+        "policy_version": "v1",
+        "policy_hash": _hash({"policy": "vertical_slice", "version": "v1"}),
+        "partition_manifest_hash": _hash({"partition": "validation", "version": "v1"}),
+        "timestamp": FIXTURE_TIME,
+        "classification": "PARTIAL",
+        "classification_authority": "rule",
+        "outcome_status": outcome_status,
+        "evidence_mode": "none",
+        "provenance_status": "limited",
+        "comparability": "non_comparable",
+        "discrimination": "unknown",
+        "retrieved": {"status": "none", "items": 0},
+        "dimensions": {"comprehension": None, "correction": None, "transfer": None, "recovery": None, "stability": None, "regression": None},
+        "evidence": {"reference_hashes": [], "tool_result_observed": False},
+        "cost": {"input_tokens": None, "output_tokens": None, "model_calls": None},
+        "judge": {"judge_id": "rule-classifier", "model_family_relation": False, "agreement_validated": False, "condition_blinded": False},
+        "missingness": {"served_model": True, "sampling": False, "evidence_reference": True, "policy_hash": True, "partition_manifest_hash": True, "judge": False},
+    }
+
+
+def claim_scope_downgrade_fixture(*, candidate_id: str = "candidate-downgrade-001") -> dict:
+    """Scenario fixture for claim-scope downgrade (task 9.7.5).
+
+    The record would support a dimension-level claim but not a
+    model- or global-level claim under the ``vertical_slice`` profile.
+    Downgrade behavior is exercised by ``contract.profiles.restrict_claim``.
+    """
+    case = {"case_id": "synthetic/claim-scope-downgrade", "case_version": "v1", "domain": "stability"}
+    case_hash = _hash(case)
+    return {
+        "schema_version": "v1",
+        "result_id": f"result-{candidate_id}",
+        "case_id": case["case_id"],
+        "case_version": "v1",
+        "case_hash": case_hash,
+        "condition": "full",
+        "repetition_id": "rep-001",
+        "pair_key": f"{case['case_id']}:rep-001:full",
+        "requested_model": "fixture-model",
+        "served_model": "fixture-model",
+        "served_model_status": "reported",
+        "sampling_parameters": {"temperature": 0},
+        "case_language": "en",
+        "layer_a_profile": "fixture-a",
+        "layer_b_criteria_version": "fixture-b-v1",
+        "layer_c_memory_version": "fixture-memory-v1",
+        "policy_version": "v1",
+        "policy_hash": _hash({"policy": "vertical_slice", "version": "v1"}),
+        "partition_manifest_hash": _hash({"partition": "validation", "version": "v1"}),
+        "timestamp": FIXTURE_TIME,
+        "classification": "PASS",
+        "classification_authority": "rule",
+        "outcome_status": "model_pass",
+        "evidence_mode": "literal",
+        "provenance_status": "verified",
+        "comparability": "comparable",
+        "discrimination": "discriminating",
+        "retrieved": {"status": "present", "items": 1, "tokens": 12},
+        "dimensions": {"comprehension": 1, "correction": 1, "transfer": 1, "recovery": None, "stability": 1, "regression": None},
+        "evidence": {"reference_hashes": [_hash({"evidence": "synthetic"})], "tool_result_observed": False},
+        "cost": {"input_tokens": 20, "output_tokens": 10, "model_calls": 1},
+        "judge": {"judge_id": "rule-classifier", "model_family_relation": False, "agreement_validated": False, "condition_blinded": False},
+        "missingness": {"served_model": False, "sampling": False, "evidence_reference": False, "policy_hash": True, "partition_manifest_hash": True, "judge": False},
+    }
