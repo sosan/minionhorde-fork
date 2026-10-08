@@ -33,11 +33,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from contract.append_log import AppendEntry, AppendLog
+from contract.p2_5 import KappaAgreement, measure_judge_agreement
 
-__all__ = ["JudgeAgreementAudit", "JudgeMeasurement"]
+__all__ = ["JudgeAgreementAudit", "JudgeMeasurement", "measure_with_audit"]
 
 ENTRY_TYPE = "judge_agreement_measurement"
 
@@ -102,3 +103,58 @@ class JudgeAgreementAudit:
         return sum(
             1 for entry in self._log.entries if entry.entry_type == ENTRY_TYPE
         )
+
+
+def measure_with_audit(
+    audit: JudgeAgreementAudit,
+    judge_labels: Sequence[str],
+    human_labels: Sequence[str],
+    *,
+    subset_id: str,
+    detector_identity: str,
+    detector_version: str,
+    threshold: float = 0.8,
+    min_subset_size: int = 3,
+    statistic: str = "cohen_kappa",
+    measured_at: str | None = None,
+) -> tuple[KappaAgreement, AppendEntry]:
+    """Measure judge agreement and append the mandatory audit entry.
+
+    The protocol requires that *every* call to ``measure_judge_agreement``
+    writes an append-only audit entry (E4): date, ``subset_id``,
+    detector identity/version, kappa, n, threshold, min_subset_size.
+    ``contract.p2_5.measure_judge_agreement`` stays pure; this wired path
+    is the operator-facing one that satisfies the audit requirement.
+
+    Example:
+        audit = JudgeAgreementAudit(Path("audit/judge_agreement.jsonl"))
+        agreement, entry = measure_with_audit(
+            audit,
+            judge_labels=["PASS", "FAIL", "PASS"],
+            human_labels=["PASS", "FAIL", "PASS"],
+            subset_id="review-opus-5-max-v1",
+            detector_identity="claude-opus-5-max",
+            detector_version="build-abc",
+        )
+        assert agreement.validated
+        assert audit.verify_chain()
+    """
+    agreement = measure_judge_agreement(
+        judge_labels,
+        human_labels,
+        threshold=threshold,
+        min_subset_size=min_subset_size,
+        statistic=statistic,
+    )
+    entry = audit.record_measurement(
+        subset_id=subset_id,
+        detector_identity=detector_identity,
+        detector_version=detector_version,
+        kappa=agreement.kappa,
+        n=agreement.n,
+        threshold=agreement.threshold,
+        min_subset_size=agreement.min_subset_size,
+        validated=agreement.validated,
+        measured_at=measured_at,
+    )
+    return agreement, entry

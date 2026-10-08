@@ -4,10 +4,14 @@
 
 The agreement/equivalence/contamination-calibration mechanisms are
 implemented in `contract/p2_5.py` — `HumanLabeledSubset`,
-`measure_judge_agreement`, `cohen_kappa`, `detect_contamination`. The
-labeled dataset itself is an operator responsibility — it does not exist
-in `fixtures/`. This document records the operator-bound protocol: who
-labels, which cases, how the subset is selected, what size is the
+`measure_judge_agreement`, `cohen_kappa`, `detect_contamination` — and
+the surrounding protocol machinery in `contract/labeled_subset.py`
+(validate_subset, validate_against_schema), `contract/pre_declaration.py`
+(temporal pre-declaration registry), and `contract/audit_judge.py`
+(append-only tamper-evident measurement audit + `measure_with_audit`).
+The labeled dataset itself is an operator responsibility — it does not
+exist in `fixtures/`. This document records the operator-bound protocol:
+who labels, which cases, how the subset is selected, what size is the
 minimum, and which contract functions the operator must use to validate
 and consume it.
 
@@ -124,18 +128,17 @@ invalidates the subset.
 The protocol is pinned to `HumanLabeledSubset` as defined in
 `contract/p2_5.py` (v1 — frozen dataclass fields `subset_id`, `case_ids`,
 `labels`, `selection_criteria`, `detector_identity`, `detector_version`).
-There is no JSON Schema file yet; the closest versioned sibling is
-`docs/dogmas/eval/schemas/v1/memory_candidate.schema.json` (covers
-`MemoryCandidateRecord`, not the subset). The dataclass with `to_dict()`
-is canonical until a JSON Schema is added under
-`docs/dogmas/eval/schemas/v1/`, at which point the protocol migrates
-through `contract/schema_versions.py`. A subset whose schema_version is
-older than the current contract is loaded only through the versioned
-reader and never merged with newer subsets.
+The corresponding JSON Schema is
+`docs/dogmas/eval/schemas/v1/human_labeled_subset.schema.json` and is
+validated through `contract.labeled_subset.validate_against_schema` after
+serialization. The dataclass with `to_dict()` remains the canonical Python
+representation; the schema is the machine-readable boundary. A subset
+whose schema version is older than the current contract is loaded only
+through the versioned reader and never merged with newer subsets.
 
 ## Validation step (operator action)
 
-Before persisting the JSON, the operator MUST run two validations:
+Before persisting the JSON, the operator MUST run three validations:
 
 1. Instantiate the dataclass locally so `__post_init__` runs the field
    checks:
@@ -153,26 +156,33 @@ subset = HumanLabeledSubset(
 ```
 
 2. Run `contract.labeled_subset.validate_subset(...)` to enforce
-   criteria 1–5 (contamination, balance, edge labels, ceiling exemption,
+   criteria 2–5 (contamination, balance, edge labels, ceiling exemption,
    dual-role prefix, portability, panel kappa, size-scaled scope). The
    function returns a `Verdict` whose `issues` carry codes and severities.
    Any `error` issue blocks persistence; `warning` issues are advisory.
+   After validation, also run `contract.labeled_subset.validate_against_schema(subset)`
+   to confirm the JSON-serialised form is schema-conformant.
+
+3. Run `contract.pre_declaration.PreDeclarationRegistry.validate_pre_declared(subset_id, judge_first_observed_at=...)`
+   to enforce criterion 1 (temporal pre-declaration). The registry holds
+   the declaration timestamp recorded when the subset was created and
+   compares it against the first judge output; a judge output that
+   predates the declaration violates criterion 1 (`pre_declared_violation`)
+   and blocks persistence. A subset that was never declared returns
+   `pre_declared_unknown`.
 
 `__post_init__` enforces only: `subset_id` non-empty, `case_ids`
 non-empty, `selection_criteria` non-empty, every `case_id` has a label.
-It does NOT enforce criteria 1–5 — those are now enforced by
-`validate_subset` (contamination, balance, edge labels, dual-role
-prefix, portability, panel kappa, size-scaled scope). Criterion 1
-(temporal pre-declaration) is the single item the validator cannot
-close on its own: it requires a stateful comparison between the subset
-declaration timestamp and the first judge output, which the pure
-validation layer does not carry. The operator records the pre-declaration
-timestamp in `selection_criteria`; temporal pre-declaration enforcement
-is deferred (see Non-goals in `docs/specs/labeled-subset-protocol.md`).
+It does NOT enforce criteria 1–5 — those are enforced by the validator
+(criteria 2–5), the schema gate, and the pre-declaration registry
+(criterion 1). The pre-declaration registry is the stateful checkpoint
+that the pure validation layer does not carry.
 
 `validate_subset` is covered by `contract/test_labeled_subset.py` (15
-focused tests). The protocol recommends running the dataclass tests and
-the validator tests locally before persisting.
+focused tests), `validate_against_schema` and the pre-declaration
+registry by `contract/test_labeled_subset_ext.py` (AC-13..22). The
+protocol recommends running the dataclass tests and the validator tests
+locally before persisting.
 
 ## Output contract
 
@@ -243,13 +253,19 @@ Failure modes of the subset, each with an operator action:
 | Panel disagreement unresolved | inter-labeller kappa < 0.6 | Re-label disputed cases; subset invalid until resolved |
 | Subset orphaned by detector retirement | no active measurement references it | Archive, mark `deprecated`; exclude from automatic injection |
 
-Every call to `measure_judge_agreement` writes an audit entry: date,
-`subset_id`, `detector_identity`/`version`, `kappa`, `n`, `threshold`,
-`min_subset_size`. Entries are append-only (E4); they never overwrite
-prior measurements. The audit entry is the record that the operator
-consulted the subset and with what result — the same record that
-`implementation-status.md` calls "the labeled dataset is operator
-responsibility".
+Every measurement writes an audit entry: date, `subset_id`,
+`detector_identity`/`version`, `kappa`, `n`, `threshold`,
+`min_subset_size`. The operator-facing path is
+`contract.audit_judge.measure_with_audit(audit, judge_labels, human_labels, ...)`,
+which calls `contract.p2_5.measure_judge_agreement` (kept pure) and
+appends the result to `contract.audit_judge.JudgeAgreementAudit` — an
+`AppendLog` with a chained hash and a sidecar manifest (`audit.jsonl` +
+`audit.jsonl.manifest.json`). Entries are append-only (E4) and
+tamper-evident: an edited payload fails the entry hash during recovery and
+the entry is dropped (never recovered, never silently merged). The audit
+entry is the record that the operator consulted the subset and with what
+result — the same record that `implementation-status.md` calls "the
+labeled dataset is operator responsibility".
 
 ## Re-validation
 
@@ -274,7 +290,8 @@ detector changes (memory validity, E12).
   labels on non-secret fields may still expose internal vocabulary. The
   operator decides whether to expose them and, if so, applies the same
   redaction policy to the labels as to the responses.
-- It does not enforce temporal pre-declaration (criterion 1). The
-  validator covers every other criterion; pre-declaration requires
-  stateful runtime data the pure validation layer does not carry, so it
-  stays an operator responsibility (deferred in the spec's Non-goals).
+- It does not auto-run the pre-declaration registry. Criterion 1 is
+  enforceable through `PreDeclarationRegistry.validate_pre_declared`, but
+  the operator must invoke the checkpoint at the right moment (before
+  persisting the subset, and again before the first judge output is
+  consumed); wiring it into a specific runner is out of scope.

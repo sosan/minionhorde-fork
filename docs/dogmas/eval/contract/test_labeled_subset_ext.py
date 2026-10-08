@@ -185,6 +185,68 @@ def test_audit_tamper_detected(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# TC-026..TC-027 — AC-23: wired measure_with_audit records the measurement
+# ---------------------------------------------------------------------------
+
+
+def test_measure_with_audit_wired(tmp_path: Path) -> None:  # TC-026
+    from contract.audit_judge import JudgeAgreementAudit, measure_with_audit
+
+    audit = JudgeAgreementAudit(tmp_path / "audit.jsonl")
+    agreement, entry = measure_with_audit(
+        audit,
+        judge_labels=["PASS", "FAIL", "PASS", "PASS"],
+        human_labels=["PASS", "FAIL", "PASS", "PASS"],
+        subset_id="review-opus-5-max-v1",
+        detector_identity="claude-opus-5-max",
+        detector_version="build-abc",
+        threshold=0.8,
+        min_subset_size=3,
+    )
+    assert agreement.validated
+    assert entry.entry_type == "judge_agreement_measurement"
+    assert entry.payload["subset_id"] == "review-opus-5-max-v1"
+    assert entry.payload["kappa"] == agreement.kappa
+    assert entry.payload["validated"] is True
+    assert audit.verify_chain()
+    assert len(audit.read_measurements()) == 1
+
+
+def test_measure_with_audit_rejects_mismatch(tmp_path: Path) -> None:  # TC-027
+    from contract.audit_judge import JudgeAgreementAudit, measure_with_audit
+
+    audit = JudgeAgreementAudit(tmp_path / "audit.jsonl")
+    agreement, _ = measure_with_audit(
+        audit,
+        judge_labels=["PASS", "FAIL", "PASS", "PASS", "FAIL", "FAIL"],
+        human_labels=["PASS", "FAIL", "PASS", "PASS", "FAIL", "FAIL"],
+        subset_id="review-opus-5-max-v1",
+        detector_identity="claude-opus-5-max",
+        detector_version="build-abc",
+        threshold=0.8,
+        min_subset_size=3,
+    )
+    # A second measurement with different labels extends the chain; the
+    # append-only property holds and the disagreement is recorded, not
+    # averaged away.
+    agreement2, entry2 = measure_with_audit(
+        audit,
+        judge_labels=["PASS", "FAIL", "PASS", "PASS", "FAIL", "FAIL"],
+        human_labels=["PASS", "FAIL", "PASS", "PASS", "PASS", "PASS"],
+        subset_id="review-opus-5-max-v1",
+        detector_identity="claude-opus-5-max",
+        detector_version="build-abc",
+        threshold=0.8,
+        min_subset_size=3,
+    )
+    assert agreement.validated
+    assert not agreement2.validated  # disagreement drops below the threshold
+    assert entry2.sequence == 1
+    assert len(audit.read_measurements()) == 2
+    assert audit.verify_chain()
+
+
+# ---------------------------------------------------------------------------
 # TC-023 — AC-20: pre-declaration accepted when declared before judge output
 # ---------------------------------------------------------------------------
 
