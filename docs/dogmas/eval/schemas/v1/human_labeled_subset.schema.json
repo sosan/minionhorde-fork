@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://minionhorde.local/schemas/v1/human_labeled_subset.schema.json",
+  "title": "HumanLabeledSubset v1",
+  "description": "Pre-declared subset of human-assigned labels used for judge calibration and as a review authority for transfer-variant equivalence reviews. Frozen dataclass in contract.p2_5.HumanLabeledSubset.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "subset_id",
+    "case_ids",
+    "labels",
+    "selection_criteria",
+    "detector_identity",
+    "detector_version"
+  ],
+  "properties": {
+    "subset_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(review-)?[A-Za-z0-9_.\\-]+$",
+      "description": "Operator-assigned stable id. Dual-role subsets MUST start with 'review-'."
+    },
+    "case_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["PASS", "FAIL", "PARTIAL"]
+      },
+      "description": "Mapping from case_id to a label."
+    },
+    "selection_criteria": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free-text record of the approved selection criteria."
+    },
+    "detector_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "detector_version": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
