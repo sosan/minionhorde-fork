@@ -1,0 +1,5 @@
+{
+  "name": "opencode-plugin-redact",
+  "type": "module",
+  "private": true
+}
