@@ -20,10 +20,11 @@ implemented:
 - `contract/labeled_subset.py::validate_against_schema` — JSON Schema
   gate via `docs/dogmas/eval/schemas/v1/human_labeled_subset.schema.json`.
 - `contract/audit_judge.py` — append-only `JudgeAgreementAudit` over
-  `AppendLog` (tamper-evident hash chain).
+  `AppendLog` (tamper-evident hash chain) plus `measure_with_audit`, the
+  wired path that measures and appends the E4 audit entry.
 - `contract/pre_declaration.py` — `PreDeclarationRegistry` for
   criterion 1 (temporal pre-declaration).
-- `contract/test_labeled_subset_ext.py` — covers AC-13..22.
+- `contract/test_labeled_subset_ext.py` — covers AC-13..23.
 
 ## Dependencies
 
@@ -202,6 +203,17 @@ T2 > T1
 **THEN** the verdict is `invalid` with an `error` issue
 (`pre_declared_unknown`)
 
+### AC-23: The measurement path writes the audit entry (E4)
+**GIVEN** `measure_with_audit(audit, judge_labels, human_labels, ...)`
+**WHEN** the agreement is measured
+**THEN** the audit appends one entry per call (subset_id, detector
+identity/version, kappa, n, threshold, min_subset_size, validated) and
+`verify_chain()` is `True`
+**GIVEN** two successive calls with disagreeing labels
+**WHEN** the audit is read back
+**THEN** both entries are present in append order — disagreement is
+recorded, never overwritten or averaged away
+
 ## Test scenarios mapping
 
 | AC | Test file | TC |
@@ -228,8 +240,9 @@ T2 > T1
 | 20 | `test_labeled_subset_ext.py::test_pre_declaration_accepted_when_ordered` | TC-023 |
 | 21 | `test_labeled_subset_ext.py::test_pre_declaration_rejected_when_judge_first` | TC-024 |
 | 22 | `test_labeled_subset_ext.py::test_pre_declaration_unknown_subset` | TC-025 |
+| 23 | `test_labeled_subset_ext.py::test_measure_with_audit_wired` + `test_measure_with_audit_rejects_mismatch` | TC-026, TC-027 |
 
-Coverage: AC→TC is 100% (22 ACs, 25 TCs, no unmapped AC).
+Coverage: AC→TC is 100% (23 ACs, 27 TCs, no unmapped AC).
 
 ## NFR
 
