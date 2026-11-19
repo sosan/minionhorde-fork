@@ -18,6 +18,24 @@ locally, without sharing credentials with third parties.
 4. Anonymize per `anonymize.md`.
 5. Share only the aggregated results.
 
+## Contract exercise manifest
+
+`exercise-manifest.json` is the content-addressed inventory of evaluation
+contracts and their evidence status. `check_manifest.py` recomputes reachability
+from registered runner entrypoints and validates that `real_run`,
+`synthetic_run`, `internally_wired`, and `test_only` declarations match the
+actual import graph. Run:
+
+```bash
+python3 docs/dogmas/eval/check_manifest.py
+```
+
+The current safe runner uses the deterministic `echo` adapter. It provides
+synthetic protocol evidence only; the manifest deliberately supports no real
+provider claims, judge-agreement claims, memory-promotion claims, transfer
+effect claims, or cross-model dissent claims. New evaluation contracts are
+frozen until a real provider run demonstrates a need.
+
 ## Requirements
 
 - Python 3.10+

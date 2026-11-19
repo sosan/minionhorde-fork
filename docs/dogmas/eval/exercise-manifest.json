@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "change": "deterministic-agent-instructions",
+  "description": "Evaluation-contract exercise manifest. Classifies contract modules by reachability from a real runner entrypoint, not by imports alone.",
+  "entrypoints": [
+    {
+      "name": "safe_runner.run_safe_suite",
+      "path": "docs/dogmas/eval/contract/safe_runner.py",
+      "kind": "synthetic_run",
+      "adapter": "echo",
+      "evidence": "fixtures/baseline-safe-run/ and docs/dogmas/eval/BASELINE_SAFE_RUN.md"
+    }
+  ],
+  "limitation": "No production provider has been exercised. Reachable-by-safe_runner means synthetic evidence only; it does not establish real model outcomes.",
+  "status_classes": {
+    "real_run": "Reached by a runner that executes a real provider/model and records served-model identity.",
+    "synthetic_run": "Reached by a real runner using deterministic synthetic adapters or rule-based classification.",
+    "internally_wired": "Imported by other contract modules but not reachable from any registered runner entrypoint.",
+    "test_only": "Exercised only by test files; no non-test importer.",
+    "orphaned": "No importer and no registered exercise evidence."
+  },
+  "contracts": {
+    "amendments": "test_only",
+    "anonymizer": "synthetic_run",
+    "append_log": "internally_wired",
+    "audit_judge": "internally_wired",
+    "canonical": "internally_wired",
+    "case02": "synthetic_run",
+    "case04": "synthetic_run",
+    "case05": "synthetic_run",
+    "case06": "synthetic_run",
+    "claims": "test_only",
+    "comparability": "internally_wired",
+    "condition_verification": "test_only",
+    "controlled_condition": "test_only",
+    "coverage_gates": "synthetic_run",
+    "evidence_custody": "internally_wired",
+    "fixtures": "test_only",
+    "ingest_manual": "synthetic_run",
+    "integrity": "internally_wired",
+    "labeled_subset": "internally_wired",
+    "layer_profiles": "internally_wired",
+    "legacy_migration": "test_only",
+    "manual_slice": "synthetic_run",
+    "memory_candidates": "test_only",
+    "memory_contamination": "test_only",
+    "memory_retrieval": "internally_wired",
+    "metrics": "test_only",
+    "metrics_breakdown": "test_only",
+    "outcomes": "test_only",
+    "p2_1": "internally_wired",
+    "p2_3": "internally_wired",
+    "p2_4": "test_only",
+    "p2_5": "internally_wired",
+    "p2_6": "test_only",
+    "p2_7": "test_only",
+    "partition_policy": "test_only",
+    "pre_declaration": "internally_wired",
+    "profiles": "internally_wired",
+    "provenance_adapter": "synthetic_run",
+    "provenance_enrichment": "test_only",
+    "provenance_split": "test_only",
+    "providers": "synthetic_run",
+    "recovery": "test_only",
+    "regression": "test_only",
+    "regression_manifest": "test_only",
+    "review": "internally_wired",
+    "schema_store": "synthetic_run",
+    "schema_versions": "test_only",
+    "trajectory_provenance": "internally_wired",
+    "trajectory_runtime": "internally_wired",
+    "transfer_variants": "test_only",
+    "validate_fixtures": "test_only",
+    "safe_runner": "synthetic_run"
+  },
+  "operational_claims": {
+    "real_run": [],
+    "synthetic_run": [
+      "protocol validation with the echo adapter",
+      "schema and coverage-gate behavior under deterministic classification"
+    ],
+    "not_supported": [
+      "real provider comparison",
+      "judge agreement",
+      "memory promotion",
+      "transfer effect claims",
+      "cross-model dissent"
+    ]
+  },
+  "known_limitations": [
+    {
+      "id": "STAT-DUP-01",
+      "severity": "warning",
+      "description": "docs/dogmas/eval/scripts/statistical_analysis.py reimplements McNemar-like statistics and binomial intervals with stdlib/scipy instead of importing p2_1/p2_3. The implementations can diverge. Recorded as a follow-up; not unified in this change."
+    },
+    {
+      "id": "NO-REAL-PROVIDER",
+      "severity": "blocker",
+      "description": "No registered runner exercises a real provider with served-model identity. real_run class remains empty."
+    }
+  ],
+  "growth_policy": {
+    "freeze_new_contracts": true,
+    "rule": "No p2_8+ or new evaluation contract until a real provider run demonstrates a need. Evidence must reference the new runner entrypoint and served-model status."
+  },
+  "manifest_sha256": "863194127dc61dad1484b2dfccdbafe39c085a24ac13f4d978120f8d000b310d"
+}

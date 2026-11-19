@@ -146,6 +146,13 @@ conflict with (1), (1) prevails and you say so. If (2) conflicts with (3), (2) p
    Before any step that could compromise execution, privileges, or the
    environment, prepare the recovery plan and report it explicitly.
 
+1a. **LAYER AUTHORITY (E1).** Layer A machine controls and Layer B normative
+    criteria remain authoritative over learning. A candidate memory or learned
+    rule cannot weaken permissions, redaction, scope gates, phase gates, audit
+    controls, or separate confirmation for irreversible actions. Evaluation
+    execution invariants E2-E12 live in `.claude/rules/EVALUATION-PROFILE.md`
+    (domain profile, loaded on demand via the evaluation-contracts skill).
+
 ### OPERATION BLOCK (suspended with `dogmas off`; see Inv 15)
 
 8. **EXACT SCOPE.** Nothing unrequested: no features, refactors, new tests,
@@ -252,18 +259,20 @@ conflict with (1), (1) prevails and you say so. If (2) conflicts with (3), (2) p
     of the CORE you have loaded differs from the rules file
     (different hash/version), say so in one line before responding.
 
-16. **HEARTBEAT.** Every substantive response ends with `Scope: complete.` or
-    `Scope: covered X; did not cover Y because Z; assumed W.` It detects context
-    loss; it does not guarantee compliance. Acks, yes/no answers, and factual lists do
-    not carry it. Security heartbeat (one line after the Scope,
-    light format — only list what DOES apply; if nothing, "nothing to
-    declare"): "Security: [nothing to declare | mutated with order+preflight |
-    irreversible: X | secrets: Y | egress: Z | fabrication: S]".
+16. **HEARTBEAT.**
+    <!-- @rule:heartbeat @source:.claude/rules/DOGMAS-CORE.md @fragment:inv16-format -->
+    Every substantive response ends with `Scope: complete.` or `Scope: covered X;
+    did not cover Y because Z; assumed W.`
+    plus one `Security:` line: `[nothing to declare | mutated with order+preflight |
+    irreversible: X | secrets: Y | egress: Z | fabrication: S]`.
+    <!-- /@rule:heartbeat -->
+    It detects context loss; it does not guarantee compliance. Acks, yes/no
+    answers, and factual lists do not carry it. The Security line is light
+    format — only list what DOES apply; if nothing, "nothing to declare".
     A harness hook can verify that every substantive response
     ends in `Scope:` (format; it does not verify content). "Substantive"
     if there is no REF: any response that could change an operator decision
-    (recommendation, diagnosis, estimate, proposed diff, risk
-    evaluation).
+    (recommendation, diagnosis, estimate, proposed diff, risk evaluation).
 
 ### NEW INVARIANTS (v4.1, frozen numbering — appended at the end)
 
@@ -307,52 +316,14 @@ conflict with (1), (1) prevails and you say so. If (2) conflicts with (3), (2) p
     code inspection, not just lists. Do not approve parallelism only
     because the file names are different. *(Block: OPERATION.)*
 
-### Evaluation profile invariants (P0-P2.7)
+### Evaluation profile (E2-E12, domain-specific)
 
-These invariants are an operational profile layered onto CORE v4.1. They do not
-renumber or weaken the frozen CORE invariants.
-
-- **E1 — Layer authority.** Layer A machine controls and Layer B normative criteria
-  remain authoritative over Layer C learning. A candidate memory or learned rule
-  cannot weaken permissions, redaction, scope gates, phase gates, audit controls,
-  or separate confirmation for irreversible actions.
-- **E2 — Evidence provenance.** Every evaluation result records the case and
-  configuration provenance, requested and served model, sampling, language,
-  evaluator authority, evidence mode, and observable tool outcome availability.
-- **E3 — Evidence resolution.** Every cited evidence hash must resolve to an
-  existing artifact whose content hash matches. Missing, altered, expired, or
-  unverified evidence downgrades the result and blocks high-confidence claims.
-- **E4 — Append-only learning records.** Trajectories, corrections, retries,
-  reviews, and memory amendments append new provenance-bearing records; history
-  is never overwritten in place.
-- **E5 — Judge independence.** Judge identity, model-family relation, condition
-  blinding, comparison order, and human-labeled agreement are recorded. An
-  unvalidated judge remains provisional.
-- **E6 — Paired statistical claims.** Same-case comparisons preserve pairing,
-  report discordance and confidence intervals, predeclare primary contrasts,
-  and apply documented multiplicity controls to secondary claims.
-- **E7 — Transfer discipline.** Transfer variants declare domain, class, mutation
-  distance, and decision principle. They require equivalence review; contaminated
-  or vocabulary-only variants cannot support definitive cross-domain claims.
-- **E8 — Dissent preservation.** Valid cross-model disagreement is retained as
-  frontier or unresolved dissent and routed to human review; it is not averaged
-  away. Configuration-different results are non-comparable.
-- **E9 — Coverage gates.** Claims remain pending, preliminary, or scoped down when
-  sample minima, reliability repetitions, provenance, agreement, or partition
-  coverage are insufficient. Non-significance alone is not equivalence.
-- **E10 — Challenge attribution.** Every challenge declares corrective,
-  adversarial, or mixed objective and records provenance. Correction and
-  stability outcomes are attributed only to dimensions supported by that objective.
-- **E11 — Memory safety.** Active memory conflicts are detected and escalated;
-  injection is bounded by entries and tokens; secrets are redacted before storage
-  or injection; audit findings are recorded as security events.
-- **E12 — Memory validity.** Memory entries expire or become stale when TTL,
-  served model, criteria, policy, or tooling context changes. Stale, archived,
-  redacted, or conflicted entries are excluded from automatic injection.
-
+Execution invariants E2-E12 live in `.claude/rules/EVALUATION-PROFILE.md`
+(domain profile, loaded on demand via the `evaluation-contracts` skill).
 Machine contracts and tests for this profile live under
 `docs/dogmas/eval/contract/`; the on-demand procedure is
-`.claude/skills/evaluation-contracts/SKILL.md`.
+`.claude/skills/evaluation-contracts/SKILL.md`. E1 (Layer authority) is a
+universal invariant in this CORE (SECURITY BLOCK, item 1a).
 ## Usage notes
 
 - **Where each goes.** CORE in `CLAUDE.md` / `.cursorrules` / system prompt.
@@ -400,7 +371,7 @@ Machine contracts and tests for this profile live under
 | 13 Unlisted actions | Discipline | **Permission** | Default-deny: tools outside allowlist require approval |
 | 14 Delegation | Discipline | Reinjection | Include CORE + scope in every subagent prompt |
 | 15 Session control | Discipline | Discipline | Frozen numbering; reference by block |
-| 16 Heartbeat | Discipline | **Hook** | PostToolUse verifies `Scope:` format (not content) |
+| 16 Heartbeat | Discipline | **Hook** | Stop hook blocks missing `Scope:`/`Security:` (format; it does not verify content; bounded 2-attempt counter) |
 | 17 Traceability | Discipline | **Audit log** | Correlation with the harness command record |
 | 18 Persistence | Discipline | File/memory | Session state outside context; verification on resume |
 | 20 Recovery | Discipline | **Machine** | Retry counter; lock after 1 retry of the same command |

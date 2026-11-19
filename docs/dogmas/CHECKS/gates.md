@@ -26,12 +26,12 @@ Rules that should not depend on model memory live here.
 | Unlisted actions (13) | Default-deny: tools outside the allowlist require approval | Permission |
 | Delegation (14) | CORE reinjection into every subagent prompt | Reinjection |
 | Session control (15) | Block-referenced suspension contract | Discipline |
-| heartbeat (16) | PostToolUse hook verifies `Scope:` format | Hook |
+| heartbeat (16) | Stop hook blocks missing `Scope:`/`Security:` after bounded retries | Hook |
 | Traceability (17) | Audit-log correlation | Audit log |
 | Persistence (18) | Out-of-context session state verified on resume | File/memory |
 | Failure attribution (19) | Base-state evidence before attribution | Discipline |
 | Structured recovery (20) | Retry counter; block after one retry of the same command | Machine |
-| Parallelism (21) | phase-gate.sh verifies no file-path overlap; diff review | Machine (gate) + discipline |
+| Parallelism (21) | path-overlap check at the phase gate (C5); diff review | Machine (gate) + discipline |
 | ~Real effect (7/12) | Audit log cross-checks claimed command against execution record; diff review verifies impact | Audit log + discipline |
 | ~Recursive chain (13/14/17) | Tool return values that reveal new paths require follow-up before declaring security complete | Discipline (future harness) |
 
