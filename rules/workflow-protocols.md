@@ -4,7 +4,14 @@
 
 These protocols are referenced by all agents. Do not duplicate them in individual agent files.
 
-## Document Ownership Map
+## Phase transitions are explicit
+
+Phase transitions use the explicit gate marker `/gate <phase>` (or the CLI
+`.claude/hooks/phase-gate.sh <phase>`) and SHALL NOT rely on natural-language
+detection. The Project Manager requests a transition by calling the gate
+explicitly; the gate verifies the phase prerequisites and either passes or
+blocks with `PHASE_GATE_FAIL`. Valid phases: `tier0`, `direct`,
+`tier1_phase1`, `tier1_phase2`, `tier1_phase3`.
 
 Each document has a single responsible agent. This map is used by **File Integrity Checkpoints** to verify creation and trigger recovery if needed.
 

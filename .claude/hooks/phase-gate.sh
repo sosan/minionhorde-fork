@@ -1,85 +1,91 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# File Integrity Checkpoint gate — automatic execution via UserPromptSubmit.
-# Reads the user prompt from stdin (JSON), detects an intent to advance a phase,
-# and verifies prerequisites. If the gate fails, it blocks the prompt.
+# Phase gate with explicit triggers only (C4, POLA).
+#
+# Modes:
+#   1. CLI:      phase-gate.sh <phase>
+#   2. Marker:   UserPromptSubmit JSON whose prompt contains "/gate <phase>"
+#
+# Any other input exits 0 — the gate NEVER interferes without an explicit
+# request. Unknown explicit phases fail loudly (exit 2) listing valid phases.
+# Output contract (documented in docs/dogmas/docs/hooks/phase-gate.md):
+#   PHASE_GATE_PASS: <phase>  (exit 0)
+#   PHASE_GATE_FAIL: <reason> (exit 2)
 
 project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 
-# --- Lectura del prompt ---
-input=$(cat)
-prompt=$(echo "$input" | jq -r '.prompt // ""' 2>/dev/null || echo "")
+VALID_PHASES="tier0 direct tier1_phase1 tier1_phase2 tier1_phase3"
 
-# If there is no prompt, exit silently
-[ -z "$prompt" ] && exit 0
-
-# --- Detección de transición de fase ---
-# We look for patterns indicating that the user wants to advance a phase
 phase=""
-if echo "$prompt" | grep -qiE 'avanzar a fase|continuar con|siguiente fase|fase [0-9]|de la fase|avanza al|pasa a la|next phase|advance to'; then
-  if echo "$prompt" | grep -qiE 'tier1.*(phase[ 1]|fase[ 1]).*spec|spec.*tier1.*(phase[ 1]|fase[ 1])|PRD.*especif|especif.*PRD|tests.*spec|spec.*tests'; then
-    phase="tier1_phase1"
-  elif echo "$prompt" | grep -qiE 'tier1.*(phase[ 2]|fase[ 2]).*plan|plan.*tier1|(phase[ 2]|fase[ 2]).*planif|planif.*(phase[ 2]|fase[ 2])|implementación.*roadmap|roadmap.*implement'; then
-    phase="tier1_phase2"
-  elif echo "$prompt" | grep -qiE 'tier1.*(phase[ 3]|fase[ 3]).*im|im.*tier1|(phase[ 3]|fase[ 3]).*im|im.*desarroll|develop.*tier1'; then
-    phase="tier1_phase3"
-  elif echo "$prompt" | grep -qiE 'tier0|direct|rápido|sin pipeline'; then
-    phase="tier0"
+if [ $# -ge 1 ]; then
+  phase="$1"
+else
+  input=$(cat)
+  prompt=$(printf '%s' "$input" | jq -r '.prompt // ""' 2>/dev/null || true)
+  if [ -n "$prompt" ]; then
+    phase=$(printf '%s' "$prompt" | sed -nE 's#^.*(/gate[[:space:]]+[a-zA-Z0-9_]+).*$#\1#p' | head -1 | sed 's#^/gate[[:space:]]*##')
   fi
 fi
 
-# Si no se detectó fase, salir silenciosamente (no es una transición de fase)
-[ -z "$phase" ] && exit 0
+# No explicit gate request → never interfere.
+[ -n "$phase" ] || exit 0
 
-# --- Ejecución del gate ---
+# Unknown explicit phase → fail loudly (fail fast, no silent exit 0).
+case " $VALID_PHASES " in
+  *" $phase "*) ;;
+  *)
+    echo "PHASE_GATE_FAIL: unknown phase '$phase'. Valid: $VALID_PHASES" >&2
+    exit 2
+    ;;
+esac
+
 case "$phase" in
   tier1_phase1)
-    # Antes de empezar Fase 1 (spec creation): verificar que no exista un PRD previo
-    if [ -f "$project_dir/docs/PRD.md" ] && [ -s "$project_dir/docs/PRD.md" ]; then
-      # PRD ya existe — posiblemente se está re-ejecutando. No bloquear.
-      exit 0
+    # Exit gate of Phase 0: context files should exist before spec creation.
+    if [ ! -d "$project_dir/docs" ]; then
+      echo "PHASE_GATE_FAIL: docs/ directory missing. Create project context first." >&2
+      exit 2
     fi
-    # Gate de salida de Fase 0: verificar que existe al menos un archivo de contexto
-    # El hook no crea artefactos: solo verifica y bloquea si falta un requisito.
-    # La primera fase no necesita un documento previo para comenzar.
+    echo "PHASE_GATE_PASS: $phase"
     exit 0
     ;;
   tier1_phase2)
-    # Antes de Fase 2 (planificación): verificar que PRD exista
+    # Entry gate of Phase 2 (planning): PRD + at least one spec must exist.
     if [ ! -f "$project_dir/docs/PRD.md" ] || [ ! -s "$project_dir/docs/PRD.md" ]; then
       echo "PHASE_GATE_FAIL: docs/PRD.md no existe o está vacío. Completar Fase 1 antes de pasar a Fase 2." >&2
       exit 2
     fi
-    # Verificar que exista al menos un spec
-    if ! ls "$project_dir"/docs/specs/*.md >/dev/null 2>&1 || [ -z "$(ls "$project_dir"/docs/specs/*.md 2>/dev/null)" ]; then
+    if ! ls "$project_dir"/docs/specs/*.md >/dev/null 2>&1; then
       echo "PHASE_GATE_FAIL: No hay specs en docs/specs/. Crear al menos un spec antes de planificar." >&2
       exit 2
     fi
+    echo "PHASE_GATE_PASS: $phase"
     exit 0
     ;;
   tier1_phase3)
-    # Antes de Fase 3 (implementación): verificar PRD + specs + tests stubs
-    for f in docs/PRD.md; do
-      [ -f "$project_dir/$f" ] && [ -s "$project_dir/$f" ] || { echo "PHASE_GATE_FAIL: $f no existe o está vacío." >&2; exit 2; }
-    done
-    # Verificar specs
-    if ! ls "$project_dir"/docs/specs/*.md >/dev/null 2>&1 || [ -z "$(ls "$project_dir"/docs/specs/*.md 2>/dev/null)" ]; then
+    # Entry gate of Phase 3 (implementation): PRD + specs + test stubs.
+    if [ ! -f "$project_dir/docs/PRD.md" ] || [ ! -s "$project_dir/docs/PRD.md" ]; then
+      echo "PHASE_GATE_FAIL: docs/PRD.md no existe o está vacío." >&2
+      exit 2
+    fi
+    if ! ls "$project_dir"/docs/specs/*.md >/dev/null 2>&1; then
       echo "PHASE_GATE_FAIL: No hay specs en docs/specs/." >&2
       exit 2
     fi
-    # Verificar tests stubs
     found=0
     for p in "$project_dir"/tests/*.py "$project_dir"/tests/*.js "$project_dir"/tests/*.ts "$project_dir"/tests/*.go; do
       if [ -s "$p" ]; then found=1; break; fi
     done
-    [ "$found" -eq 1 ] || { echo "PHASE_GATE_FAIL: No hay tests stubs en tests/." >&2; exit 2; }
+    if [ "$found" -ne 1 ]; then
+      echo "PHASE_GATE_FAIL: No hay test stubs en tests/." >&2
+      exit 2
+    fi
+    echo "PHASE_GATE_PASS: $phase"
     exit 0
     ;;
   tier0|direct)
-    exit 0
-    ;;
-  *)
+    echo "PHASE_GATE_PASS: $phase"
     exit 0
     ;;
 esac

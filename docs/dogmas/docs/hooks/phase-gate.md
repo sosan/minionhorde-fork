@@ -1,31 +1,40 @@
-# Phase Gate — Automatic File Integrity Checkpoint
+# Phase Gate — Explicit File Integrity Checkpoint
 
-Purpose: verify that required documents exist before advancing a phase, without depending on model memory.
+Purpose: verify that required documents exist before an explicitly requested
+phase transition, without depending on model memory or fuzzy intent detection.
 
-## Design
-
-Each workflow phase has documentation prerequisites. The gate verifies that they exist before allowing the transition. If a prerequisite is missing, the hook returns `exit 2` (blocked) and the prompt is not processed.
-
-## Current implementation
+## Explicit contract (C4 / POLA)
 
 File: `.claude/hooks/phase-gate.sh`
 
-The script:
-1. Reads the user prompt from stdin (JSON format, via UserPromptSubmit hook).
-2. Detects whether the prompt indicates an intent to advance a phase (the Spanish trigger phrases `"avanzar a fase"`, `"continuar con"`, `"siguiente fase"`, and `"fase 1/2/3"` are preserved because the hook matches them).
-3. Identifies the target phase.
-4. Runs the corresponding checks.
-5. If it fails: `exit 2` (blocks the prompt).
-6. If it passes: `exit 0` (the prompt is processed normally).
+The gate has exactly two invocation modes:
+
+1. **CLI:** `.claude/hooks/phase-gate.sh <phase>`
+2. **UserPromptSubmit marker:** include `/gate <phase>` in the prompt JSON.
+
+Natural-language mentions such as `avanzar a fase 2`, `next phase`, or
+`continuar con la planificación` never trigger the gate. Without an explicit
+marker or CLI argument the script exits 0 silently.
+
+Unknown explicit phases fail loudly with exit 2 and list the valid phases.
+
+## Output and exit contract
+
+- `PHASE_GATE_PASS: <phase>` on stdout, exit 0.
+- `PHASE_GATE_FAIL: <reason>` on stderr, exit 2.
+- No explicit trigger: no output, exit 0.
+
+The CLI and marker modes call the same phase checks and must produce equivalent
+results.
 
 ### Checks by phase
 
-| Phase | Entry gate | Exit gate |
-|------|----------------|----------------|
-| tier0/direct | None | None |
-| tier1_phase1 | Verify that no duplicate prior PRD exists | — |
-| tier1_phase2 | Verify that `docs/PRD.md` and at least one spec exist | — |
-| tier1_phase3 | Verify PRD + specs + test stubs | — |
+| Phase | Entry gate |
+|------|------------|
+| tier0/direct | None |
+| tier1_phase1 | Verify that the `docs/` context directory exists |
+| tier1_phase2 | Verify that `docs/PRD.md` and at least one spec exist |
+| tier1_phase3 | Verify PRD + specs + test stubs |
 
 ### Registration in settings.json
 
@@ -47,25 +56,21 @@ The script:
 }
 ```
 
-### Behavior
+## What the gate does not do
 
-- If the prompt does NOT indicate an intent to advance a phase → `exit 0` (does not interfere).
-- If the prompt indicates an intent but a prerequisite is missing → `exit 2` (blocks the prompt and shows an error message to the operator).
-- If the prompt indicates an intent and the gate passes → `exit 0` (the prompt is processed normally).
+- Does not create files or mutate the repository.
+- Does not verify document quality, only declared prerequisites.
+- Does not cover tier2, tier3, or advanced workflow phases yet; expanding
+  coverage requires a separate acceptance criterion and failing case.
 
-### What the gate does NOT do
+## Manual and automated verification
 
-- Does not create files. Does not mutate the repository.
-- It is not exhaustive (it does not verify document quality, only existence).
-- Does not cover all workflow phases (tier2, tier3, advanced phases).
-- Depends on recognizing text patterns in the prompt (false negatives may occur if the operator uses undetected wording).
-
-## Alternative: manual execution
-
-If the hook does not work (classifier unavailable, prompt not detected), the PM can run:
+The CLI is the primary manual path, not a fallback:
 
 ```bash
 .claude/hooks/phase-gate.sh tier1_phase1
 ```
 
-The result is `PHASE_GATE_PASS` or `PHASE_GATE_FAIL: <reason>`.
+Focused tests are in `.claude/hooks/test_phase_gate.py` and cover CLI mode,
+marker mode, CLI/marker parity, unknown phases, natural-language non-triggers,
+and empty prompts.
