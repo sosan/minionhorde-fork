@@ -269,7 +269,7 @@
   secrets: none | egress: none | fabrication: no | delegation: none.
   ```
   With the security heartbeat, the operator can audit at a glance whether the critical invariants (1-7) were respected, without reading all the reasoning.
-- **Machine verification (layer 3):** PostToolUse hook that verifies every substantive response ends in `Scope:` (format). It does not verify content, but it forces the structure and detects omissions.
+- **Machine verification (layer 3):** Stop hook (`scope-validator.sh`) that blocks every substantive response missing `Scope:`/`Security:` (format; bounded retries). It does not verify content, but it forces the structure and detects omissions.
 - The security heartbeat becomes the audit log entry: every substantive response generates an audit line.
 
 ---
@@ -312,7 +312,7 @@ The CORE assumes the model "complies" if it says so. The only hard guarantee (ac
 | 13 The unlisted | Discipline | Permission | Default-deny: tools outside the allowlist require approval (settings.json) |
 | 14 Delegation | Discipline | Re-injection | Include CORE + scope in every subagent prompt |
 | 15 Session control | Discipline | Discipline | Frozen numbering; block names |
-| 16 Heartbeat | Discipline | Hook | PostToolUse verifies `Scope:` format |
+| 16 Heartbeat | Discipline | Hook | Stop hook blocks missing `Scope:`/`Security:` (bounded) |
 
 ---
 
