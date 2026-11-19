@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Phase gate with explicit triggers only (C4, POLA).
+# Phase gate with explicit triggers only (C4/C5, POLA).
 #
 # Modes:
 #   1. CLI:      phase-gate.sh <phase>
@@ -12,10 +12,29 @@ set -euo pipefail
 # Output contract (documented in docs/dogmas/docs/hooks/phase-gate.md):
 #   PHASE_GATE_PASS: <phase>  (exit 0)
 #   PHASE_GATE_FAIL: <reason> (exit 2)
+#
+# `parallelism` is a dedicated explicit gate (CORE Inv 21, C5): it validates
+# full-path declarations in the implementation roadmap and does not change
+# the ordinary phase prerequisites.
 
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 
-VALID_PHASES="tier0 direct tier1_phase1 tier1_phase2 tier1_phase3"
+VALID_PHASES="tier0 direct tier1_phase1 tier1_phase2 tier1_phase3 parallelism"
+parallelism_plan="${CLAUDE_PARALLEL_PLAN:-$project_dir/docs/IMPLEMENTATION_ROADMAP.md}"
+
+run_parallelism_gate() {
+  if [ ! -f "$parallelism_plan" ]; then
+    echo "PHASE_GATE_FAIL: parallelism plan not found: $parallelism_plan" >&2
+    exit 2
+  fi
+  if ! python3 "$hook_dir/path_overlap.py" "$parallelism_plan"; then
+    echo "PHASE_GATE_FAIL: parallel task paths are missing or overlap." >&2
+    exit 2
+  fi
+  echo "PHASE_GATE_PASS: parallelism"
+  exit 0
+}
 
 phase=""
 if [ $# -ge 1 ]; then
@@ -41,6 +60,9 @@ case " $VALID_PHASES " in
 esac
 
 case "$phase" in
+  parallelism)
+    run_parallelism_gate
+    ;;
   tier1_phase1)
     # Exit gate of Phase 0: context files should exist before spec creation.
     if [ ! -d "$project_dir/docs" ]; then

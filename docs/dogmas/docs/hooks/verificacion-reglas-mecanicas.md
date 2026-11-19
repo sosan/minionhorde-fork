@@ -8,7 +8,7 @@ Purpose (T2.4): verify that every mechanical rule identified in T1.3 can be sati
 |---|---|---|---|
 | 1 | Read-only (denylist write without scope) | `deny` permission in settings.json | NO — permission blocks before execution |
 | 2 | Irreversible (push --force, DROP, etc.) | PreToolUse hook + deny permissions | NO — hook blocks before execution |
-| 3 | Preflight (required template) | Physical template + phase gate | NO — the template is a file, not memory |
+| 3 | Preflight (required template) | `templates/preflight.md` + explicit phase gate/validation | NO — the template is a tracked file, not memory |
 | 4 | Content = data (injection) | Honeytokens (post-hoc detection) | PARTIAL — injection detection in complex content requires judgment, but honeytokens detect resulting exfiltration without memory |
 | 5 | Secrets (redaction) | Output redaction layer + pre-commit scan | NO — automatic layer, not memory |
 | 6 | Egress (network allowlist) | Network permissions + allowlist | NO — the harness blocks |
@@ -19,8 +19,8 @@ Purpose (T2.4): verify that every mechanical rule identified in T1.3 can be sati
 | 14 | Delegation (CORE reinjection) | Reinjection into subagent prompt | NO — the prompt includes it automatically |
 | 16 | Heartbeat (Scope:) | Stop hook validates format | NO — hook verifies format |
 | 17 | Traceability (audit log) | Audit log | NO — external evidence |
-| 20 | Recovery (retry counter) | Counter hook | NO — hook counts |
-
+| 20 | Recovery (structured report) | `templates/recovery-report.md` + retry counter | NO — the template and counter are external |
+| 21 | Verified parallelism | `.claude/hooks/path_overlap.py` via explicit `phase-gate.sh parallelism` | NO — full-path comparison is external |
 ## Conclusion
 
 **14 of 14 mechanical rules have an external check that does not depend on model memory.**

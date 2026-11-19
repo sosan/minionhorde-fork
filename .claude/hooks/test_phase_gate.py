@@ -95,3 +95,37 @@ def test_empty_prompt_passes_silently(tmp_path):
     proc = run_prompt("", tmp_path)
     assert proc.returncode == 0
     assert proc.stdout == ""
+
+def write_roadmap(project: Path, text: str) -> None:
+    (project / "docs").mkdir(exist_ok=True)
+    (project / "docs" / "IMPLEMENTATION_ROADMAP.md").write_text(text, encoding="utf-8")
+
+
+def test_parallelism_gate_passes_on_disjoint_paths(tmp_path):
+    write_roadmap(
+        tmp_path,
+        "Parallel group: A\n"
+        "### Task: auth\nFiles: src/auth/a.py\n\n"
+        "### Task: db\nFiles: src/db/b.py\n",
+    )
+    proc = run_cli("parallelism", tmp_path)
+    assert proc.returncode == 0
+    assert "PHASE_GATE_PASS: parallelism" in proc.stdout
+
+
+def test_parallelism_gate_fails_on_overlap(tmp_path):
+    write_roadmap(
+        tmp_path,
+        "Parallel group: A\n"
+        "### Task: auth\nFiles: src/shared/x.py\n\n"
+        "### Task: db\nFiles: src/shared/x.py\n",
+    )
+    proc = run_cli("parallelism", tmp_path)
+    assert proc.returncode == 2
+    assert "PHASE_GATE_FAIL" in proc.stderr
+
+
+def test_parallelism_gate_fails_without_plan(tmp_path):
+    proc = run_cli("parallelism", tmp_path)
+    assert proc.returncode == 2
+    assert "parallelism plan not found" in proc.stderr

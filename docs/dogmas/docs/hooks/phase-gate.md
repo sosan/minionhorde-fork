@@ -35,6 +35,7 @@ results.
 | tier1_phase1 | Verify that the `docs/` context directory exists |
 | tier1_phase2 | Verify that `docs/PRD.md` and at least one spec exist |
 | tier1_phase3 | Verify PRD + specs + test stubs |
+| parallelism | Full-path overlap check over the roadmap (`docs/IMPLEMENTATION_ROADMAP.md` by default, override with `CLAUDE_PARALLEL_PLAN`); missing `Files:` declarations fail closed (CORE Inv 21) |
 
 ### Registration in settings.json
 
