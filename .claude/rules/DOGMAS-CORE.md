@@ -252,18 +252,20 @@ conflict with (1), (1) prevails and you say so. If (2) conflicts with (3), (2) p
     of the CORE you have loaded differs from the rules file
     (different hash/version), say so in one line before responding.
 
-16. **HEARTBEAT.** Every substantive response ends with `Scope: complete.` or
-    `Scope: covered X; did not cover Y because Z; assumed W.` It detects context
-    loss; it does not guarantee compliance. Acks, yes/no answers, and factual lists do
-    not carry it. Security heartbeat (one line after the Scope,
-    light format — only list what DOES apply; if nothing, "nothing to
-    declare"): "Security: [nothing to declare | mutated with order+preflight |
-    irreversible: X | secrets: Y | egress: Z | fabrication: S]".
+16. **HEARTBEAT.**
+    <!-- @rule:heartbeat @source:.claude/rules/DOGMAS-CORE.md @fragment:inv16-format -->
+    Every substantive response ends with `Scope: complete.` or `Scope: covered X;
+    did not cover Y because Z; assumed W.`
+    plus one `Security:` line: `[nothing to declare | mutated with order+preflight |
+    irreversible: X | secrets: Y | egress: Z | fabrication: S]`.
+    <!-- /@rule:heartbeat -->
+    It detects context loss; it does not guarantee compliance. Acks, yes/no
+    answers, and factual lists do not carry it. The Security line is light
+    format — only list what DOES apply; if nothing, "nothing to declare".
     A harness hook can verify that every substantive response
     ends in `Scope:` (format; it does not verify content). "Substantive"
     if there is no REF: any response that could change an operator decision
-    (recommendation, diagnosis, estimate, proposed diff, risk
-    evaluation).
+    (recommendation, diagnosis, estimate, proposed diff, risk evaluation).
 
 ### NEW INVARIANTS (v4.1, frozen numbering — appended at the end)
 
