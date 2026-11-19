@@ -1,58 +1,44 @@
 # Scope Validator — Automatic security heartbeat
 
-Purpose: verify that every substantive response ends with `Scope:` and the security line, without depending on model memory.
+Purpose: verify that every substantive response ends with `Scope:` and the
+security line, without depending on model memory.
 
 ## CORE rule (Inv 16)
 
-> Every substantive response ends with `Scope: completo.` or `Scope: cubrí X; no cubrí Y por Z; asumí W.`
-> with security line: `Security: [nada que declarar | muté con orden+preflight | irreversible: X | secretos: Y | egreso: Z | fabricación: S]`
+> Every substantive response ends with `Scope: complete.` or
+> `Scope: covered X; did not cover Y because Z; assumed W.` plus one
+> `Security:` line:
+> `[nothing to declare | mutated with order+preflight | irreversible: X |
+> secrets: Y | egress: Z | fabrication: S]`
 
-The Spanish text in these examples is a preserved protocol literal; the hook currently matches `Security:`.
+The canonical fragment lives in DOGMAS-CORE Inv 16 (`@rule:heartbeat`) and is
+duplicated verbatim in `CLAUDE.md`; the rule-drift checker keeps them in sync.
 
-## Implementation as a Stop hook (apply when the classifier allows it)
+## Implementation (fail-fast Stop gate, C3)
 
-File: `.claude/hooks/scope-validator.sh`
+File: `.claude/hooks/scope-validator.sh` — registered as a `Stop` hook in
+`settings.json`. Behavior:
 
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
+- Non-substantive responses (short acks, factual lists, one-sided length) exit 0.
+- A substantive response is one that already carries half a heartbeat, uses
+  decision/risk vocabulary, or is ≥8 non-empty lines AND contains a reasoning
+  connective. Length alone never triggers the gate.
+- A substantive response missing `Scope:` or `Security:` is **blocked**:
+  stdout carries
+  `{"hookSpecificOutput":{"hookEventName":"Stop","decision":"block","reason":"..."}}`
+  and the script exits 2. The message names the missing field and the attempt.
+- Attempts persist in `.claude/audit/heartbeat-retry.counter` (atomic rename,
+  guarded by a lock directory). A complete heartbeat resets the counter.
+- After 2 blocked attempts, the hook records
+  `heartbeat_missing_after_retries` in `.claude/audit/heartbeat.log`, clears the
+  counter, and exits 0 with a stderr warning — the bounded escape valve that
+  prevents an infinite Stop-hook loop.
 
-# Reads the last assistant message from stdin JSON
-input=$(cat)
-last_message=$(printf '%s' "$input" | jq -r '.last_assistant_message // ""')
+Tests: `.claude/hooks/test_scope_validator.py` covers short acks, factual
+lists, blocking, scope-without-security, complete heartbeat, the retry
+sequence (2 blocks then warning), and empty input.
 
-# If there is no message, do nothing
-[ -n "$last_message" ] || exit 0
-
-# Detect whether it is a substantive response (more than 3 lines or contains indicators)
-line_count=$(printf '%s' "$last_message" | wc -l)
-has_scope=$(printf '%s' "$last_message" | grep -c '^Scope:' || true)
-has_security=$(printf '%s' "$last_message" | grep -c '^Security:' || true)
-
-# Substantive response = more than 3 lines and not only a list/ack
-is_substantive=false
-if [ "$line_count" -gt 3 ]; then
-  is_substantive=true
-fi
-# Contains a recommendation, analysis, decision, etc.
-if printf '%s' "$last_message" | grep -qiE '(decision|justification|applicable rule|alternative|preflight|impact|reversibility)'; then
-  is_substantive=true
-fi
-
-if [ "$is_substantive" = true ]; then
-  if [ "$has_scope" -eq 0 ]; then
-    echo "WARNING: Substantive response without 'Scope:'. CORE rule Inv 16 requires a heartbeat in every substantive response." >&2
-    # Do not block (exit 0), only warn via stderr
-  fi
-  if [ "$has_security" -eq 0 ]; then
-    echo "WARNING: Substantive response without 'Security:'. CORE rule Inv 16 requires a security line." >&2
-  fi
-fi
-
-exit 0
-```
-
-## Integration with settings.json
+## Registration in settings.json
 
 ```json
 {
@@ -71,7 +57,3 @@ exit 0
   }
 }
 ```
-
-## Alternative without hooks (discipline)
-
-Until settings.json can be written, the agent manually includes the heartbeat at the end of every substantive response. This is already in the published CORE v4.1.
