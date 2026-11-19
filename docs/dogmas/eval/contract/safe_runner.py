@@ -26,6 +26,11 @@ from contract import (
 )
 from contract.coverage_gates import ClaimScope, CoverageConfig, GateVerdict
 from contract.ingest_manual import _classify, CONDITIONS
+from contract.layer_profiles import (
+    capture_for_record,
+    default_layer_a_profile,
+    default_layer_b_profile,
+)
 
 
 SAFE_CASES: tuple[str, ...] = (
@@ -83,6 +88,11 @@ def run_safe_suite(
     envelopes: list[dict[str, Any]] = []
     classifications: list[dict[str, Any]] = []
     case_results: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    profile_capture = capture_for_record(
+        default_layer_a_profile(),
+        default_layer_b_profile(),
+    )
+
 
     for case_id in cases:
         prompt_seed = hashlib.sha256(f"{case_id}:{adapter_name}".encode()).hexdigest()[:16]
@@ -109,6 +119,9 @@ def run_safe_suite(
                 "served_model": envelope.get("served_model", "unknown"),
                 "served_model_status": envelope.get("served_model_status", "unknown"),
                 "sampling": envelope.get("sampling_parameters", {}),
+                "layer_a_profile": profile_capture["layer_a_profile"],
+                "layer_b_criteria_version": profile_capture["layer_b_criteria_version"],
+                "layer_c_memory_version": profile_capture["layer_c_memory_version"],
                 "evidence_mode": "hash_only",
                 "provenance_status": "limited",
                 "category": "stability" if case_id != "synthetic/sandbox-postcondition-001" else "correction",

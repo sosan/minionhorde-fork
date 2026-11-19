@@ -95,3 +95,15 @@ def test_safe_runner_classifications_have_provenance(tmp_path: Path) -> None:
         assert "provenance_status" in record
         assert "category" in record
         assert "dimension" in record
+
+def test_safe_runner_classifications_carry_layer_profiles(tmp_path: Path) -> None:
+    """Layer metadata is reported (layered-agent-control scenario)."""
+    run_safe_suite(tmp_path)
+    records = json.loads((tmp_path / "safe_runner_classifications.json").read_text(encoding="utf-8"))
+    assert records, "expected at least one classification record"
+    for record in records:
+        assert record["layer_a_profile"] != "unknown"
+        assert record["layer_b_criteria_version"] != "unknown"
+        assert record["layer_c_memory_version"] != "unknown"
+        assert "layer-a/" in record["layer_a_profile"]
+        assert "layer-b/" in record["layer_b_criteria_version"]

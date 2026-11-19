@@ -24,7 +24,7 @@
     "anonymizer": "synthetic_run",
     "append_log": "internally_wired",
     "audit_judge": "internally_wired",
-    "canonical": "internally_wired",
+    "canonical": "synthetic_run",
     "case02": "synthetic_run",
     "case04": "synthetic_run",
     "case05": "synthetic_run",
@@ -39,7 +39,7 @@
     "ingest_manual": "synthetic_run",
     "integrity": "internally_wired",
     "labeled_subset": "internally_wired",
-    "layer_profiles": "internally_wired",
+    "layer_profiles": "synthetic_run",
     "legacy_migration": "test_only",
     "manual_slice": "synthetic_run",
     "memory_candidates": "test_only",
@@ -103,5 +103,5 @@
     "freeze_new_contracts": true,
     "rule": "No p2_8+ or new evaluation contract until a real provider run demonstrates a need. Evidence must reference the new runner entrypoint and served-model status."
   },
-  "manifest_sha256": "863194127dc61dad1484b2dfccdbafe39c085a24ac13f4d978120f8d000b310d"
+  "manifest_sha256": "0e2876721678d0ad39d94b6d7ebabccd9fe5fb7a4a7846296cd179f5db15fbd9"
 }

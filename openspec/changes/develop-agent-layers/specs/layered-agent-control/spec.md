@@ -93,22 +93,53 @@ Layer C SHALL NOT modify Layer A or Layer B. When evaluation evidence contradict
 #### Scenario: An amendment is applied without regression
 - **WHEN** a Layer B amendment is applied without re-running the evaluation suite
 - **THEN** the amendment SHALL be marked unverified and SHALL NOT be treated as a stable criterion change
-## Implementation status (audited)
+## Implementation status (audited 2026-11-19)
 
-Verified supporting artifacts currently exist for the field-language policy and
-Layer A/B/C operational profile documentation:
+### Implemented and verified as contracts
 
-- `.claude/rules/DOGMAS-CORE.md` contains the universal E1 Layer-authority
-  invariant; `.claude/rules/EVALUATION-PROFILE.md` contains the domain
-  E2-E12 evaluation invariants (SRP split, change
-  `deterministic-agent-instructions`).
-- `.claude/rules/DOGMAS-REF-seed.md` contains the R12 evaluation procedure.
-- `.claude/skills/evaluation-contracts/SKILL.md` describes contract loading and
-  validation.
-- `docs/dogmas/eval/contract/p2_4.py` covers language field classification and
-  automation thresholds; `p2_4.py` tests cover those behaviors.
+- `docs/dogmas/eval/contract/layer_profiles.py` — `LayerAControl`,
+  `LayerBCriterion`, `LayerAProfile`, `LayerBProfile` with canonical
+  `to_record()` serialization, hashing, and `default_layer_a_profile()`.
+  Coverage: `test_layer_profiles.py`.
+- `docs/dogmas/eval/contract/amendments.py` — structured Layer C → Layer B
+  amendment proposals (current criterion, contradicting evidence, proposed
+  text or precedence change, affected precedences); require human approval
+  and a regression re-run before `apply_if_stable`. Coverage:
+  `test_10_14_amendments.py`.
+- `test_layer_authority.py` (13 tests) — Layer C recommendations cannot
+  disable enabled controls, weaken redaction, bypass scope gates, authorize
+  irreversible operations, or modify Layer B without human approval; the
+  guard does not rely on model justification; unknown actions are rejected;
+  propose-only actions are accepted; a Layer B without normative criteria is
+  still evaluated but never authorizes overrides.
+- Universal authority boundary: E1 (Layer authority) raised to CORE
+  `DOGMAS-CORE.md` SECURITY BLOCK item 1a; domain execution invariants
+  E2-E12 in `.claude/rules/EVALUATION-PROFILE.md` (SRP split, change
+  `deterministic-agent-instructions`); regression guard in
+  `.claude/hooks/test_eval_profile.py`.
+- `.claude/rules/DOGMAS-REF-seed.md` (R12 evaluation procedure) and
+  `.claude/skills/evaluation-contracts/SKILL.md` (contract loading and
+  validation) remain the operational references; `p2_4.py` covers language
+  field classification and automation thresholds.
 
-The serialized Layer A/B profiles, automatic enforcement that Layer C cannot
-change Layer A/B, and structured Layer C-to-Layer B amendment proposals are not
-yet fully integrated into evaluation records. Those scenarios remain pending
-in `tasks.md`.
+### Integrated: synthetic-run capture (2026-11-19)
+
+The safe runner now captures the active Layer A/B/C profile identifiers into
+every emitted classification record via `capture_for_record(...)` plus the
+default profile pair, so a record identifies which Layer A control profile,
+Layer B criteria version, and Layer C memory version were active
+(requirement scenario "Layer metadata is reported"). Records retain
+`evidence_mode: hash_only` and `provenance_status: limited`; capture never
+alters enforcement fields (`test_adapter_profiles.py` keeps verifying that).
+Coverage: `test_safe_runner.py::test_safe_runner_classifications_carry_layer_profiles`.
+The exercise manifest now classifies `layer_profiles` and `canonical` as
+`synthetic_run` (reachable from the safe runner entrypoint).
+
+### Pending: provider-backed real runs
+
+No registered runner exercises a real provider with served-model identity, so
+`real_run` remains empty and the amendment flow
+(`amendments.py`, `test_only`) is not yet exercised by an evaluation runner.
+Serialized profiles and amendment proposals are contract-verified but not
+yet part of a provider-backed evaluation record. This is the next integration
+step, not a contract gap.
