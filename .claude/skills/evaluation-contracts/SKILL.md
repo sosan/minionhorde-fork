@@ -4,10 +4,10 @@
 > transfer, recovery, regression, stability, or cross-model results. Also when
 > the task asks to validate, report, or extend the evaluation contract surface.
 >
-> **What it is.** This skill does not replace CORE v4.1. It describes the
-> procedure the agent must follow to use the evaluation contracts under
-> `docs/dogmas/eval/contract/` and to emit claims at the strongest scope
-> supported by evidence.
+> **What it is.** This skill activates the evaluation-domain procedure and
+> profile. It does not replace CORE v4.1 or the universal Layer A/B authority
+> boundary (E1); it describes how to use the evaluation contracts and emit
+> claims at the strongest scope supported by evidence.
 
 ## 1. Load the contract surface
 
@@ -16,13 +16,14 @@ active just because it exists on disk.
 
 Required reads (as needed):
 
+- `.claude/rules/EVALUATION-PROFILE.md` (normative E2-E12 domain invariants)
 - `openspec/changes/develop-agent-layers/specs/evaluation-provenance/spec.md`
 - `openspec/changes/develop-agent-layers/specs/operational-learning/spec.md`
 - `openspec/changes/develop-agent-layers/specs/layered-agent-control/spec.md`
 - `docs/dogmas/eval/schemas/v1/` (relevant schema)
 - `docs/dogmas/eval/contract/*.py` (relevant module)
 
-Record which contract is used in the provenance of the run.
+Record which profile and contracts are used in the provenance of the run.
 
 ## 2. Build provenance first
 

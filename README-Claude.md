@@ -185,7 +185,12 @@ PostToolUse hook auto-formats code after Write/Edit:
 
 The `sdlc-workflow` skill loads on-demand when you invoke it or when Claude detects a workflow-related task.
 
-The `evaluation-contracts` skill loads on-demand when the task evaluates agent behavior, memory, provenance, transfer, recovery, regression, stability, or cross-model results. It describes the procedure to use the evaluation contracts under `docs/dogmas/eval/contract/` and to emit claims at the strongest scope supported by evidence.
+The `evaluation-contracts` skill loads on-demand when the task evaluates agent
+behavior, memory, provenance, transfer, recovery, regression, stability, or
+cross-model results. It activates the domain profile under
+`.claude/rules/EVALUATION-PROFILE.md` (normative E2-E12) and describes how to
+use the evaluation contracts under `docs/dogmas/eval/contract/` and to emit
+claims at the strongest scope supported by evidence.
 
 ## Troubleshooting
 
