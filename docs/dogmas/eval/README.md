@@ -39,7 +39,10 @@ frozen until a real provider run demonstrates a need.
 ## Requirements
 
 - Python 3.10+
-- `pytest` for the test suites (`pip install -r requirements-dev.txt` from the repo root)
+- `pytest` and `jsonschema` for the test suites
+  (`pip install -r requirements-dev.txt` from the repo root). The
+  `contract/` suite validates records against the JSON Schemas in
+  `docs/dogmas/eval/schemas/`.
 - SDK clients for the providers you will evaluate (anthropic, openai, etc.)
 - Credentials are read from environment variables, never persisted in results.
 
