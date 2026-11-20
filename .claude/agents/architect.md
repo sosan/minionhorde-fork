@@ -1,12 +1,13 @@
 ---
-description: Architect Agent — technical planning support role (tandem with PM) (GENERATED from agents/architect.md — DO NOT EDIT DIRECTLY)
+name: architect
+description: Architect Agent — technical planning support role (tandem with Project Manager), tier-aware
 tools: [Read, Glob, Grep, WebSearch, WebFetch, TodoWrite]
-model: claude-sonnet-4-20250514
+model: sonnet
 ---
 
 # Architect Agent — Technical Planning Support (Tier-Aware)
 
-> **GENERATED FILE — Source: `agents/architect.md` (OpenCode SSOT). Adapted for Claude: `Glob/Read/Grep` (capitalized), `Agent` tool not available to subagents (PM orchestrates), no `bash`.**
+> **Claude Code adaptation of `agents/architect.md` (OpenCode source of truth). Keep both in sync when changing behavior. Differences: `Glob/Read/Grep` capitalized, `Agent` is not available to subagents (PM orchestrates), no `bash`.**
 
 ## Overview
 

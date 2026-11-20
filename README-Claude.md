@@ -33,9 +33,13 @@ cd minionhorde
 ./install-claude.sh .
 ```
 
-The installer creates a backup of any existing Claude config before overwriting:
+The installer creates a backup of any existing Claude config before changing it:
 - Backup location: `~/.claude_backups/claude_conf_YYYY-MM-DD_HHMMSS.tar.gz`
 - Restore: `tar -xzf <file>.tar.gz -C /path/to/project`
+
+It merges `.claude/settings.json` instead of overwriting it, so hooks and
+permissions already registered in the target survive. It never copies
+`.claude/settings.local.json`, hook tests, `__pycache__`, or `docs/dogmas/eval`.
 
 ## Quick Start
 
@@ -67,13 +71,13 @@ claude
 
 | Agent | Role | Model | Tools |
 |-------|------|-------|-------|
-| **project-manager** | Orchestrator, tier detection, gates | sonnet-4 | Read, Glob, Grep, Agent, TodoWrite, WebSearch, WebFetch |
-| **architect** | Technical planning, PLANNING.md | sonnet-4 | Read, Glob, Grep, WebSearch, WebFetch |
-| **developer** | Tier-aware implementation, docstrings | opus-4 | Read, Glob, Grep, Write, Edit, Bash, Agent, TodoWrite |
-| **test** | TDD stubs, execution, regression, coverage | opus-4 | Read, Glob, Grep, Write, Bash, TodoWrite |
-| **code-review** | Quality + security review, incidents | sonnet-4 | Read, Glob, Grep, TodoWrite |
-| **devops** | Git (conventional commits), changelog, CI/CD | opus-4 | Read, Glob, Grep, Write, Edit, Bash, TodoWrite |
-| **documentation** | Specs sync, README, API_REFERENCE | sonnet-4 | Read, Glob, Grep, Write, Edit, TodoWrite |
+| **project-manager** | Orchestrator, tier detection, gates | sonnet | Read, Glob, Grep, Agent, TodoWrite, WebSearch, WebFetch |
+| **architect** | Technical planning, PLANNING.md | sonnet | Read, Glob, Grep, WebSearch, WebFetch, TodoWrite |
+| **developer** | Tier-aware implementation, docstrings | opus | Read, Glob, Grep, Write, Edit, Bash, TodoWrite, WebSearch, WebFetch |
+| **test** | TDD stubs, execution, regression, coverage | opus | Read, Glob, Grep, Write, Bash, TodoWrite |
+| **code-review** | Quality + security review, incidents | sonnet | Read, Glob, Grep, TodoWrite |
+| **devops** | Git (conventional commits), changelog, CI/CD | opus | Read, Glob, Grep, Write, Edit, Bash, TodoWrite |
+| **documentation** | Specs sync, README, API_REFERENCE | sonnet | Read, Glob, Grep, Write, Edit, TodoWrite |
 
 ## Workflow Phases
 

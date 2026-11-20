@@ -39,8 +39,29 @@ frozen until a real provider run demonstrates a need.
 ## Requirements
 
 - Python 3.10+
+- `pytest` for the test suites (`pip install -r requirements-dev.txt` from the repo root)
 - SDK clients for the providers you will evaluate (anthropic, openai, etc.)
 - Credentials are read from environment variables, never persisted in results.
+
+## Quality checks
+
+```bash
+python3 -m pytest docs/dogmas/eval -q
+python3 docs/dogmas/eval/scripts/check_duplicate_responses.py \
+  --baseline docs/dogmas/eval/fixtures/duplicate-response-baseline.json --strict
+python3 .claude/hooks/rule_drift.py --all
+```
+
+`check_duplicate_responses.py` flags identical `response_literal` values that
+appear under different `repetition_id` values: those are copies, not independent
+samples, and they inflate stability estimates. The committed baseline records
+the known groups in the frozen registry; new duplicates fail the check.
+Deduplication of the existing data requires operator approval because it
+removes evidence records.
+
+`statistical_analysis.py` uses exact Clopper-Pearson intervals for every sample
+size and imports `contract/p2_1.paired_mcnemar` instead of reimplementing
+McNemar.
 
 ## Cross-model evaluation (2026-09-07/08)
 

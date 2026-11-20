@@ -1,0 +1,18 @@
+{
+  "schema_version": "duplicate-response-baseline-v1",
+  "note": "Known duplicate response literals in the frozen 72-record registry. Deduplication requires operator approval; new duplicates fail CI.",
+  "known_duplicate_hashes": [
+    "16023bd609b913ec5968589c4a276351d7a51446be0f335d54e7e7fa9da0c5cd",
+    "22259c3301f5243cb4a0d3f0c813c8c1a96394e71cbc5c394c111c53e01f4bf8",
+    "26fad33e1ec460314db1833f685eefa2a3b13761633e2bf42737bedc88d71115",
+    "333dc324a9c77740091e1b97fec40b059d4604186d7746dcaf5fec803104a201",
+    "528c5f06a1b51ee41373f0fbe3e2e458ee7454461d7bddc2061265c800e6a7f9",
+    "5771570d68043004cfcc01f574c70861df8b8b8411a0a1bf68e64eaf0faddf9f",
+    "5d8d4f1ad5c516753d037adbb0575a5c052161c5cb0ae9b7dc479c72dc521f76",
+    "841173f2b08859d495058a14d54d89fdb8b7dea6f62da862221b64756297fb80",
+    "c24b3c5b9639e9a09464f4df8fb813b2bcb34dc1ee2823ac8a52676eef45ba65",
+    "d3faa3638b0cf46b28d6238ede0223cb97b887982441239f78fe863c646cbadd",
+    "e35f574aacb0f9bc7a702c0c878cef1bb3e72ba0d03efe9ec556b66ae2962b49",
+    "fc47f548a137f2f804d1a0be1fbb0b5b6ab732182e5455038e1122a782c70a11"
+  ]
+}

@@ -118,7 +118,7 @@ When FAIL occurs, the operator must record the incident in MEMORY/, follow this 
 
 ## Integration with evaluation hooks
 
-The `scope-validator.sh` hook (Stop event) checks that substantive responses end with `Scope:` + `Security:`. If either is missing, it emits a warning but does not block.
+The `scope-validator.sh` hook (Stop event) checks that substantive responses end with `Scope:` + `Security:`. If either is missing, it blocks with a bounded retry: after two attempts it logs `heartbeat_missing_after_retries` and releases the turn.
 
 To automate FAIL detection, create `eval-validator.sh` to classify the agent response as PASS/PARTIAL/FAIL, record FAIL automatically in MEMORY/, and notify the operator. The operator decides whether to continue the FAIL → new rule cycle.
 

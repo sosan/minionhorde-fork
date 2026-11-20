@@ -1,3 +1,9 @@
+---
+paths:
+  - "docs/dogmas/**"
+  - "**/eval/**"
+---
+
 # EVALUATION PROFILE v1 — Domain invariants E2-E12
 
 > **Status:** canonical for the evaluation domain. Source: CORE v4.1

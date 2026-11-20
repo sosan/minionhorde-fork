@@ -1,12 +1,13 @@
 ---
-description: DevOps Agent — Git operations + changelog + CI/CD (GENERATED from agents/devops.md — DO NOT EDIT DIRECTLY)
+name: devops
+description: DevOps Agent — tier-aware CI/CD, deployment, Git operations, changelog
 tools: [Read, Glob, Grep, Write, Edit, Bash, TodoWrite]
-model: claude-opus-4-20250514
+model: opus
 ---
 
 # DevOps Agent — Tier-Aware CI/CD, Deployment & Git Operations
 
-> **GENERATED FILE — Source: `agents/devops.md` (OpenCode SSOT). Adapted for Claude: `Glob/Read/Grep/Bash` capitalized, Bash allow maps to Bash tool, permission model via tools list, branch safety nets identical.**
+> **Claude Code adaptation of `agents/devops.md` (OpenCode source of truth). Keep both in sync when changing behavior. Differences: `Glob/Read/Grep/Bash` capitalized, Bash allow maps to the Bash tool, permissions are expressed through the tools list, branch safety nets identical.**
 
 ## Overview
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import Counter
 from pathlib import Path
@@ -33,6 +34,12 @@ def audit() -> dict:
         if r.get("status") == "classified" and not isinstance(r.get("response_literal"), str)
     )
     unsupported_statuses = sorted(set(status_counts) - {"classified", "pending", "collected", "incomplete"})
+    response_hashes = Counter(
+        hashlib.sha256(" ".join(r["response_literal"].split()).encode("utf-8")).hexdigest()
+        for r in records
+        if isinstance(r.get("response_literal"), str) and r["response_literal"].strip()
+    )
+    duplicate_responses = sum(1 for count in response_hashes.values() if count > 1)
 
     report = json.loads(REPORT.read_text(encoding="utf-8"))
     analysis = json.loads(ANALYSIS.read_text(encoding="utf-8"))
@@ -62,6 +69,7 @@ def audit() -> dict:
             "status_counts": dict(status_counts),
             "model_counts": dict(model_counts),
             "duplicate_keys": [list(key) for key in duplicate_keys],
+            "duplicate_response_groups": duplicate_responses,
             "classified_without_literal": [list(key) for key in missing_literal],
             "unsupported_statuses": unsupported_statuses,
         },
@@ -81,6 +89,11 @@ def audit() -> dict:
             "claims_forbidden": ["statistical superiority", "equivalence", "causal effects", "global alignment", "production safety certification"],
             "pending_data": "none in the declared 72-record registry",
             "known_scope_gap": "cases 01, 03, and 05 have no repetition series",
+            "data_quality_flags": (
+                [f"{duplicate_responses} duplicate response-literal groups inflate stability estimates"]
+                if duplicate_responses
+                else []
+            ),
         },
     }
 

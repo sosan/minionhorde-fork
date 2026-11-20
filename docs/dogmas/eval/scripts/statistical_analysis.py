@@ -12,10 +12,15 @@ repetition records, including:
 """
 
 import json
+import math
+import sys
 from pathlib import Path
 from collections import defaultdict, Counter
 from typing import Dict, List, Tuple
-import math
+
+EVAL_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(EVAL_DIR))
+from contract.p2_1 import paired_mcnemar  # noqa: E402
 
 
 def load_registry(registry_path: Path) -> List[Dict]:
@@ -28,28 +33,79 @@ def load_registry(registry_path: Path) -> List[Dict]:
     return records
 
 
+def _betacf(a: float, b: float, x: float) -> float:
+    """Continued fraction for the incomplete beta function (Lentz)."""
+    max_iterations, epsilon, tiny = 200, 3e-14, 1e-300
+    qab, qap, qam = a + b, a + 1.0, a - 1.0
+    c = 1.0
+    d = 1.0 - qab * x / qap
+    d = tiny if abs(d) < tiny else d
+    d = 1.0 / d
+    h = d
+    for m in range(1, max_iterations + 1):
+        m2 = 2 * m
+        for numerator in (
+            m * (b - m) * x / ((qam + m2) * (a + m2)),
+            -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)),
+        ):
+            d = 1.0 + numerator * d
+            d = tiny if abs(d) < tiny else d
+            c = 1.0 + numerator / c
+            c = tiny if abs(c) < tiny else c
+            d = 1.0 / d
+            h *= d * c
+        if abs(d * c - 1.0) < epsilon:
+            break
+    return h
+
+
+def _betainc(a: float, b: float, x: float) -> float:
+    """Regularized incomplete beta function I_x(a, b)."""
+    if x <= 0.0:
+        return 0.0
+    if x >= 1.0:
+        return 1.0
+    log_beta = (
+        math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
+        + a * math.log(x) + b * math.log1p(-x)
+    )
+    front = math.exp(log_beta)
+    if x < (a + 1.0) / (a + b + 2.0):
+        return front * _betacf(a, b, x) / a
+    return 1.0 - front * _betacf(b, a, 1.0 - x) / b
+
+
+def _beta_ppf(quantile: float, a: float, b: float) -> float:
+    """Inverse regularized incomplete beta by bisection."""
+    low, high = 0.0, 1.0
+    for _ in range(200):
+        middle = (low + high) / 2.0
+        if _betainc(a, b, middle) < quantile:
+            low = middle
+        else:
+            high = middle
+    return (low + high) / 2.0
+
+
 def compute_binomial_ci(successes: int, n: int, confidence: float = 0.95) -> Tuple[float, float]:
-    """Compute Clopper-Pearson exact binomial confidence interval."""
+    """Compute the exact Clopper-Pearson binomial confidence interval.
+
+    Example:
+        >>> lower, upper = compute_binomial_ci(10, 10)
+        >>> round(lower, 3), round(upper, 3)
+        (0.692, 1.0)
+    """
     if n == 0:
         return (0.0, 0.0)
-    
-    p_hat = successes / n
-    
-    # Use normal approximation for simplicity (adequate for n >= 10)
-    # For n < 10, use Clopper-Pearson
-    if n < 10:
-        # Clopper-Pearson exact interval
-        from scipy.stats import beta
-        alpha = 1 - confidence
-        lower = beta.ppf(alpha / 2, successes, n - successes + 1) if successes > 0 else 0.0
-        upper = beta.ppf(1 - alpha / 2, successes + 1, n - successes) if successes < n else 1.0
-    else:
-        # Normal approximation
-        z = 1.96 if confidence == 0.95 else 2.576  # 95% or 99%
-        se = math.sqrt(p_hat * (1 - p_hat) / n)
-        lower = max(0.0, p_hat - z * se)
-        upper = min(1.0, p_hat + z * se)
-    
+    alpha = 1.0 - confidence
+    lower = (
+        0.0 if successes == 0
+        else _beta_ppf(alpha / 2.0, successes, n - successes + 1)
+    )
+    upper = (
+        1.0 if successes == n
+        else _beta_ppf(1.0 - alpha / 2.0, successes + 1, n - successes)
+    )
     return (lower, upper)
 
 
@@ -71,26 +127,6 @@ def interpret_cohens_h(h: float) -> str:
         return "medium"
     else:
         return "large"
-
-
-def mcnemar_test(b: int, c: int) -> Tuple[float, float]:
-    """
-    McNemar's test for paired nominal data.
-    
-    Returns (chi2_statistic, p_value).
-    Uses continuity correction.
-    """
-    if b + c == 0:
-        return (0.0, 1.0)
-    
-    # McNemar's test with continuity correction
-    chi2 = (abs(b - c) - 1) ** 2 / (b + c)
-    
-    # Approximate p-value from chi-squared distribution with 1 df
-    # Using survival function approximation
-    p_value = math.exp(-chi2 / 2)  # Simplified approximation
-    
-    return (chi2, p_value)
 
 
 def analyze_stability(records: List[Dict]) -> Dict:
@@ -144,9 +180,13 @@ def analyze_agreement(records: List[Dict]) -> Dict:
 
 
 def main():
-    registry_path = Path('docs/dogmas/eval/repetitions')
+    registry_path = EVAL_DIR / 'repetitions'
     records = load_registry(registry_path)
-    
+
+    if not records:
+        print("No classified records found in the registry.")
+        return
+
     print(f"Loaded {len(records)} classified records\n")
     
     # 1. Descriptive statistics
@@ -230,7 +270,7 @@ def main():
     agree_count = sum(1 for a in agreement if a['agree'])
     total_agreement = len(agreement)
     
-    print(f"\n  Overall agreement: {agree_count}/{total_agreement} ({agree_count/total_agreement*100:.1f}%)")
+    print(f"\n  Overall agreement: {agree_count}/{total_agreement} ({agree_count/total_agreement*100 if total_agreement else 0.0:.1f}%)")
     
     # Per-case agreement
     print(f"\n  Per-case agreement:")
@@ -255,37 +295,35 @@ def main():
     for case in cases:
         print(f"  {case.split('/')[-1]}:")
         for condition in ['C0', 'C1', 'C2', 'C3']:
-            # Count discordant pairs across repetitions
-            b_count = 0  # Anthropic PASS, claude FAIL/PARTIAL
-            c_count = 0  # Anthropic FAIL/PARTIAL, claude PASS
-            
+            anthropic_outcomes: List[bool] = []
+            claude_outcomes: List[bool] = []
+
             for rep in ['r01', 'r02', 'r03']:
                 anthropic_cls = None
                 claude_cls = None
-                
+
                 for r in records:
-                    if (r['case_id'] == case and 
-                        r['condition'] == condition and 
+                    if (r['case_id'] == case and
+                        r['condition'] == condition and
                         r['repetition_id'] == rep):
                         if r['model'] == 'Anthropic':
                             anthropic_cls = r['classification']['classification']
                         elif r['model'] == 'claude-opus-5-max':
                             claude_cls = r['classification']['classification']
-                
+
                 if anthropic_cls and claude_cls:
-                    anthropic_pass = anthropic_cls == 'PASS'
-                    claude_pass = claude_cls == 'PASS'
-                    
-                    if anthropic_pass and not claude_pass:
-                        b_count += 1
-                    elif not anthropic_pass and claude_pass:
-                        c_count += 1
-            
-            if b_count + c_count > 0:
-                chi2, p_value = mcnemar_test(b_count, c_count)
-                print(f"    {condition}: b={b_count}, c={c_count}, χ²={chi2:.2f}, p≈{p_value:.3f}")
+                    anthropic_outcomes.append(anthropic_cls == 'PASS')
+                    claude_outcomes.append(claude_cls == 'PASS')
+
+            if anthropic_outcomes:
+                result = paired_mcnemar(anthropic_outcomes, claude_outcomes)
+                print(
+                    f"    {condition}: b={result['discordant_a_wins']}, "
+                    f"c={result['discordant_b_wins']}, "
+                    f"p={result['p_value']:.3f}"
+                )
             else:
-                print(f"    {condition}: No discordant pairs")
+                print(f"    {condition}: No paired repetitions")
     
     # 5. Effect sizes
     print("\n" + "=" * 70)
@@ -323,31 +361,28 @@ def main():
                 print(f"    {condition}: Anthropic={p1:.2f}, claude={p2:.2f}, h={h:+.2f} ({interpretation})")
     
     # 6. Summary
+    anthropic_rate = anthropic_stable / anthropic_total * 100 if anthropic_total else 0.0
+    claude_rate = claude_stable / claude_total * 100 if claude_total else 0.0
+    agreement_rate = agree_count / total_agreement * 100 if total_agreement else 0.0
+    ci_lower, ci_upper = compute_binomial_ci(pass_count, total)
     print("\n" + "=" * 70)
     print("6. SUMMARY")
     print("=" * 70)
     print(f"""
   Total records analyzed: {total}
-  
+
   Overall PASS rate: {pass_count/total*100:.1f}%
-  95% CI: [{compute_binomial_ci(pass_count, total)[0]*100:.1f}%, {compute_binomial_ci(pass_count, total)[1]*100:.1f}%]
-  
-  Anthropic stability: {anthropic_stable}/{anthropic_total} conditions ({anthropic_stable/anthropic_total*100:.1f}%)
-  claude-opus-5-max stability: {claude_stable}/{claude_total} conditions ({claude_stable/claude_total*100:.1f}%)
-  
-  Inter-model agreement: {agree_count/total_agreement*100:.1f}%
-  
-  Key findings:
-  - Anthropic shows higher stability across repetitions
-  - C0 (no additional criteria) is the most variable condition
-  - Inter-model agreement is moderate (67%)
-  - Effect sizes are generally small to medium
-  - McNemar's tests have limited power due to small n
-  
+  95% CI (Clopper-Pearson): [{ci_lower*100:.1f}%, {ci_upper*100:.1f}%]
+
+  Anthropic stability: {anthropic_stable}/{anthropic_total} conditions ({anthropic_rate:.1f}%)
+  claude-opus-5-max stability: {claude_stable}/{claude_total} conditions ({claude_rate:.1f}%)
+
+  Inter-model agreement: {agreement_rate:.1f}%
+
   Limitations:
   - n=3 per cell is insufficient for definitive statistical claims
-  - Confidence intervals are wide (±35 percentage points for p=1.0, n=3)
-  - Results are descriptive observations only
+  - Intervals are exact but wide with such small samples
+  - Results are descriptive observations only, not causal claims
 """)
 
 

@@ -576,7 +576,10 @@ The deployment note ("trim role-specific subsets") implements reading a sequence
 - AC-13 (dogma refinements) must be reviewed after each deep analysis of the policy.
 - AC-14 (rule ID refinements) must be reviewed after each policy update.
 - AC-16 (CORE learning cycle) is what turns the CORE from static to living: implement incident recording from the start.
-- AC-17 (security heartbeat) is implemented by the Stop hook (`.claude/hooks/scope-validator.sh`), which blocks substantive responses missing `Scope:`/`Security:` with bounded retries.
+- AC-17 (security heartbeat):
+  <!-- @rule:heartbeat_gate @source:docs/dogmas/docs/hooks/scope-validator.md @fragment:gate-contract -->
+  The heartbeat gate is the Stop hook (`scope-validator.sh`) that blocks substantive responses missing `Scope:`/`Security:` with bounded retries.
+  <!-- /@rule:heartbeat_gate -->
 - AC-18 (bootstrap budget) prevents refinement from being infinite: declare cost per session, per model family, per case; compare against marginal benefit; stop when cost exceeds benefit.
 - AC-5a (cross-model crystallization) now has a concrete procedure: 3+ families, intersection as the crystallized set, dissent as frontier, hold-out for validation.
 - AC-10a (alignment) now declares a minimum sample size: 30 cases/category × 3 runs for a definitive claim; with fewer, the measurement is preliminary with a declared CI.

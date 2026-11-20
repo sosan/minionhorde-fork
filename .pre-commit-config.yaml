@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: rule-drift
+        name: rule drift (changed markdown)
+        entry: python3 .claude/hooks/rule_drift.py --changed
+        language: system
+        files: \.md$
+        pass_filenames: false
+      - id: hook-tests
+        name: hook tests
+        entry: python3 -m pytest .claude/hooks -q
+        language: system
+        files: ^\.claude/hooks/
+        pass_filenames: false
+      - id: eval-script-tests
+        name: eval script tests
+        entry: python3 -m pytest docs/dogmas/eval/scripts -q
+        language: system
+        files: ^docs/dogmas/eval/scripts/
+        pass_filenames: false

@@ -50,16 +50,20 @@ def test_factual_list_passes_without_heartbeat(tmp_path):
 
 def test_decision_without_heartbeat_blocks(tmp_path):
     code, out, counter, _ = run_hook("I recommend merging this branch.", tmp_path)
-    assert code == 2
-    assert "CORE Inv 16" in out
+    payload = json.loads(out)
+    assert code == 0
+    assert payload["decision"] == "block"
+    assert "CORE Inv 16" in payload["reason"]
     assert counter.read_text().strip() == "1"
 
 
 def test_scope_without_security_blocks(tmp_path):
     msg = "I recommend merging.\nScope: complete."
     code, out, counter, _ = run_hook(msg, tmp_path)
-    assert code == 2
-    assert "Security:" in out
+    payload = json.loads(out)
+    assert code == 0
+    assert payload["decision"] == "block"
+    assert "Security:" in payload["reason"]
     assert counter.exists()
 
 
@@ -87,8 +91,10 @@ def test_retry_sequence_blocks_twice_then_warns(tmp_path):
         proc = subprocess.run(
             [str(HOOK)], input=payload, text=True, capture_output=True, env=env
         )
-        results.append(proc.returncode)
-    assert results == [2, 2, 0]
+        results.append((proc.returncode, proc.stdout))
+    assert [code for code, _ in results] == [0, 0, 0]
+    assert all(json.loads(out)["decision"] == "block" for _, out in results[:2])
+    assert results[2][1] == ""
     assert not counter.exists()
     assert "heartbeat_missing_after_retries" in audit.read_text()
 
@@ -98,3 +104,41 @@ def test_empty_message_passes(tmp_path):
     assert code == 0
     assert out == ""
     assert not counter.exists()
+
+
+def test_impact_prose_does_not_block(tmp_path):
+    code, out, counter, _ = run_hook(
+        "The impact of this change is limited to the parser.", tmp_path
+    )
+    assert code == 0
+    assert out == ""
+    assert not counter.exists()
+
+
+def test_leftover_lock_file_does_not_block(tmp_path):
+    counter = tmp_path / "counter"
+    counter.with_suffix(".lock").write_text("")
+    code, out, counter, _ = run_hook("I recommend merging this branch.", tmp_path)
+    assert code == 0
+    assert json.loads(out)["decision"] == "block"
+    assert counter.read_text().strip() == "1"
+
+
+def test_counters_are_per_session(tmp_path):
+    env = {
+        **os.environ,
+        "CLAUDE_PROJECT_DIR": str(tmp_path),
+    }
+    for session in ("session-a", "session-b"):
+        subprocess.run(
+            [str(HOOK)],
+            input=json.dumps(
+                {"last_assistant_message": "I recommend merging.", "session_id": session}
+            ),
+            text=True,
+            capture_output=True,
+            env=env,
+        )
+    counters = sorted((tmp_path / ".claude" / "audit").glob("heartbeat-retry.*.counter"))
+    assert len(counters) == 2
+    assert all(counter.read_text().strip() == "1" for counter in counters)

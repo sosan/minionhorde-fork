@@ -1,5 +1,11 @@
 # Hook and security verification (task 8.4)
 
+> **Historical report (2026-10-06).** The hook wiring and the
+> `scope-validator` behavior described below have since changed: the
+> `PreToolUse` guard is now `.claude/hooks/guard_pretooluse.py`, redaction also
+> covers `stderr` and `Read`, and a missing heartbeat blocks with bounded
+> retries. See `docs/dogmas/docs/hooks/` for the current contracts.
+
 > Task 8.4 of `openspec/changes/develop-agent-layers`.
 > Date: 2026-10-06 (branch `feature-bootstrapping`).
 > Status: verification report — the new evaluation path (provider adapters,

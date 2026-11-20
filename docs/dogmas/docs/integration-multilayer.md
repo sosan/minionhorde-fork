@@ -16,11 +16,11 @@
 | Hook | Event | Function |
 |------|-------|----------|
 | `format-after-edit.sh` | PostToolUse (Write/Edit) | Automatic formatting |
-| `audit-log.sh` | PostToolUse (Write/Edit/Bash) | Event recording |
-| `redact-output.py` | PostToolUse (Bash) | Secret redaction |
+| `audit-log.sh` | PostToolUse/PostToolUseFailure (Write/Edit/Bash) | Redacted JSON-lines audit with a hash chain |
+| `redact-output.py` | PostToolUse/PostToolUseFailure (Bash/Read/WebFetch/WebSearch) | Redacts stdout, stderr, and file content before the model sees it |
 | `scope-validator.sh` | Stop | heartbeat `Scope:` + `Security:` |
 | `phase-gate.sh` | UserPromptSubmit | Phase-integrity gate |
-| PreToolUse inline | PreToolUse (Bash) | Blocks irreversible actions |
+| `guard_pretooluse.py` | PreToolUse (Bash) | Token-based block of irreversible or security-weakening commands |
 
 ## Task status
 

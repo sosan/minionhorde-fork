@@ -108,7 +108,7 @@ Boundary zone?
 
 ## Integration with evaluation hooks
 
-The `scope-validator.sh` hook (Stop event) checks that substantive responses end with `Scope:` + `Security:`. Missing values produce a warning but do not block.
+The `scope-validator.sh` hook (Stop event) checks that substantive responses end with `Scope:` + `Security:`. Missing values block the turn with bounded retries (see `docs/hooks/scope-validator.md`).
 
 To automate escalation detection, create `escalation-detector.sh` to analyze agent responses for competing invariants, disagreement, and irreversibility; notify the operator and wait for a decision.
 

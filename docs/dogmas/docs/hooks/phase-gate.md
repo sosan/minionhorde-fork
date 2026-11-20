@@ -10,11 +10,13 @@ File: `.claude/hooks/phase-gate.sh`
 The gate has exactly two invocation modes:
 
 1. **CLI:** `.claude/hooks/phase-gate.sh <phase>`
-2. **UserPromptSubmit marker:** include `/gate <phase>` in the prompt JSON.
+2. **UserPromptSubmit marker:** a line that starts with `/gate <phase>`.
 
-Natural-language mentions such as `avanzar a fase 2`, `next phase`, or
-`continuar con la planificación` never trigger the gate. Without an explicit
-marker or CLI argument the script exits 0 silently.
+The marker must start a line. Prose that merely mentions `/gate` — for
+example while discussing this hook — never triggers the gate. Natural-language
+mentions such as `avanzar a fase 2`, `next phase`, or `continuar con la
+planificación` never trigger the gate. Without an explicit marker or CLI
+argument the script exits 0 silently.
 
 Unknown explicit phases fail loudly with exit 2 and list the valid phases.
 
@@ -35,7 +37,15 @@ results.
 | tier1_phase1 | Verify that the `docs/` context directory exists |
 | tier1_phase2 | Verify that `docs/PRD.md` and at least one spec exist |
 | tier1_phase3 | Verify PRD + specs + test stubs |
+| tier2_phase1 | Verify the `docs/` directory, `docs/PRD.md`, and at least one spec (impact analysis input) |
+| tier2_phase2 | Verify the `docs/` directory, at least one spec, and test stubs (TDD before implementation) |
+| tier3_phase1 | Verify the `docs/` directory exists (root-cause investigation) |
+| tier3_phase2 | Verify the `docs/` directory and at least one test stub (regression test) |
 | parallelism | Full-path overlap check over the roadmap (`docs/IMPLEMENTATION_ROADMAP.md` by default, override with `CLAUDE_PARALLEL_PLAN`); missing `Files:` declarations fail closed (CORE Inv 21) |
+
+When `CLAUDE_TEST_CMD` is set, `tier1_phase3` and `tier3_phase2` also require
+that command to fail. That proves the tests are red before implementation. The
+check is opt-in because it runs the project's test suite.
 
 ### Registration in settings.json
 
@@ -61,8 +71,7 @@ results.
 
 - Does not create files or mutate the repository.
 - Does not verify document quality, only declared prerequisites.
-- Does not cover tier2, tier3, or advanced workflow phases yet; expanding
-  coverage requires a separate acceptance criterion and failing case.
+- Does not run the test suite unless `CLAUDE_TEST_CMD` is explicitly set.
 
 ## Manual and automated verification
 

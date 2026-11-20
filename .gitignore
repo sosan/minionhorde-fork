@@ -1,9 +1,26 @@
-openspec/
+# Claude Code harness is source: agents, commands, hooks, rules, skills, settings.
 .claude/*
+!.claude/agents/
+!.claude/commands/
 !.claude/hooks/
-!.claude/hooks/*.sh
-!.claude/hooks/*.py
 !.claude/rules/
-!.claude/rules/DOGMAS-CORE.md
-!.claude/rules/DOGMAS-REF-seed.md
+!.claude/skills/
+!.claude/settings.json
+!.claude/settings.local.example.json
+.claude/audit/
+.claude/worktrees/
+.claude/settings.local.json
+
+# Python / test artifacts
 __pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local runtime and archive data
+.crush/
+openspec/changes/archive/
+minion.zip
+*.zip
+
+# OS / editor
+.DS_Store

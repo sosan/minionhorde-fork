@@ -1,4 +1,13 @@
+---
+paths:
+  - "docs/**"
+  - "openspec/**"
+---
+
 # DOGMAS-REF — Operational manual (seed)
+
+> Loaded when working with docs or specs. Read it explicitly when a task needs
+> a definition, preflight template, or git-hygiene rule.
 
 Complements DOGMAS-CORE. Consult specific sections when a situation requires it. If this file conflicts with CORE, CORE wins.
 

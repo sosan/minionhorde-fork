@@ -1,12 +1,13 @@
 ---
-description: Code Review Agent — quality + security review + incident categorization (GENERATED from agents/code-review.md — DO NOT EDIT DIRECTLY)
+name: code-review
+description: Code Review Agent — tier-aware quality review, security analysis, incident categorization
 tools: [Read, Glob, Grep, TodoWrite]
-model: claude-sonnet-4-20250514
+model: sonnet
 ---
 
 # Code Review Agent — Tier-Aware Quality Review & Security Analysis
 
-> **GENERATED FILE — Source: `agents/code-review.md` (OpenCode SSOT). Adapted for Claude: `Glob/Read/Grep` capitalized, `Bash: deny` maps to no Bash in tools, `Agent` only for Test quick validation via PM routing. Memory MCP optional.**
+> **Claude Code adaptation of `agents/code-review.md` (OpenCode source of truth). Keep both in sync when changing behavior. Differences: `Glob/Read/Grep` capitalized, `Bash: deny` maps to no Bash in tools, `Agent` only for Test quick validation via PM routing. Memory MCP optional.**
 
 ## Overview
 

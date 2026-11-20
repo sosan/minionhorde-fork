@@ -1,50 +1,58 @@
-# Audit Log — Compliance manual (minimum viable)
+# Audit Log — JSON lines with a hash chain
 
-Purpose: record security events without depending on an external harness.
+Purpose: record security events without depending on an external service and
+without letting a crafted command forge or corrupt entries.
 
 ## What to record
 
-Each relevant event is recorded in `audit-log.md` in the project (or in session memory) with:
-
 ```
-- timestamp (ISO 8601)
-- event: command_executed | file_modified | secret_detected | injection_detected | approval_given | rollback_used
-- tool: Bash | Write | Edit | ...
-- target: file or command (sin secretos)
-- agent: who executed it
-- phase: workflow phase
-- status: success | blocked | error
+- timestamp (ISO 8601, UTC)
+- event: tool_executed | irreversible_command | file_modified | secret_redacted
+- tool: Bash | Write | Edit | Read | ...
+- target: file or command, always redacted
+- status: success | error | interrupted | warning
+- redacted_types: labels of the patterns that fired
+- prev_hash / hash: tamper-evident chain
 ```
 
-## Events that trigger logging
+## Storage
 
-- Irreversible command executed (even if it passed the filter)
-- File modified outside the approved scope
-- Secret detected in output
-- Injection reported
-- Operator approval for an irreversible action
-- Rollback executed
+`.claude/audit/audit.log` — one JSON object per line (JSON Lines). Each entry
+carries `prev_hash` (the previous entry's `hash`) and its own SHA-256 `hash`,
+computed over the canonical JSON without the `hash` field.
 
-## Minimal implementation (without a harness)
+Why JSON Lines:
 
-Until a harness audit log exists, the agent keeps a session-memory log and flushes it to the `Stop` for each turn. Formato:
+- A command containing newlines stays inside one JSON string; it cannot inject
+  fake YAML entries.
+- The raw command is never written: `target` passes through the shared redactor
+  first.
+- The status comes from the hook event (`PostToolUseFailure` → `error`, or
+  `tool_response.exit_code`/`is_error`).
 
-```markdown
-## audit_2026-09-09T02:00:00Z
-- event: command_executed | tool: Bash | target: git status | status: success
-- event: file_modified | tool: Edit | target: src/auth/handler.ts | status: success
-```
+Rotation: when the file reaches 1 MB it moves to `audit.log.1`, keeping three
+rotated files.
 
-## Hook implementation (when the classifier allows writing)
-
-Add to `.claude/settings.json`:
+## Registration
 
 ```json
 {
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Bash|Write|Edit",
+        "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/audit-log.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
@@ -58,43 +66,22 @@ Add to `.claude/settings.json`:
 }
 ```
 
-The script `.claude/hooks/audit-log.sh`:
+`audit-log.sh` is a thin wrapper around `audit_log.py`; the Python module holds
+the implementation and the shared redaction.
+
+## Verify the chain
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-input=$(cat)
-event="tool_executed"
-tool=$(printf '%s' "$input" | jq -r '.tool_name // "unknown"')
-tool_input=$(printf '%s' "$input" | jq -c '.tool_input')
-tool_response=$(printf '%s' "$input" | jq -c '.tool_response')
-status="success"
-
-# Detect event type
-case "$tool" in
-  Bash)
-    cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""')
-    if echo "$cmd" | grep -qEi '(push --force|reset --hard|DROP TABLE|DELETE FROM|TRUNCATE|rm -rf|sudo)'; then
-      event="irreversible_command"
-    fi
-    target="$cmd"
-    ;;
-  Write|Edit)
-    target=$(printf '%s' "$input" | jq -r '.tool_input.file_path // "unknown"')
-    event="file_modified"
-    ;;
-esac
-
-timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-# Write to the local audit log (sin secretos)
-mkdir -p "${CLAUDE_PROJECT_DIR}/.claude/audit"
-printf -- '- timestamp: %s\n  event: %s\n  tool: %s\n  target: %s\n  status: %s\n' \
-  "$timestamp" "$event" "$tool" "$target" "$status" \
-  >> "${CLAUDE_PROJECT_DIR}/.claude/audit/audit.log"
-
-exit 0
+.claude/hooks/audit-log.sh --verify .claude/audit/audit.log
 ```
 
-Make executable: `chmod +x .claude/hooks/audit-log.sh`
+Prints `AUDIT_CHAIN_OK` (exit 0) or `AUDIT_CHAIN_FAIL` plus the broken lines
+(exit 1). Verification detects edited entries and broken links. It cannot
+detect truncation of the tail, because the tail has no successor to compare.
+
+## Limits
+
+- The log is local evidence, not a remote append-only store.
+- A compromised process with write access can rewrite the whole chain.
+- The redactor is pattern-based; it reduces exposure, it does not guarantee
+  that no secret is ever written.

@@ -1,12 +1,13 @@
 ---
-description: Documentation Agent — docs maintenance + specs sync (GENERATED from agents/documentation.md — DO NOT EDIT DIRECTLY)
+name: documentation
+description: Documentation Agent — docs maintenance, specs sync, on-demand reports
 tools: [Read, Glob, Grep, Write, Edit, TodoWrite]
-model: claude-sonnet-4-20250514
+model: sonnet
 ---
 
 # Documentation Agent — Tier-Aware Documentation Maintenance
 
-> **GENERATED FILE — Source: `agents/documentation.md` (OpenCode SSOT). Adapted for Claude: `Glob/Read` capitalized, `Bash: deny` maps to no Bash tool, Memory MCP optional (search via mcp__memory__* if enabled else Glob+Read).**
+> **Claude Code adaptation of `agents/documentation.md` (OpenCode source of truth). Keep both in sync when changing behavior. Differences: `Glob/Read` capitalized, `Bash: deny` maps to no Bash tool, Memory MCP optional (search via mcp__memory__* if enabled, else Glob+Read).**
 
 ## Overview
 

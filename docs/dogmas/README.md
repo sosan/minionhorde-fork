@@ -32,16 +32,18 @@
 | Script | Event | Purpose |
 |---|---|---|
 | `format-after-edit.sh` | PostToolUse (Write\|Edit) | Formats black/prettier/gofmt |
-| `audit-log.sh` | PostToolUse (Write\|Edit\|Bash) | Records events in `.claude/audit/audit.log` |
+| `audit-log.sh` | PostToolUse/PostToolUseFailure (Write\|Edit\|Bash) | Appends redacted JSON lines with a hash chain |
 | `scope-validator.sh` | Stop | Validates `Scope:` + `Security:` (Inv 16) |
-| `redact-output.py` | PostToolUse (Bash) | Redacts secrets in output |
+| `redact-output.py` | PostToolUse/PostToolUseFailure (Bash\|Read\|WebFetch\|WebSearch) | Redacts secrets in stdout, stderr, and file content |
 | `phase-gate.sh` | UserPromptSubmit | Verifies phase prerequisites |
-| PreToolUse inline | PreToolUse (Bash) | Blocks irreversible commands (Inv 2) |
+| `guard_pretooluse.py` | PreToolUse (Bash) | Token-based guard against irreversible commands (Inv 2) |
 
 ## Installation
 
-`./install-claude.sh <target>` copies `.claude/rules/DOGMAS-*.md`, `.claude/hooks/*`
-and `docs/dogmas/` to the target project, and verifies their presence.
+`./install-claude.sh <target>` backs up the target, merges `.claude/settings.json`
+instead of overwriting it, copies the agents, runtime hooks, rules, skills and
+`docs/dogmas/` (without `eval/`), and verifies the result. `settings.local.json`
+is never copied.
 
 ## Bootstrap
 

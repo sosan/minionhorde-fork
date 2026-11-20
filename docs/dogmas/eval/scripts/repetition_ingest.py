@@ -8,6 +8,7 @@ metadata.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -61,8 +62,48 @@ def destination(registry: Path, record: dict[str, Any]) -> Path:
     return registry / CASES[record["case_id"]] / record["model"] / f"{record['repetition_id']}-{record['condition']}.json"
 
 
+def response_hash(text: str) -> str:
+    """Hash a response literal after collapsing whitespace.
+
+    Example:
+        >>> response_hash("a  b") == response_hash("a b")
+        True
+    """
+    return hashlib.sha256(" ".join(text.split()).encode("utf-8")).hexdigest()
+
+
+def reject_duplicate_literal(record: dict[str, Any], registry: Path) -> None:
+    """Reject a literal already ingested under another repetition key.
+
+    Identical transcripts across ``repetition_id`` values are copies, not
+    independent samples. A deliberate override must be explicit through
+    ``metadata.duplicate_justification``.
+
+    Example:
+        >>> reject_duplicate_literal({...}, Path("docs/dogmas/eval/repetitions"))
+    """
+    literal = record.get("response_literal")
+    if not isinstance(literal, str) or not literal.strip():
+        return
+    if record.get("metadata", {}).get("duplicate_justification"):
+        return
+    key = record_key(record)
+    digest = response_hash(literal)
+    for path in registry.rglob("*.json"):
+        other = json.loads(path.read_text(encoding="utf-8"))
+        if record_key(other) == key:
+            continue
+        other_literal = other.get("response_literal")
+        if isinstance(other_literal, str) and response_hash(other_literal) == digest:
+            raise ValueError(
+                f"duplicate response_literal already ingested as {record_key(other)}; "
+                "add metadata.duplicate_justification to override"
+            )
+
+
 def ingest(record: dict[str, Any], registry: Path) -> dict[str, Any]:
     validate_record(record)
+    reject_duplicate_literal(record, registry)
     target = destination(registry, record)
     if target.exists():
         existing = json.loads(target.read_text(encoding="utf-8"))

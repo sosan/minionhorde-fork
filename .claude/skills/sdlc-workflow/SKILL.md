@@ -1,7 +1,10 @@
-# SDLC Multi-Agent Workflow Skill (Claude Adaptation — GENERATED from .claude/skills/sdlc-workflow/SKILL.md + agents/project-manager.md + rules/workflow-protocols.md)
+# SDLC Multi-Agent Workflow Skill (Claude Adaptation)
 
-> **GENERATED FILE — Source: `rules/workflow-protocols.md` (OpenCode SSOT) adapted for Claude Code Agent tool.**
-> **Do not edit directly — derived from OpenCode SSOT. Tool mapping: `task` → `Agent`, `read/glob/grep` → `Read/Glob/Grep`, `question` → `AskUserQuestion`, `todowrite` → `TodoWrite`.**
+> **Adaptation, keep in sync.** Derived from `rules/workflow-protocols.md`
+> (OpenCode SSOT) and `.claude/agents/project-manager.md` for the Claude Code
+> Agent tool. There is no generator: edit both sides when behavior changes.
+> Tool mapping: `task` → `Agent`, `read/glob/grep` → `Read/Glob/Grep`,
+> `question` → `AskUserQuestion`, `todowrite` → `TodoWrite`.
 
 ## When to Use
 

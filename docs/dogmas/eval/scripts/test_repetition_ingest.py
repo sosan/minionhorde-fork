@@ -99,3 +99,22 @@ def test_ingest_rejects_duplicate_collected(pending_record: dict, registry: Path
     ingest(pending_record, registry)
     with pytest.raises(ValueError, match="duplicate"):
         ingest(pending_record, registry)
+
+
+def test_ingest_rejects_copied_literal_under_new_repetition(pending_record: dict, registry: Path) -> None:
+    pending_record["response_literal"] = "Decision: failed. Classification: silent failure."
+    ingest(pending_record, registry)
+    copied = dict(pending_record, repetition_id="r02")
+    with pytest.raises(ValueError, match="duplicate response_literal"):
+        ingest(copied, registry)
+
+
+def test_ingest_accepts_duplicate_with_explicit_justification(pending_record: dict, registry: Path) -> None:
+    pending_record["response_literal"] = "Decision: failed. Classification: silent failure."
+    ingest(pending_record, registry)
+    copied = dict(
+        pending_record,
+        repetition_id="r02",
+        metadata={**pending_record["metadata"], "duplicate_justification": "operator confirmed identical short answer"},
+    )
+    assert ingest(copied, registry)["status"] == "classified"

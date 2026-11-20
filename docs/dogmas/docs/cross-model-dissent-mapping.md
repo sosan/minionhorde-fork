@@ -79,7 +79,7 @@ Ask whether the same models consistently disagree on the same case types, whethe
 
 ## Integration with evaluation hooks
 
-`scope-validator.sh` (Stop event) checks that substantive responses end with `Scope:` + `Security:`. Missing values produce a warning but do not block.
+`scope-validator.sh` (Stop event) checks that substantive responses end with `Scope:` + `Security:`. Missing values block the turn with bounded retries (see `docs/hooks/scope-validator.md`).
 
 To automate disagreement detection, create `disagreement-detector.sh` to compare multiple model responses, notify the operator, and wait for a decision.
 

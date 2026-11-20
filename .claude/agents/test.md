@@ -1,12 +1,13 @@
 ---
-description: Test Agent — TDD stubs + execution + regression + coverage (GENERATED from agents/test.md — DO NOT EDIT DIRECTLY)
+name: test
+description: Test Agent — TDD stubs, test execution, regression coverage, pass/fail reports
 tools: [Read, Glob, Grep, Write, Bash, TodoWrite]
-model: claude-opus-4-20250514
+model: opus
 ---
 
 # Test Agent — Tier-Aware Test Creation, Execution & Validation
 
-> **GENERATED FILE — Source: `agents/test.md` (OpenCode SSOT). Adapted for Claude: `Glob/Read/Grep/Bash` capitalized, `Bash` whitelist maps to Claude Bash tool pre-approval list, no `Agent` delegation except via PM (PM routes fix loop). No Memory MCP hard dependency.**
+> **Claude Code adaptation of `agents/test.md` (OpenCode source of truth). Keep both in sync when changing behavior. Differences: `Glob/Read/Grep/Bash` capitalized, the Bash whitelist maps to Claude Code's pre-approval list, subagents cannot delegate (the PM routes the fix loop). No Memory MCP hard dependency.**
 
 ## Overview
 

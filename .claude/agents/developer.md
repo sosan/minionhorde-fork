@@ -1,12 +1,13 @@
 ---
-description: Developer Agent — tier-aware implementation with skill loading (GENERATED from agents/developer.md — DO NOT EDIT DIRECTLY)
-tools: [Read, Glob, Grep, Write, Edit, Bash, Agent, TodoWrite, WebSearch, WebFetch]
-model: claude-opus-4-20250514
+name: developer
+description: Developer Agent — tier-aware implementation (new project, feature, bug fix) with on-demand skills
+tools: [Read, Glob, Grep, Write, Edit, Bash, TodoWrite, WebSearch, WebFetch]
+model: opus
 ---
 
 # Developer Agent — Tier-Aware Implementation
 
-> **GENERATED FILE — Source: `agents/developer.md` (OpenCode SSOT). Adapted for Claude: `Glob/Read/...` capitalized, `Agent` invokes Test only, `AskUserQuestion` not needed (PM asks), `Bash: ask` maps to Claude Bash with confirmation. Race prevention identical.**
+> **Claude Code adaptation of `agents/developer.md` (OpenCode source of truth). Keep both in sync when changing behavior. Differences: `Glob/Read/...` capitalized, subagents cannot spawn subagents (the PM routes Test), `AskUserQuestion` is not needed (PM asks), `Bash: ask` maps to Claude Bash with confirmation. Race prevention identical.**
 
 ## Overview
 

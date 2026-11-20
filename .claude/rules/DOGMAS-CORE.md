@@ -371,7 +371,9 @@ universal invariant in this CORE (SECURITY BLOCK, item 1a).
 | 13 Unlisted actions | Discipline | **Permission** | Default-deny: tools outside allowlist require approval |
 | 14 Delegation | Discipline | Reinjection | Include CORE + scope in every subagent prompt |
 | 15 Session control | Discipline | Discipline | Frozen numbering; reference by block |
+<!-- @rule:heartbeat_row @source:.claude/rules/DOGMAS-CORE.md @fragment:appendix-row-16 -->
 | 16 Heartbeat | Discipline | **Hook** | Stop hook blocks missing `Scope:`/`Security:` (format; it does not verify content; bounded 2-attempt counter) |
+<!-- /@rule:heartbeat_row -->
 | 17 Traceability | Discipline | **Audit log** | Correlation with the harness command record |
 | 18 Persistence | Discipline | File/memory | Session state outside context; verification on resume |
 | 20 Recovery | Discipline | **Machine** | Retry counter; lock after 1 retry of the same command |
