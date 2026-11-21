@@ -1,17 +1,51 @@
 ---
 description: Documentation Agent — Tier-aware documentation maintenance (minimal vs full)
 mode: subagent
-temperature: 0.3
 steps: 20
-color: secondary
-permission:
-  edit: allow
-  write: allow
-  bash: deny
-  read: allow
-  grep: allow
-  glob: allow
-  todowrite: allow
+color: "#b388ff"
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
+  - action: read
+    resource: "*.env.example"
+    effect: allow
+  - action: shell
+    resource: "sudo *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "git push --force*"
+    effect: deny
 hidden: false
 ---
 
@@ -130,7 +164,7 @@ If you notice CHANGELOG.md is missing or outdated, notify the Project Manager ra
 - Prefer clean and readable markdown format
 - Can edit existing files to improve documentation (Full mode)
 - Be concise — clarity valued over extension
-- **Do not execute commands** (`bash: deny`)
+- **Do not execute commands** (`shell: deny`)
 - Coordinate with Project Manager on major documentation changes (Full mode)
 - **Minimal mode:** No action on CHANGELOG (DevOps handles it); only the specs sync described above
 - **On-demand reports:** Generate reports from memory entities when requested by user or PM

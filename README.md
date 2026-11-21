@@ -3,7 +3,7 @@
 > **LLM harness for OpenCode that implements a full SDLC with strong quality gates.** A supervisor-worker orchestration that turns a single prompt into PRD → specs → planning → TDD → implementation → tests → review → docs → git, with tier-aware activation and hybrid safety nets.
 
 [![Certified Shovelware](https://justin.searls.co/img/shovelware.svg)](https://justin.searls.co/shovelware/)
-[![OpenCode](https://img.shields.io/badge/OpenCode-v1%2B%20%7C%20v2-blue)](https://opencode.ai/docs)
+[![OpenCode](https://img.shields.io/badge/OpenCode-v2.3.2%2B-blue)](https://opencode.ai/docs)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Workflow](https://img.shields.io/badge/workflow-Tier%200--3-orange)](#tiers)
 
@@ -12,13 +12,13 @@
 **minionhorde** is not an application — it is a **configuration-only control plane for OpenCode**. It replaces the single `build` agent with a governed pipeline:
 
 * **One primary orchestrator** (`project-manager`) that never writes code — only triages, routes, checks gates and consolidates.
-* **Six hidden subagents** (`architect`, `developer`, `test`, `code-review`, `devops`, `documentation`) invoked via `task` in parallel where safe.
+* **Six hidden subagents** (`architect`, `developer`, `test`, `code-review`, `devops`, `documentation`) invoked via `subagent` in parallel where safe.
 * **Three tiers** (`Tier 0 direct`, `Tier 1 new-project`, `Tier 2 feature`, `Tier 3 bugfix`) with size-aware activation (Small/Medium/Large) and pruned artefacts.
 * **Gates, not vibes:** every handoff is a `File Integrity Checkpoint` (`glob` + `content >0`) with retry → recovery → escalation. TDD is mandatory (`AC-N → TC-00N`, red → green).
 
 Inspired by supervisor-worker patterns from `anomalyco/opencode`, `nadimnesar/agentic-workflow` and `ABIvan-Tech/opencode-agentic-workflows`, but tier-aware and pruned for real projects (3 sources in Small vs 6 in Large).
 
-This repository is the **source** of the harness. The files you see at the repo root (`agents/`, `AGENTS.md`, `rules/`, `prompts/`) are the source artefacts. When you install the harness, they are copied into the locations where OpenCode actually discovers them (see Installation).
+This repository is the **source** of the harness. The files you see at the repo root (`agents/`, `AGENTS.md`, `rules/`, `commands/`, `plugins/`, `templates/`) are the source artefacts. When you install the harness, they are copied into the locations where OpenCode actually discovers them (see Installation).
 
 ## Why not a single agent?
 
@@ -26,8 +26,8 @@ This repository is the **source** of the harness. The files you see at the repo 
 |---|---|
 | Planning, coding, testing and review bleed together | Role separation → narrow prompts, consistent output |
 | Chat history as handoff | `docs/specs/*.md` + `docs/PROJECT_CONTEXT.md` + `audit_*` as handoff (deterministic, debuggable) |
-| One model, one temperature | Per-agent `model`/`temperature`/`steps` (e.g. `architect 0.3/30`, `developer 0.2/150`) |
-| Permissions all-open | Path-scoped `edit: allow/deny`, `bash: ask`, `task: allowlist` |
+| One model, one step budget | Per-agent `model`/`steps` (e.g. `architect 30`, `developer 150`) |
+| Permissions all-open | Path-scoped `edit: allow/deny`, `shell: ask`, `subagent: allowlist` |
 
 ## Architecture
 
@@ -40,7 +40,7 @@ project-manager (primary, never writes code)
    │  Phase 0: Complexity Assessment (Small/Medium/Large + Low/Medium/High risk)
    ├─► Phase 1: PRD + specs/*.md (GIVEN/WHEN/THEN, AC-N)  ──► Phase 1b: Test TDD stubs (1 AC→1 TC, FAIL)
    ├─► Phase 2: Architect PLANNING.md + ROADMAP.md (Parallel group: A/B + status)  [Medium/Large only; Small skip]
-   ├─► Phase 3: Developer by Parallel group (N task in 1 message) ──► Test validate (max 3) ──► clean stash/branch
+   ├─► Phase 3: Developer by Parallel group (N subagent calls in 1 message) ──► Test validate (max 3) ──► clean stash/branch
    ├─► Phase 4: Code Review (Critical/High/Medium loop max 5/3, Low → incident_*)
    ├─► Phase 5: Documentation specs sync (incremental: glob + git diff --name-only guard)
    └─► Phase 6: DevOps git add/commit/push + CHANGELOG derived (strictly AFTER docs)
@@ -52,10 +52,10 @@ project-manager (primary, never writes code)
 **Key invariants (see `rules/workflow-protocols.md` — single source of truth):**
 
 * **TDD Protocol:** `Spec (AC-N) → Test (TC-00N, FAIL) → Code (make tests PASS) → Test validates`. Developer never starts without `glob tests/<slug>.*`.
-* **Parallelization Protocol:** `IMPLEMENTATION_ROADMAP.md` marks `Parallel group: <letter>`. PM launches all phases in same group in **one message** (`N task` calls), waits, consolidates `PROJECT_CONTEXT.md` once.
+* **Parallelization Protocol:** `IMPLEMENTATION_ROADMAP.md` marks `Parallel group: <letter>`. PM launches all phases in same group in **one message** (`N subagent` calls), waits, consolidates `PROJECT_CONTEXT.md` once.
 * **Rollback Protocol (Hybrid):** `stash` fast (`pop --index`) + `branch` hard (`reset --hard backup/pre-<scope>-<timestamp>`) with unified naming `pre-<scope>` = `phase-<N>` (sequential) or `group-<letter>` (parallel). Both verified before advancing.
 * **File Integrity Checkpoints:** `Verify BEFORE (prereqs via glob)` → delegate → `Verify AFTER (deliverable content >0)` → recovery → escalation after 2 fails.
-* **Delegation Prompt Template (mandatory):** every `task` pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (1-2 max, e.g. `python-enterprise`) + `specs` content + `Verify BEFORE/AFTER` globs + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
+* **Delegation Prompt Template (mandatory):** every `subagent` call pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (1-2 max, e.g. `python-enterprise`) + `specs` content + `Verify BEFORE/AFTER` globs + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
 
 ### Agents
 
@@ -69,7 +69,7 @@ project-manager (primary, never writes code)
 | **devops** | `agents/devops.md` | `subagent` | `jade/Qwen3.8-27B` | 20 | Git (conventional commits), `CHANGELOG.md` derived, CI/CD (Large) | `docs/CHANGELOG.md` |
 | **documentation** | `agents/documentation.md` | `subagent` | `jade/Qwen3.8-27B` | 20 | Specs sync incremental + `README/API_REFERENCE` (Large) | `docs/README.md`, `docs/API_REFERENCE.md` |
 
-Permissions enforce safety: `architect`/`test`/`code-review` `bash: deny` except test runners; `devops` `bash: ask`; `project-manager` `task: allowlist (architect, developer, test, code-review, devops, documentation, explore)`.
+Permissions enforce safety: `architect`/`test`/`code-review` `shell: deny` except test runners; `devops` `shell: ask`; `project-manager` `subagent: allowlist (architect, developer, test, code-review, devops, documentation, explore)`.
 
 ### Tiers
 
@@ -89,7 +89,7 @@ See `rules/workflow-protocols.md §Document Ownership Map` and `§Prerequisite &
 
 ### Prerequisites
 
-* **OpenCode v1+ or v2** — TUI, desktop or IDE extension (VS Code, Cursor, Zed, Windsurf). Any terminal: WezTerm, Alacritty, Ghostty, Kitty recommended.
+* **OpenCode v2.3.2+** — TUI, desktop or IDE extension (VS Code, Cursor, Zed, Windsurf). Any terminal: WezTerm, Alacritty, Ghostty, Kitty recommended. (V1 is not supported: V2 renamed `task`→`subagent`, dropped `rules/` auto-discovery, and moved hooks to the plugin API.)
 * **Node.js 18+** only if installing via `npm`/`bun`/`pnpm`/`yarn` or if you use `npx` for MCP servers (memory, filesystem).
 * **Git**.
 * **LLM provider API key** (OpenAI, Anthropic, Google, OpenRouter, etc.) or local Ollama. OpenCode itself is free; you pay only tokens.
@@ -99,7 +99,7 @@ No administrator privileges are required at any point — both global and projec
 
 ### MCP Requirements (mandatory for this workflow)
 
-This harness is **MCP-dependent**. OpenCode's built-in tools (`read`, `glob`, `grep`, `bash`, `task`) are enough for file work, but the workflow's state, parallelism and safety nets rely on external MCP servers. Without them, Tier 2/3, parallel groups and rollback verification degrade to no-ops.
+This harness is **MCP-dependent**. OpenCode's built-in tools (`read`, `glob`, `grep`, `shell`, `subagent`) are enough for file work, but the workflow's state, parallelism and safety nets rely on external MCP servers. Without them, Tier 2/3, parallel groups and rollback verification degrade to no-ops.
 
 | MCP | Package / URL | Required? | Why this workflow needs it |
 |---|---|---|---|
@@ -108,43 +108,48 @@ This harness is **MCP-dependent**. OpenCode's built-in tools (`read`, `glob`, `g
 | **filesystem** | `npx -y @modelcontextprotocol/server-filesystem` | Optional (fallback) | Scoped FS `read_file`, `write_file`, `list_directory`, `search_files`. Native `read`/`glob`/`grep` are preferred per `Tool preference` (`rules/workflow-protocols.md` dogma) — `filesystem` is only for `directory_tree` JSON or `allowed_directories` checks. If you keep native preference, you can leave it disabled. |
 | **github / gitea** | `/home/go/bin/github-mcp-server`, `/home/go/bin/gitea-mcp` (or `npx`) | Optional | PR/issue integration. `project-manager` Phase 5 `fix #N` creates branch `fix/<ticket>-...` + push; with `github` MCP it can also open a PR via `github_*` tools. Disabled globally by default (`tools.github_*: false`), re-enabled per-agent via `agents/project-manager.md`/`devops.md` frontmatter `tools` allowlist. Requires `GITHUB_PERSONAL_ACCESS_TOKEN` / `GITEA_ACCESS_TOKEN` env. |
 
-**Minimal config that satisfies the harness (copy into `~/.config/opencode/opencode.jsonc` or `<project>/opencode.jsonc`):**
+**Minimal config that satisfies the harness** — `install.sh` merges this into `~/.config/opencode/opencode.json(c)` (global) or `<project>/opencode.json` (project) without touching your own keys. Source templates: `templates/opencode-global.json` and `templates/opencode-project.json`:
 
 ```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
+  "default_agent": "project-manager",
+  // V2 does NOT auto-discover rules/ — instruction files must be listed here.
+  "instructions": [".opencode/rules/security-policy.md"], // project; global uses "rules/security-policy.md"
+  "experimental": {
+    "todo": true,          // todowrite tool for every agent
+    "subagent_depth": 2    // PM -> subagent -> subagent (nested delegation)
+  },
+  "permissions": [
+    {"action": "external_directory", "resource": "*", "effect": "ask"},
+    {"action": "read", "resource": "*.env", "effect": "ask"},
+    {"action": "read", "resource": "*.env.*", "effect": "ask"},
+    {"action": "read", "resource": "*.env.example", "effect": "allow"},
+    {"action": "shell", "resource": "sudo *", "effect": "deny"},
+    {"action": "shell", "resource": "rm -rf *", "effect": "deny"},
+    {"action": "shell", "resource": "git push --force*", "effect": "deny"}
+  ],
   "mcp": {
-    "memory": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
-      "enabled": true,
-      "environment": {
-        "MEMORY_FILE_PATH": "/home/YOU/.local/share/opencode/memory.jsonl"
-      }
-    },
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "enabled": true
-    },
-    "filesystem": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/home/YOU/Projects", "/home/YOU/other-scope"],
-      "enabled": true // or false if you rely only on native read/glob
-    },
-    "github": {
-      "type": "local",
-      "command": ["/home/YOU/go/bin/github-mcp-server", "stdio"],
-      "enabled": false, // enable only if you want PR creation; requires GITHUB_PERSONAL_ACCESS_TOKEN
-      "environment": { "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}" }
+    "servers": {
+      "memory": {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
+        "environment": { "MEMORY_FILE_PATH": "{env:HOME}/.local/share/opencode/memory.jsonl" }
+      },
+      "context7": { "type": "remote", "url": "https://mcp.context7.com/mcp" }
     }
   },
-  "tools": {
-    "github_*": false,  // keep disabled globally; harness re-enables per-agent where needed
-    "gitea_*": false
-  }
+  "plugins": [
+    "./.opencode/plugins/redact",       // scrubs secrets from prompts/requests/tool input
+    "./.opencode/plugins/instructions", // shrinks the <env> system block to Platform only
+    "./.opencode/plugins/guard-audit"   // denies dangerous shell + hash-chained audit log
+  ]
 }
 ```
+
+Notes:
+- `rules/workflow-protocols.md` (39 KB) is deliberately **not** in `instructions` — it would be re-sent on every request. Agents read it on demand with the `read` tool when a protocol section is needed; only `security-policy.md` is always loaded.
+- Optional MCP servers (filesystem, github) go under `mcp.servers` with `"enabled": false`; V2 has no top-level `tools:` kill-switch — disable MCP tools per server or via `permissions`/`policies`.
 
 > **Check:** Inside `opencode` TUI run `/mcp` — you should see `memory: connected`, `context7: connected` (and `filesystem`/`github` if enabled). If `memory` is `disconnected`, all `search_nodes("project_*")` gates will fail — fix `npx` availability (`npm i -g` or `corepack enable`) and `MEMORY_FILE_PATH` writability before running Tier 2/3 or parallel Tier 1.
 >
@@ -210,10 +215,20 @@ Global config (optional):
 
 ### 3. Install this workflow
 
-This repository is the **source** of the harness. The files you see here (`agents/`, `AGENTS.md`, `rules/`, `prompts/`) are not yet in the locations where OpenCode discovers them. Installation is simply copying them to where OpenCode looks:
+This repository is the **source** of the harness. `install.sh` copies the artefacts to where OpenCode V2 actually discovers them and merges the V2 config (never overwriting your own keys):
 
-* **Global discovery:** `~/.config/opencode/` — available in every project you open. This is a per-user directory inside your home; no root/sudo needed.
-* **Project discovery:** `<project>/.opencode/` + `<project>/AGENTS.md` — available only in that project, versioned with the repo for teams/CI. Project files override globals.
+```bash
+git clone https://github.com/ilgrim/minionhorde.git /tmp/minionhorde
+cd /tmp/minionhorde
+
+./install.sh project /path/to/your-project   # project-local (recommended for teams/CI)
+./install.sh global                           # every project on this machine (~/.config/opencode, no sudo)
+./install.sh both /path/to/your-project       # global + project
+./install.sh                                  # interactive mode
+```
+
+* **Global discovery:** `~/.config/opencode/` — available in every project you open. Per-user directory inside your home; no root/sudo needed. Existing `opencode.json`/`opencode.jsonc` are merged, not replaced; a timestamped backup of `agents/`, `rules/`, `commands/` goes to `~/.config/opencode_backups/`.
+* **Project discovery:** `<project>/.opencode/` + `<project>/AGENTS.md` + `<project>/opencode.json` — versioned with the repo for teams/CI. Project files override globals.
 
 Both can coexist — OpenCode merges them and project wins on conflict.
 
@@ -222,100 +237,24 @@ Both can coexist — OpenCode merges them and project wins on conflict.
 | Source in this repo | Global destination (per-user, no sudo) | Project destination (per-repo, committed) |
 |---|---|---|
 | `agents/*.md` (7 files) | `~/.config/opencode/agents/*.md` | `<project>/.opencode/agents/*.md` |
-| `AGENTS.md` (constitution) | `~/.config/opencode/AGENTS.md` | `<project>/AGENTS.md` (root) |
-| `rules/*.md` (protocols + security) | `~/.config/opencode/rules/*.md` | `<project>/rules/*.md` or `<project>/.opencode/rules/*.md` (either works; keep consistent) |
-| `prompts/*.md` (optional) | `~/.config/opencode/prompts/*.md` | `<project>/prompts/*.md` |
-
-**Option A — Clone as template (fresh project, simplest):**
-
-```bash
-git clone https://github.com/ilgrim/minionhorde.git my-project
-cd my-project
-# This repo already contains agents/, AGENTS.md, rules/, prompts/ at root for development.
-# For a new project you can keep them at root OR move to .opencode:
-mkdir -p .opencode/agents .opencode/rules
-cp agents/*.md .opencode/agents/
-cp AGENTS.md AGENTS.md  # keep at project root — OpenCode also reads ./AGENTS.md
-cp rules/*.md .opencode/rules/  # or keep at ./rules/ if you prefer
-opencode  # auto-discovers .opencode/agents/project-manager.md as primary
-```
-
-**Option B — Add to existing project (project-local, recommended for teams/CI):**
-
-```bash
-# From a clone of minionhorde (or from the GitHub release archive)
-git clone https://github.com/ilgrim/minionhorde.git /tmp/minionhorde
-
-mkdir -p your-project/.opencode/agents your-project/.opencode/rules
-cp /tmp/minionhorde/agents/*.md your-project/.opencode/agents/
-cp /tmp/minionhorde/AGENTS.md your-project/AGENTS.md
-cp /tmp/minionhorde/rules/*.md your-project/.opencode/rules/
-# optional: cp /tmp/minionhorde/prompts/*.md your-project/prompts/
-# optional: cp /tmp/minionhorde/opencode.json your-project/opencode.json
-
-cd your-project
-opencode
-# Tab → select project-manager as entrypoint
-```
-
-Commit `AGENTS.md` and `.opencode/` — teammates get the same harness via `git clone`.
-
-**Option C — Install globally (available in every project on this machine, no copy per repo):**
-
-Use this for personal use across many repos. It writes only to your home directory — no system directories, no `sudo`.
-
-```bash
-# 1. Clone the harness once to a stable per-user location
-git clone https://github.com/ilgrim/minionhorde.git ~/.config/minionhorde
-# (any per-user path works — ~/.cache/minionhorde, ~/src/minionhorde, etc.)
-
-# 2. Install agents globally — OpenCode discovers them from any directory you run opencode in
-mkdir -p ~/.config/opencode/agents
-cp ~/.config/minionhorde/agents/*.md ~/.config/opencode/agents/
-
-# 3. Install shared rules & constitution globally
-mkdir -p ~/.config/opencode/rules
-cp ~/.config/minionhorde/rules/*.md ~/.config/opencode/rules/
-# AGENTS.md is the global constitution — if you already have ~/.config/opencode/AGENTS.md, merge instead of overwriting
-cp ~/.config/minionhorde/AGENTS.md ~/.config/opencode/AGENTS.md  # or: diff and merge manually
-
-# 4. (Optional) Set the default agent globally so `opencode` starts with project-manager
-# Edit ~/.config/opencode/opencode.json (create if missing):
-cat >> ~/.config/opencode/opencode.json <<'JSON'
-{
-  "$schema": "https://opencode.ai/config.json",
-  "default_agent": "project-manager"
-}
-JSON
-
-# 5. Verify from any project (no project-local files needed)
-cd /tmp && opencode
-# Inside TUI: /agents → should list project-manager (primary) + architect, developer, test, code-review, devops, documentation
-
-# Keep updated (per-user, no sudo)
-cd ~/.config/minionhorde && git pull
-cp agents/*.md ~/.config/opencode/agents/
-cp rules/*.md ~/.config/opencode/rules/
-# if AGENTS.md changed: merge into ~/.config/opencode/AGENTS.md
-```
+| `AGENTS.md` (constitution) | `~/.config/opencode/AGENTS.md` | `<project>/AGENTS.md` (rule paths rewritten to `.opencode/rules/`) |
+| `rules/*.md` (protocols + security) | `~/.config/opencode/rules/*.md` | `<project>/.opencode/rules/*.md` — **not auto-discovered in V2**; loaded via `instructions` in the config |
+| `commands/*.md` | `~/.config/opencode/commands/*.md` | `<project>/.opencode/commands/*.md` |
+| `plugins/*` (redact, instructions, guard-audit) | `~/.config/opencode/plugins/*` | `<project>/.opencode/plugins/*` (auto-loaded) |
+| `templates/opencode-{global,project}.json` | merged into `~/.config/opencode/opencode.json(c)` | merged into `<project>/opencode.json` |
 
 Resulting global layout (all inside your home, no root):
 
 ```
 ~/.config/opencode/          ← per-user config root (no sudo)
 ├── AGENTS.md                ← global constitution (merged with <project>/AGENTS.md at runtime)
-├── agents/
-│   ├── project-manager.md   ← primary orchestrator
-│   ├── architect.md
-│   ├── developer.md
-│   ├── test.md
-│   ├── code-review.md
-│   ├── devops.md
-│   └── documentation.md
+├── agents/                  ← project-manager.md (primary) + 6 subagents
 ├── rules/
-│   ├── workflow-protocols.md  ← single source of truth
-│   └── security-policy.md
-└── opencode.json            ← optional global defaults
+│   ├── workflow-protocols.md  ← single source of truth (read on demand, not in instructions)
+│   └── security-policy.md     ← always loaded via "instructions"
+├── commands/                ← /build, /plan slash commands
+├── plugins/                 ← redact, instructions, guard-audit
+└── opencode.json(c)         ← merged V2 config: default_agent, permissions, experimental, mcp, plugins
 ```
 
 **Global vs project-local — which to choose?**
@@ -329,14 +268,16 @@ Resulting global layout (all inside your home, no root):
 | **Recommended** | Teams, CI, reproducible builds | Solo / personal machine, many repos |
 
 > **Tip:** Mix both — install globally for personal use, keep project-local copy for CI/team. OpenCode merges them; project-local wins on conflict.
-> To uninstall globally (per-user, no sudo): `rm ~/.config/opencode/agents/project-manager.md ~/.config/opencode/agents/architect.md ~/.config/opencode/agents/developer.md ~/.config/opencode/agents/test.md ~/.config/opencode/agents/code-review.md ~/.config/opencode/agents/devops.md ~/.config/opencode/agents/documentation.md; rm ~/.config/opencode/rules/workflow-protocols.md ~/.config/opencode/rules/security-policy.md` and remove `default_agent` from `~/.config/opencode/opencode.json`. Or simply `rm -rf ~/.config/minionhorde` if you only want to stop updating.
+> To uninstall: re-run `./install.sh` is idempotent; to remove, delete the installed `agents/`, `rules/`, `commands/`, `plugins/` dirs and the harness keys from `opencode.json(c)` (restore from `~/.config/opencode_backups/` if needed).
 
-**What OpenCode discovers (both scopes):**
+**What OpenCode V2 discovers (both scopes):**
 
-* **Project:** `<project>/.opencode/agents/<name>.md` → agent ID `<name>` (e.g. `team/reviewer.md` → `team/reviewer`). Frontmatter `mode`, `model`, `permission`, Markdown body → `system`.
-* **Global:** `~/.config/opencode/agents/<name>.md` → same ID, available everywhere (`~/.config/opencode` is per-user, no sudo).
+* **Agents:** `<project>/.opencode/agents/<name>.md` and `~/.config/opencode/agents/<name>.md` → agent ID `<name>` (e.g. `team/reviewer.md` → `team/reviewer`). Frontmatter `mode`, `model`, `permissions`, `steps`, `color`, `hidden`; the Markdown body becomes the `system` prompt. V1 keys (`temperature`, `permission`, `tools`, `disable`, `maxSteps`) are deprecated and rejected by `scripts/validate_opencode_harness.py`.
+* **Instructions:** `AGENTS.md` files are auto-discovered; `rules/` is **not** — list rule files in the config `instructions` array (the installer does this for `security-policy.md`).
+* **Commands:** `.opencode/commands/*.md` and `~/.config/opencode/commands/*.md` → slash commands (`/build`, `/plan`).
+* **Plugins:** `.opencode/plugins/*` auto-load; global plugins are listed in the global config `plugins` array.
 
-Verify discovery: inside `opencode` TUI, run `/agents` — you should see `project-manager` (primary) + hidden subagents in both scopes.
+Verify discovery: `opencode debug agents` (lists all agents with resolved permissions) and `opencode debug config` (lists merged config sources). Inside the TUI, `/agents` shows `project-manager` (primary) + the subagents.
 
 No other setup needed.
 
@@ -383,41 +324,47 @@ opencode run --agent project-manager "fix the typo in src/main.py"
 * `AGENTS.md` — Global coding preferences, language guard, security policy, tier detection, feedback loops (source for PM).
 * `rules/workflow-protocols.md` — **Single source of truth** for `TDD Protocol`, `File Integrity Checkpoints`, `Parallelization Protocol`, `Rollback Protocol (stash+branch pre-<scope>)`, `Memory MCP Protocol`, `Document Ownership Map`. Do not duplicate.
 * `rules/security-policy.md` — Blocked files/env/commands/secret patterns (mandatory).
-* `agents/*.md` — Per-agent system prompts, tier awareness, `tool preference` (native `glob/read/grep` primary), `steps`, `temperature`, `model`.
+* `agents/*.md` — Per-agent system prompts, tier awareness, `tool preference` (native `glob/read/grep` primary), `steps`, `model`, `permissions`.
 * `docs/` — Generated at runtime: `PRD.md`, `specs/*.md` (AC-N G/W/T), `PLANNING.md`, `IMPLEMENTATION_ROADMAP.md` (with `Parallel group: A/B` + `status`), `PROJECT_CONTEXT.md` (living state), `CHANGELOG.md` (derived), `README.md`, `API_REFERENCE.md`, `spikes/*.md` (Spike Reports from Tier 4).
-* `prompts/build.txt` + `plan.txt` — Built-in `build` (full-access) / `plan` (restricted) primaries you can `Tab` to.
+* `commands/build.md` + `plan.md` — `/build` and `/plan` slash commands for the built-in `build` (full-access) / `plan` (restricted) agents.
 
 ## Project Structure
 
 ```
 minionhorde/                 ← source repo (what you clone)
-├── AGENTS.md                ← source constitution → installed to ~/.config/opencode/AGENTS.md or <project>/AGENTS.md
-├── agents/                  ← source agents → installed to ~/.config/opencode/agents/ or <project>/.opencode/agents/
-│   ├── project-manager.md
+├── AGENTS.md                ← source constitution → ~/.config/opencode/AGENTS.md or <project>/AGENTS.md
+├── agents/                  ← source agents → ~/.config/opencode/agents/ or <project>/.opencode/agents/
+│   ├── project-manager.md   ← primary (default_agent)
 │   ├── architect.md
 │   ├── developer.md
 │   ├── test.md
 │   ├── code-review.md
 │   ├── devops.md
 │   └── documentation.md
-├── rules/                   ← source rules → installed to ~/.config/opencode/rules/ or <project>/.opencode/rules/
-│   ├── workflow-protocols.md
-│   └── security-policy.md
-├── prompts/
-│   ├── build.txt
-│   └── plan.txt
-├── opencode.json            ← optional project OpenCode config (agents, permissions, default_agent)
+├── rules/                   ← source rules → ~/.config/opencode/rules/ or <project>/.opencode/rules/
+│   ├── workflow-protocols.md  ← single source of truth (read on demand)
+│   └── security-policy.md     ← always loaded via config "instructions"
+├── commands/                ← /build, /plan → ~/.config/opencode/commands/ or <project>/.opencode/commands/
+├── plugins/                 ← V2 plugins → ~/.config/opencode/plugins/ or <project>/.opencode/plugins/
+│   ├── redact/              ← secret scrubbing (prompts, requests, tool input)
+│   ├── instructions/        ← shrinks the <env> system block to Platform only
+│   └── guard-audit/         ← dangerous-shell deny + hash-chained audit log (.opencode/audit/)
+├── templates/
+│   ├── opencode-global.json   ← merged into ~/.config/opencode/opencode.json(c)
+│   └── opencode-project.json  ← merged into <project>/opencode.json
+├── scripts/                 ← merge_opencode_config.py, validate_opencode_harness.py, ...
+├── install.sh               ← installer (global | project <path> | both <path>)
 ├── LICENSE
 └── README.md
 ```
 
 When installed, OpenCode resolves:
-* **Global:** `~/.config/opencode/AGENTS.md` + `~/.config/opencode/agents/*.md` + `~/.config/opencode/rules/*.md` (per-user, no sudo)
-* **Project:** `<project>/AGENTS.md` + `<project>/.opencode/agents/*.md` + `<project>/.opencode/rules/*.md` (project wins on conflict)
+* **Global:** `~/.config/opencode/AGENTS.md` + `~/.config/opencode/agents/*.md` + `~/.config/opencode/commands/*.md` + `~/.config/opencode/plugins/*` + merged `opencode.json(c)` (per-user, no sudo)
+* **Project:** `<project>/AGENTS.md` + `<project>/.opencode/{agents,commands,plugins,rules}/*` + `<project>/opencode.json` (project wins on conflict)
 
 ## Protocols (deep dive)
 
-* **Delegation Prompt Template (mandatory):** Every `task` pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (e.g. `python-enterprise` only for Python stack) + `specs` content + `Verify BEFORE/AFTER globs` + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
+* **Delegation Prompt Template (mandatory):** Every `subagent` call pastes `rules/workflow-protocols.md §…` excerpt + `Required Skills — On Demand` (e.g. `python-enterprise` only for Python stack) + `specs` content + `Verify BEFORE/AFTER globs` + `Output Contract`. Agent system prompts are loaded automatically by OpenCode — do NOT paste `agents/<agent>.md` (redundant, wastes ~4.5k tokens).
 * **Tool preference:** Native `read`/`glob`/`grep` for gates, `filesystem` MCP only for `directory_tree`/`allowed_directories`. Batch independent `glob`s in parallel, use `docs/specs/*.md` not `**/*`, cache per phase.
 * **Memory MCP:** `project_*`, `workflow_*`, `ticket_*`, `decision_*`, `implementation_*`, `root_cause_*`, `incident_*`, `audit_*` — see `rules/... §Memory MCP Protocol` for creation/ownership/timing. Never `read_graph`.
 * **Tier 4 Spike Workflow:** Structured research pipeline. PM detects spike → creates brief → Architect researches (50 steps, `websearch` reinforced) → Developer implements POC (no TDD) → Documentation consolidates Spike Report → PM offers escalation to Tier 1/2. See `rules/workflow-protocols.md §Tier 4: Research / Spike Workflow`.
@@ -426,7 +373,7 @@ When installed, OpenCode resolves:
 
 * **Agent not visible in `/agents`:** Check `agents/<name>.md` frontmatter `mode: primary|subagent|all`, `hidden: false`. Path `<project>/.opencode/agents/team/reviewer.md` → ID `team/reviewer`; global `~/.config/opencode/agents/reviewer.md` → ID `reviewer`.
 * **`command not found: opencode`:** Fallback path `~/.opencode/bin` not in `PATH`. Add `export PATH="$HOME/.opencode/bin:$PATH"` or use `OPENCODE_INSTALL_DIR=$HOME/.local/bin`.
-* **Subagent cannot edit:** Check `permission.edit: allow` + `task: { "subagent-id": allow }` in parent. Last matching rule wins — put `deny *` before `allow <id>`.
+* **Subagent cannot edit:** Check `permissions` has `edit: allow` + `subagent: { "<agent-id>": allow }` in the parent. Last matching rule wins — put `deny *` before `allow <id>`. Nested delegation needs `experimental.subagent_depth: 2` (set by the installer).
 * **Tests not created before code:** TDD gate failed — verify `glob tests/<slug>.*` exists before Developer. See `§TDD Protocol Violations`.
 * **Rollback fails to find branch:** Check unified naming `backup/pre-<scope>-<timestamp>` where `<scope>` = `phase-<N>` or `group-<letter>` (see `§Rollback §Naming Convention`).
 
@@ -440,4 +387,4 @@ MIT — see `LICENSE`.
 
 ---
 
-*Built for OpenCode. Tested with OpenCode v1 TUI + desktop + VS Code extension. For OpenCode docs: `opencode.ai/docs`, `opencode.ai/docs/agents`, `opencode.ai/docs/permissions`, `opencode.ai/docs/config`.*
+*Built for OpenCode V2. Tested with OpenCode v2.3.2 (TUI + `opencode debug agents`/`debug config`). For OpenCode docs: `opencode.ai/docs`, `opencode.ai/docs/agents`, `opencode.ai/docs/permissions`, `opencode.ai/docs/config`, `opencode.ai/docs/build/plugins`.*

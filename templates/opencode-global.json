@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "project-manager",
+  "instructions": ["rules/security-policy.md"],
+  "experimental": {
+    "todo": true,
+    "subagent_depth": 2
+  },
+  "permissions": [
+    {"action": "external_directory", "resource": "*", "effect": "ask"},
+    {"action": "read", "resource": "*.env", "effect": "ask"},
+    {"action": "read", "resource": "*.env.*", "effect": "ask"},
+    {"action": "read", "resource": "*.env.example", "effect": "allow"},
+    {"action": "shell", "resource": "sudo *", "effect": "deny"},
+    {"action": "shell", "resource": "rm -rf *", "effect": "deny"},
+    {"action": "shell", "resource": "git push --force*", "effect": "deny"}
+  ],
+  "mcp": {
+    "servers": {
+      "memory": {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
+        "environment": {
+          "MEMORY_FILE_PATH": "{env:HOME}/.local/share/opencode/memory.jsonl"
+        }
+      }
+    }
+  },
+  "plugins": [
+    "./plugins/redact",
+    "./plugins/instructions",
+    "./plugins/guard-audit"
+  ]
+}

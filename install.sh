@@ -97,16 +97,22 @@ print_neon_line() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_AGENTS="$SCRIPT_DIR/agents"
 SOURCE_RULES="$SCRIPT_DIR/rules"
-SOURCE_PROMPTS="$SCRIPT_DIR/prompts"
+SOURCE_COMMANDS="$SCRIPT_DIR/commands"
 SOURCE_AGENTS_MD="$SCRIPT_DIR/AGENTS.md"
-
-OPENCODE_GLOBAL="${HOME}/.config/opencode"
+SOURCE_OPENCODE_CONFIG="$SCRIPT_DIR/templates/opencode-project.json"
+SOURCE_GLOBAL_OPENCODE_CONFIG="$SCRIPT_DIR/templates/opencode-global.json"
+SOURCE_PLUGINS="$SCRIPT_DIR/plugins"
+SOURCE_DOC_TEMPLATES="$SCRIPT_DIR/templates/context-files"
+SOURCE_MERGE_CONFIG="$SCRIPT_DIR/scripts/merge_opencode_config.py"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+OPENCODE_GLOBAL="$XDG_CONFIG_HOME/opencode"
 OPENCODE_GLOBAL_AGENTS="$OPENCODE_GLOBAL/agents"
 OPENCODE_GLOBAL_RULES="$OPENCODE_GLOBAL/rules"
-OPENCODE_GLOBAL_PROMPTS="$OPENCODE_GLOBAL/prompts"
+OPENCODE_GLOBAL_COMMANDS="$OPENCODE_GLOBAL/commands"
+OPENCODE_GLOBAL_CONFIG="$OPENCODE_GLOBAL/opencode.jsonc"
+BACKUP_DIR="$XDG_CONFIG_HOME/opencode_backups"
 
 TIMESTAMP="$(date +%Y-%m-%d_%H%M%S)"
-BACKUP_DIR="${HOME}/.config/opencode_backups"
 
 # ─── Argument Parsing ──────────────────────────────────────────────────────────
 MODE=""
@@ -210,10 +216,34 @@ validate_sources() {
         print_status "AGENTS.md constitution found" "$GREEN"
     fi
 
-    if [[ -d "$SOURCE_PROMPTS" ]]; then
+    if [[ -d "$SOURCE_COMMANDS" ]]; then
         local count
-        count=$(find "$SOURCE_PROMPTS" -type f | wc -l)
-        print_status "Found $count prompt files in prompts/ (optional)" "$DIM"
+        count=$(find "$SOURCE_COMMANDS" -name "*.md" | wc -l)
+        print_status "Found $count command files in commands/" "$GREEN"
+    else
+        print_error "Source commands directory not found: $SOURCE_COMMANDS"
+        all_ok=false
+    fi
+
+    for f in "$SOURCE_OPENCODE_CONFIG" "$SOURCE_GLOBAL_OPENCODE_CONFIG" "$SOURCE_MERGE_CONFIG"; do
+        if [[ ! -f "$f" ]]; then
+            print_error "Missing required file: $f"
+            all_ok=false
+        fi
+    done
+
+    for p in redact instructions guard-audit; do
+        if [[ ! -f "$SOURCE_PLUGINS/$p/index.ts" ]]; then
+            print_error "Missing plugin: $SOURCE_PLUGINS/$p/index.ts"
+            all_ok=false
+        fi
+    done
+
+    if [[ ! -d "$SOURCE_DOC_TEMPLATES" ]]; then
+        print_error "Source document templates not found: $SOURCE_DOC_TEMPLATES"
+        all_ok=false
+    else
+        print_status "Found $(find "$SOURCE_DOC_TEMPLATES" -type f | wc -l) document templates in templates/context-files/" "$GREEN"
     fi
 
     if [[ "$all_ok" == false ]]; then
@@ -244,6 +274,9 @@ validate_project_path() {
 
 # ─── Backup ────────────────────────────────────────────────────────────────────
 create_backup() {
+    if [[ "$MODE" == "project" ]]; then
+        return
+    fi
     if [[ ! -d "$OPENCODE_GLOBAL" ]]; then
         print_info "No existing OpenCode config found — skipping backup"
         return
@@ -257,7 +290,7 @@ create_backup() {
 
     # Check what exists to back up
     local files_to_backup=()
-    for dir in "$OPENCODE_GLOBAL_AGENTS" "$OPENCODE_GLOBAL_RULES" "$OPENCODE_GLOBAL_PROMPTS"; do
+    for dir in "$OPENCODE_GLOBAL_AGENTS" "$OPENCODE_GLOBAL_RULES" "$OPENCODE_GLOBAL_COMMANDS"; do
         if [[ -d "$dir" ]]; then
             files_to_backup+=("$dir")
         fi
@@ -289,7 +322,7 @@ install_global() {
     echo ""
 
     # Create directories
-    for dir in "$OPENCODE_GLOBAL_AGENTS" "$OPENCODE_GLOBAL_RULES" "$OPENCODE_GLOBAL_PROMPTS"; do
+    for dir in "$OPENCODE_GLOBAL_AGENTS" "$OPENCODE_GLOBAL_RULES" "$OPENCODE_GLOBAL_COMMANDS"; do
         mkdir -p "$dir"
         print_status "Ensured directory: $dir" "$DIM"
     done
@@ -309,16 +342,43 @@ install_global() {
     print_status "Deployed $rule_count rule files" "$GREEN"
 
     # Copy constitution
-    print_loading "Deploying AGENTS.md constitution" "$YELLOW"
-    cp -f "$SOURCE_AGENTS_MD" "$OPENCODE_GLOBAL/AGENTS.md"
-    print_status "AGENTS.md deployed" "$GREEN"
-
-    # Copy prompts (optional)
-    if [[ -d "$SOURCE_PROMPTS" ]]; then
-        print_loading "Deploying prompts" "$DIM"
-        cp -f "$SOURCE_PROMPTS"/* "$OPENCODE_GLOBAL_PROMPTS/" 2>/dev/null || true
-        print_status "Prompt files deployed (optional)" "$DIM"
+    if [[ -e "$OPENCODE_GLOBAL/AGENTS.md" ]]; then
+        print_info "Keeping existing global AGENTS.md"
+    else
+        cp "$SOURCE_AGENTS_MD" "$OPENCODE_GLOBAL/AGENTS.md"
+        print_status "AGENTS.md deployed" "$GREEN"
     fi
+
+    # Copy commands (never overwrite existing)
+    for command_file in "$SOURCE_COMMANDS"/*.md; do
+        target_command="$OPENCODE_GLOBAL_COMMANDS/$(basename "$command_file")"
+        [[ -e "$target_command" ]] || cp "$command_file" "$target_command"
+    done
+    print_status "Command files deployed without overwriting existing files" "$DIM"
+
+    # Copy document templates (never overwrite existing)
+    mkdir -p "$OPENCODE_GLOBAL/templates/context-files"
+    for tpl in "$SOURCE_DOC_TEMPLATES"/*; do
+        target_tpl="$OPENCODE_GLOBAL/templates/context-files/$(basename "$tpl")"
+        [[ -e "$target_tpl" ]] || cp "$tpl" "$target_tpl"
+    done
+    print_status "Document templates deployed without overwriting existing files" "$DIM"
+
+    # Merge V2 config into whichever global config file already exists (jsonc
+    # preferred); both opencode.json and opencode.jsonc merge at runtime, so a
+    # user-owned opencode.json is never clobbered.
+    if [[ -f "$OPENCODE_GLOBAL/opencode.jsonc" ]]; then
+        OPENCODE_GLOBAL_CONFIG="$OPENCODE_GLOBAL/opencode.jsonc"
+    elif [[ -f "$OPENCODE_GLOBAL/opencode.json" ]]; then
+        OPENCODE_GLOBAL_CONFIG="$OPENCODE_GLOBAL/opencode.json"
+    fi
+    python3 "$SOURCE_MERGE_CONFIG" \
+        "$SOURCE_GLOBAL_OPENCODE_CONFIG" "$OPENCODE_GLOBAL_CONFIG"
+    print_status "Merged V2 config into $OPENCODE_GLOBAL_CONFIG" "$GREEN"
+    mkdir -p "$OPENCODE_GLOBAL/plugins"
+    cp -R "$SOURCE_PLUGINS/redact" "$OPENCODE_GLOBAL/plugins/"
+    cp -R "$SOURCE_PLUGINS/instructions" "$OPENCODE_GLOBAL/plugins/"
+    cp -R "$SOURCE_PLUGINS/guard-audit" "$OPENCODE_GLOBAL/plugins/"
 
     echo ""
     print_status "Global installation complete!" "$GREEN"
@@ -333,7 +393,7 @@ install_project() {
     local project_opencode="$PROJECT_PATH/.opencode"
 
     # Create directories
-    for dir in "$project_opencode/agents" "$project_opencode/rules"; do
+    for dir in "$project_opencode/agents" "$project_opencode/rules" "$project_opencode/commands"; do
         mkdir -p "$dir"
         print_status "Ensured directory: $dir" "$DIM"
     done
@@ -352,18 +412,43 @@ install_project() {
     rule_count=$(ls "$project_opencode/rules"/*.md 2>/dev/null | wc -l)
     print_status "Deployed $rule_count rule files" "$GREEN"
 
-    # Copy constitution to project root
+    # Copy constitution without overwriting. Relative `rules/` and `agents/`
+    # references are rewritten to `.opencode/...`; a path segment already
+    # preceded by `/` (e.g. `~/.config/opencode/agents/`) is left untouched.
     print_loading "Deploying AGENTS.md to project root" "$YELLOW"
-    cp -f "$SOURCE_AGENTS_MD" "$PROJECT_PATH/AGENTS.md"
-    print_status "AGENTS.md deployed to project root" "$GREEN"
-
-    # Copy prompts (optional)
-    if [[ -d "$SOURCE_PROMPTS" ]]; then
-        mkdir -p "$PROJECT_PATH/prompts"
-        print_loading "Deploying prompts" "$DIM"
-        cp -f "$SOURCE_PROMPTS"/* "$PROJECT_PATH/prompts/" 2>/dev/null || true
-        print_status "Prompt files deployed (optional)" "$DIM"
+    if [[ -e "$PROJECT_PATH/AGENTS.md" ]]; then
+        print_info "Keeping existing project AGENTS.md"
+    else
+        sed -e 's#\([^/]\)rules/#\1.opencode/rules/#g' -e 's#^rules/#.opencode/rules/#' \
+            -e 's#\([^/]\)agents/#\1.opencode/agents/#g' -e 's#^agents/#.opencode/agents/#' \
+            "$SOURCE_AGENTS_MD" > "$PROJECT_PATH/AGENTS.md"
+        print_status "Project AGENTS.md deployed with project rule paths" "$GREEN"
     fi
+
+    # Copy commands (never overwrite existing)
+    for command_file in "$SOURCE_COMMANDS"/*.md; do
+        target_command="$project_opencode/commands/$(basename "$command_file")"
+        [[ -e "$target_command" ]] || cp "$command_file" "$target_command"
+    done
+    print_status "Command files deployed without overwriting existing files" "$DIM"
+
+    # Copy document templates (never overwrite existing; agents reference ./templates/context-files/)
+    mkdir -p "$PROJECT_PATH/templates/context-files"
+    for tpl in "$SOURCE_DOC_TEMPLATES"/*; do
+        target_tpl="$PROJECT_PATH/templates/context-files/$(basename "$tpl")"
+        [[ -e "$target_tpl" ]] || cp "$tpl" "$target_tpl"
+    done
+    print_status "Document templates deployed without overwriting existing files" "$DIM"
+
+    # Project config is the source of truth for project-only installs.
+    local project_config="$PROJECT_PATH/opencode.json"
+    python3 "$SOURCE_MERGE_CONFIG" \
+        "$SOURCE_OPENCODE_CONFIG" "$project_config"
+    print_status "Merged V2 config into $project_config" "$GREEN"
+    mkdir -p "$project_opencode/plugins"
+    cp -R "$SOURCE_PLUGINS/redact" "$project_opencode/plugins/"
+    cp -R "$SOURCE_PLUGINS/instructions" "$project_opencode/plugins/"
+    cp -R "$SOURCE_PLUGINS/guard-audit" "$project_opencode/plugins/"
 
     echo ""
     print_status "Project installation complete!" "$GREEN"
@@ -394,6 +479,30 @@ post_install() {
         else
             print_error "Global: AGENTS.md missing!"
         fi
+
+        if [[ -f "$OPENCODE_GLOBAL_COMMANDS/build.md" ]]; then
+            print_status "Global: commands verified" "$GREEN"
+        else
+            print_error "Global: commands missing!"
+        fi
+
+        if grep -q '"default_agent": "project-manager"' "$OPENCODE_GLOBAL_CONFIG"; then
+            print_status "Global: V2 config merged ($OPENCODE_GLOBAL_CONFIG)" "$GREEN"
+        else
+            print_error "Global: V2 config missing default_agent!"
+        fi
+
+        if [[ -f "$OPENCODE_GLOBAL/plugins/guard-audit/index.ts" ]]; then
+            print_status "Global: guard-audit plugin verified" "$GREEN"
+        else
+            print_error "Global: guard-audit plugin missing!"
+        fi
+
+        if [[ -f "$OPENCODE_GLOBAL/templates/context-files/PRD.md" ]]; then
+            print_status "Global: document templates verified" "$GREEN"
+        else
+            print_error "Global: document templates missing!"
+        fi
     fi
 
     # Check project
@@ -404,11 +513,37 @@ post_install() {
             print_error "Project: project-manager.md missing!"
         fi
 
-        if [[ -f "$PROJECT_PATH/AGENTS.md" ]]; then
-            print_status "Project: AGENTS.md verified" "$GREEN"
+        if [[ -f "$PROJECT_PATH/opencode.json" && -f "$PROJECT_PATH/.opencode/rules/security-policy.md" ]]; then
+            print_status "Project: V2 config and security instructions verified" "$GREEN"
         else
-            print_error "Project: AGENTS.md missing!"
+            print_error "Project: V2 config or security instructions missing!"
         fi
+        if [[ -f "$PROJECT_PATH/.opencode/plugins/redact/index.ts" && -f "$PROJECT_PATH/.opencode/plugins/instructions/index.ts" ]]; then
+            print_status "Project: V2 plugins verified" "$GREEN"
+        else
+            print_error "Project: V2 plugins missing!"
+        fi
+        if [[ -f "$PROJECT_PATH/.opencode/plugins/guard-audit/index.ts" ]]; then
+            print_status "Project: guard-audit plugin verified" "$GREEN"
+        else
+            print_error "Project: guard-audit plugin missing!"
+        fi
+        if [[ -f "$PROJECT_PATH/.opencode/commands/build.md" ]]; then
+            print_status "Project: commands verified" "$GREEN"
+        else
+            print_error "Project: commands missing!"
+        fi
+        if [[ -f "$PROJECT_PATH/templates/context-files/PRD.md" ]]; then
+            print_status "Project: document templates verified" "$GREEN"
+        else
+            print_error "Project: document templates missing!"
+        fi
+        if [[ -f "$PROJECT_PATH/AGENTS.md" ]] && grep -q '.opencode/rules/' "$PROJECT_PATH/AGENTS.md" && ! grep -q '~/.config/opencode/rules/' "$PROJECT_PATH/AGENTS.md"; then
+            print_status "Project: AGENTS.md verified with project rule paths" "$GREEN"
+        else
+            print_error "Project: AGENTS.md missing or rule paths not rewritten!"
+        fi
+        print_info "guard-audit writes $PROJECT_PATH/.opencode/audit/guard-audit.jsonl — add '.opencode/audit/' to .gitignore"
     fi
 
     echo ""
@@ -427,7 +562,9 @@ print_summary() {
 
     echo -e "  ${BOLD}Mode:${RESET}          $mode_label"
     echo -e "  ${BOLD}Timestamp:${RESET}     $TIMESTAMP"
-    echo -e "  ${BOLD}Backup:${RESET}         $BACKUP_DIR/opencode_conf_${TIMESTAMP}.tar.gz"
+    if [[ "$MODE" == "global" || "$MODE" == "both" ]]; then
+        echo -e "  ${BOLD}Backup:${RESET}         $BACKUP_DIR/opencode_conf_${TIMESTAMP}.tar.gz"
+    fi
 
     if [[ "$MODE" == "global" || "$MODE" == "both" ]]; then
         echo -e "  ${BOLD}Global:${RESET}        $OPENCODE_GLOBAL/"

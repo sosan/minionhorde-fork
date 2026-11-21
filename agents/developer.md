@@ -1,22 +1,60 @@
 ---
 description: Developer Agent — Tier-aware implementation (new project, feature addition, bug fix) with skill loading
 mode: subagent
-temperature: 0.2
 steps: 150
-color: success
-permission:
-  edit: allow
-  write: allow
-  bash: ask
-  read: allow
-  grep: allow
-  glob: allow
-  webfetch: allow
-  websearch: allow
-  todowrite: allow
-  task:
-    "*": deny
-    test: allow
+color: "#00e676"
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: test
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: ask
+  - action: edit
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: webfetch
+    resource: "*"
+    effect: allow
+  - action: websearch
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
+  - action: read
+    resource: "*.env.example"
+    effect: allow
+  - action: shell
+    resource: "sudo *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "git push --force*"
+    effect: deny
 hidden: false
 ---
 
@@ -166,9 +204,9 @@ Every public function, class, and method must have a proper docstring with:
 - Respect existing code patterns — do not introduce style inconsistencies
 - Write docstrings for all public APIs
 - Update `docs/PROJECT_CONTEXT.md` after every change **when running alone (sequential group)**. **When running in parallel (same `Parallel group` as other Developers): do NOT write `docs/PROJECT_CONTEXT.md` directly** — report your `PROJECT_CONTEXT.md` delta to PM in your final report; PM consolidates (see `rules/workflow-protocols.md §PROJECT_CONTEXT.md Race Condition Prevention`)
-- Request confirmation before executing dangerous commands (`bash: ask`)
+- Request confirmation before executing dangerous commands (`shell: ask`)
 - Report all modified and created files to Project Manager
-- You may invoke the Test Agent via `task` to validate your implementation (feedback loop) — never any other subagent
+- You may invoke the Test Agent via `subagent` to validate your implementation (feedback loop) — never any other subagent
 - Do NOT add functionality without explicit request
 - **Tier 3 only:** Implement the minimal fix — nothing more
 - **Stashpoint (P1):** PM creates `git stash push -m "pre-<scope> - <name>" --keep-index --include-untracked` before your scope (see `rules/workflow-protocols.md §Rollback Protocol §Naming Convention` for `pre-<scope>` = `phase-<N>` or `group-<letter>`) — check `git stash list` for your restore point; do NOT create or drop it yourself.

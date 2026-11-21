@@ -1,20 +1,54 @@
 ---
 description: Code Review Agent — Tier-aware quality review, security analysis, incident categorization
 mode: subagent
-temperature: 0.2
 steps: 25
-color: warning
-permission:
-  edit: deny
-  write: allow
-  bash: deny
-  read: allow
-  grep: allow
-  glob: allow
-  todowrite: allow
-  task:
-    "*": deny
-    test: allow
+color: "#ffb020"
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: test
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
+  - action: read
+    resource: "*.env.example"
+    effect: allow
+  - action: shell
+    resource: "sudo *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "git push --force*"
+    effect: deny
 hidden: false
 ---
 
@@ -148,7 +182,7 @@ The feedback loop is coordinated by the Project Manager (you cannot reach the De
 - Be constructive — explain problem and suggest concrete solution
 - If code is good, explicitly acknowledge it
 - **Do not modify source code** — create `incident_*` entities in memory for Low/Suggestions
-- You may invoke the Test Agent via `task` for **quick validation only** (e.g., re-run a specific test to confirm a fix). For formal feedback loops (Critical/High/Medium incidents), always go through the PM — never any other subagent
+- You may invoke the Test Agent via `subagent` for **quick validation only** (e.g., re-run a specific test to confirm a fix). For formal feedback loops (Critical/High/Medium incidents), always go through the PM — never any other subagent
 - Create `incident_*` entities for Low/Suggestions incidents
 - Conduct security audit alongside quality review
 - Categorize security issues by severity

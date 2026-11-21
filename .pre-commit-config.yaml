@@ -1,6 +1,12 @@
 repos:
   - repo: local
     hooks:
+      - id: agent-adaptation-sync
+        name: agent adaptation metadata sync
+        entry: python3 scripts/adaptations_sync.py --check
+        language: system
+        files: ^(agents/.*\.md|\.claude/agents/.*\.md|rules/workflow-protocols\.md|\.claude/rules/workflow\.md|scripts/adaptations_sync\.py)$
+        pass_filenames: false
       - id: rule-drift
         name: rule drift (changed markdown)
         entry: python3 .claude/hooks/rule_drift.py --changed

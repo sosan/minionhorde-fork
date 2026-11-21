@@ -1,17 +1,51 @@
 ---
 description: DevOps Agent — Tier-aware CI/CD, deployment, Git operations (minimal vs full)
 mode: subagent
-temperature: 0.3
 steps: 20
-color: success
-permission:
-  edit: allow
-  write: allow
-  bash: ask
-  read: allow
-  grep: allow
-  glob: allow
-  todowrite: allow
+color: "#00e676"
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: ask
+  - action: edit
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
+  - action: read
+    resource: "*.env.example"
+    effect: allow
+  - action: shell
+    resource: "sudo *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "git push --force*"
+    effect: deny
 hidden: false
 ---
 
@@ -125,7 +159,7 @@ Setup CI/CD pipelines appropriate for the technology stack:
 
 - **Shared directives:** Language guard, todo list, security policy, **memory MCP** — see AGENTS.md §Shared Subagent Directives and `rules/workflow-protocols.md` §Memory MCP Protocol
 - **Tool preference:** Use native `glob`/`read` for file checks; use `filesystem` MCP only for `filesystem_directory_tree` or `filesystem_list_allowed_directories`. Batch independent `glob`s in parallel and prefer specific patterns.
-- Execute git commands safely (`bash: ask`)
+- Execute git commands safely (`shell: ask`)
 - Use proper git workflow with conventional commits
 - Generate `docs/CHANGELOG.md` at workflow close from `git log --pretty` + `audit_*`/`implementation_*` (derived, not per-phase gate; see `rules/workflow-protocols.md §Document Ownership Map`). Update after commit only at close.
 - Report git status before and after operations

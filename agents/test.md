@@ -1,38 +1,111 @@
 ---
 description: Test Agent — Tier-aware test creation, execution & validation with regression support
 mode: subagent
-temperature: 0.2
 steps: 35
-color: info
-permission:
-  edit: allow
-  write: allow
-  bash:
-    "*": ask
-    "npm test*": allow
-    "npm run test*": allow
-    "npx vitest*": allow
-    "npx jest*": allow
-    "npx mocha*": allow
-    "npx cypress*": allow
-    "npx playwright*": allow
-    "pytest*": allow
-    "python -m pytest*": allow
-    "python -m unittest*": allow
-    "go test*": allow
-    "cargo test*": allow
-    "dotnet test*": allow
-    "mvn test*": allow
-    "gradle test*": allow
-    "pwd": allow
-    "ls*": allow
-    "git status*": allow
-    "git diff*": allow
-    "git log*": allow
-  read: allow
-  grep: allow
-  glob: allow
-  todowrite: allow
+color: "#29b6f6"
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: ask
+  - action: shell
+    resource: "npm test*"
+    effect: allow
+  - action: shell
+    resource: "npm run test*"
+    effect: allow
+  - action: shell
+    resource: "npx vitest*"
+    effect: allow
+  - action: shell
+    resource: "npx jest*"
+    effect: allow
+  - action: shell
+    resource: "npx mocha*"
+    effect: allow
+  - action: shell
+    resource: "npx cypress*"
+    effect: allow
+  - action: shell
+    resource: "npx playwright*"
+    effect: allow
+  - action: shell
+    resource: "pytest*"
+    effect: allow
+  - action: shell
+    resource: "python -m pytest*"
+    effect: allow
+  - action: shell
+    resource: "python -m unittest*"
+    effect: allow
+  - action: shell
+    resource: "go test*"
+    effect: allow
+  - action: shell
+    resource: "cargo test*"
+    effect: allow
+  - action: shell
+    resource: "dotnet test*"
+    effect: allow
+  - action: shell
+    resource: "mvn test*"
+    effect: allow
+  - action: shell
+    resource: "gradle test*"
+    effect: allow
+  - action: shell
+    resource: "pwd"
+    effect: allow
+  - action: shell
+    resource: "ls*"
+    effect: allow
+  - action: shell
+    resource: "git status*"
+    effect: allow
+  - action: shell
+    resource: "git diff*"
+    effect: allow
+  - action: shell
+    resource: "git log*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
+  - action: read
+    resource: "*.env.example"
+    effect: allow
+  - action: shell
+    resource: "sudo *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "git push --force*"
+    effect: deny
 hidden: false
 ---
 

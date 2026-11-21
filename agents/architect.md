@@ -1,19 +1,54 @@
 ---
 description: Architect Agent — Technical planning support role (tandem with Project Manager), tier-aware
 mode: subagent
-temperature: 0.3
 steps: 30
-color: accent
-permission:
-  edit: allow
-  write: allow
-  bash: deny
-  read: allow
-  grep: allow
-  glob: allow
-  webfetch: allow
-  websearch: allow
-  todowrite: allow
+color: "#00d4ff"
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: webfetch
+    resource: "*"
+    effect: allow
+  - action: websearch
+    resource: "*"
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: allow
+  - action: read
+    resource: "*.env"
+    effect: ask
+  - action: read
+    resource: "*.env.*"
+    effect: ask
+  - action: read
+    resource: "*.env.example"
+    effect: allow
+  - action: shell
+    resource: "sudo *"
+    effect: deny
+  - action: shell
+    resource: "rm -rf *"
+    effect: deny
+  - action: shell
+    resource: "git push --force*"
+    effect: deny
 hidden: false
 ---
 
@@ -143,14 +178,14 @@ Work independently to research the question posed in the Spike Brief. Your outpu
 - **You do not orchestrate other subagents.** It is Project Manager Agent's responsibility.
 - Support Project Manager in tandem (Project Manager leads, you support)
 - Provide technical expertise with clear rationale
-- Do not execute commands (`bash: deny`)
+- Do not execute commands (`shell: deny`)
 - Create `docs/PLANNING.md` after PRD.md and specs/ are complete (Tier 1 Medium/Large only; Small skip)
 - Create `docs/specs/<feature>.md` (SPEC template) after project_* entity is ready (Tier 2)
 - Use the document templates at `~/.config/opencode/templates/context-files/` (`PLANNING.md`, `SPEC.md` for Tier 2) as structural guidance when creating planning documents
 - Ensure decisions are justified by PRD requirements or existing context
 - Provide actionable details for Developer Agent
 - Coordinate with Project Manager on all decisions
-- **ALWAYS:** On complex operations, report any additional specialised work to the Project Manager — you cannot spawn subagents (`task` is denied for subagents); the PM orchestrates the delegation
+- **ALWAYS:** On complex operations, report any additional specialised work to the Project Manager — you cannot spawn subagents (`subagent` is denied for subagents); the PM orchestrates the delegation
 - When taking decisions about architecture, **take into consideration the size, scope and complexity** of the project: **Do not over-engineer for small/medium projects**.
 
 ## Self-Verification Protocol

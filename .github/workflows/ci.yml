@@ -5,6 +5,7 @@ on:
     branches: ["**"]
   pull_request:
 
+
 permissions:
   contents: read
 
@@ -29,14 +30,51 @@ jobs:
         run: python -m pytest .claude/hooks docs/dogmas/eval scripts -q
       - name: Rule drift
         run: python .claude/hooks/rule_drift.py --all
+      - name: Agent adaptation sync
+        run: python scripts/adaptations_sync.py --check
+      - name: Hook coverage report
+        run: python scripts/hook_coverage_report.py --root . --check --output "$RUNNER_TEMP/hook-coverage.json"
       - name: Duplicate responses (new only)
         run: >
           python docs/dogmas/eval/scripts/check_duplicate_responses.py
           --baseline docs/dogmas/eval/fixtures/duplicate-response-baseline.json
           --strict
-      - name: Installer smoke test
+      - name: OpenCode V2 harness validation
+        run: python scripts/validate_opencode_harness.py --check
+      - name: Set up Node 24 for plugin tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Plugin tests (node --test, TS type stripping)
+        run: node --test plugins/guard-audit/guard-audit.test.ts plugins/instructions/instructions.test.ts plugins/redact/redact.test.ts
+      - name: Installer smoke test (OpenCode project mode)
         run: |
-          mkdir -p "$RUNNER_TEMP/install"
-          bash install-claude.sh "$RUNNER_TEMP/install"
-          test -f "$RUNNER_TEMP/install/.claude/hooks/guard_pretooluse.py"
-          test ! -e "$RUNNER_TEMP/install/docs/dogmas/eval"
+          target="$RUNNER_TEMP/oc-project"
+          mkdir -p "$target"
+          bash install.sh project "$target" >/dev/null
+          test -f "$target/opencode.json"
+          test -f "$target/.opencode/agents/project-manager.md"
+          test -f "$target/.opencode/rules/security-policy.md"
+          test -f "$target/.opencode/commands/build.md"
+          test -f "$target/.opencode/plugins/guard-audit/index.ts"
+          test -f "$target/AGENTS.md"
+          grep -q '.opencode/rules/' "$target/AGENTS.md"
+          grep -q '"default_agent": "project-manager"' "$target/opencode.json"
+          if grep -q '~/.config/opencode/rules/' "$target/AGENTS.md"; then echo "global rule path leaked into project AGENTS.md"; exit 1; fi
+      - name: Installer smoke test (skills isolation and preservation)
+        run: |
+          target="$RUNNER_TEMP/install"
+          mkdir -p "$target/.claude/skills/user-local-keep"
+          printf 'user-local sentinel\n' > "$target/.claude/skills/user-local-keep/SKILL.md"
+          bash install-claude.sh "$target"
+          test -f "$target/.claude/hooks/guard_pretooluse.py"
+          test ! -e "$target/docs/dogmas/eval"
+          # Project skills are installed
+          test -f "$target/.claude/skills/evaluation-contracts/SKILL.md"
+          test -f "$target/.claude/skills/sdlc-workflow/SKILL.md"
+          # A pre-existing target skill is preserved
+          test -f "$target/.claude/skills/user-local-keep/SKILL.md"
+          # Source user-local skills never leak into the fresh project
+          for skill in jev-skill-suggestion openspec-explore openspec-apply-change openspec-archive-change openspec-propose; do
+            test ! -e "$target/.claude/skills/$skill" || { echo "leaked: $skill"; exit 1; }
+          done

@@ -49,7 +49,7 @@
 
 ## Code Style Guidelines
 
-> **Scope:** These coding preferences apply ONLY to implementation agents (`build`, `developer`). Orchestrator/support agents (`project-manager`, `architect`, `test`, `code-review`, `devops`, `documentation`) must NOT write code directly — they delegate all implementation work via `task`.
+> **Scope:** These coding preferences apply ONLY to implementation agents (`build`, `developer`). Orchestrator/support agents (`project-manager`, `architect`, `test`, `code-review`, `devops`, `documentation`) must NOT write code directly — they delegate all implementation work via `subagent`.
 
 ### ✅ **Prefer Simplicity**
 
@@ -87,7 +87,7 @@
 
 ## Testing Protocol
 
-> **Scope:** Applies to implementation agents (`build`, `developer`) and the Test Agent. Orchestrator/support agents do not run tests — they delegate validation via `task`.
+> **Scope:** Applies to implementation agents (`build`, `developer`) and the Test Agent. Orchestrator/support agents do not run tests — they delegate validation via `subagent`.
 
 - **Write tests for new features**
 - **Maintain or improve test coverage**
@@ -100,20 +100,20 @@
 ## Multi-Agent Workflow Integration
 
 ### Directives
-- **NEVER** respond on your own. Instead, identify which agent/subagent is the better choice for delegating the job using a new `task`
-- **🔒 MANDATORY DELEGATION RULE (primary agents):** `build`, `plan`, and `project-manager` never implement, edit, write, or run code themselves when a specialized subagent exists for that work — delegate ALL implementation, testing, review, git, and documentation work via `task`. Subagents execute ONLY their own role's deliverables directly.
+- **NEVER** respond on your own. Instead, identify which agent/subagent is the better choice for delegating the job using a new `subagent`
+- **🔒 MANDATORY DELEGATION RULE (primary agents):** `build`, `plan`, and `project-manager` never implement, edit, write, or run code themselves when a specialized subagent exists for that work — delegate ALL implementation, testing, review, git, and documentation work via `subagent`. Subagents execute ONLY their own role's deliverables directly.
 - **On calling a specific agent**: create an ad-hoc prompt that instructs the target agent about what is requested, and delegate the response to it.
 - **ALWAYS** adhere to **YAGNI (You ain't gonna need it)** and **KISS (Keep it simple, stupid)** principles.
 
 ### Agent Role Summary
 
-Full protocols live in the agent files (`~/.config/opencode/agents/*.md`). This table is a quick reference only.
+Full protocols live in the agent files (`agents/*.md` — installed to `~/.config/opencode/agents/` globally or `.opencode/agents/` per project). This table is a quick reference only.
 
 | Agent | Role | Owns / Creates | Key Constraints |
 |-------|------|----------------|-----------------|
-| Project Manager (`project-manager`) | Workflow coordinator: detects tier, gates phases, delegates via `task` | `docs/PRD.md`, `docs/specs/*`, `project_*` entities (Tier 2), `ticket_*` entities (Tier 3), `workflow_*` entities | Never implements or writes code; human oversight at critical decision points; validates Architect decisions meet requirements |
+| Project Manager (`project-manager`) | Workflow coordinator: detects tier, gates phases, delegates via `subagent` | `docs/PRD.md`, `docs/specs/*`, `project_*` entities (Tier 2), `ticket_*` entities (Tier 3), `workflow_*` entities | Never implements or writes code; human oversight at critical decision points; validates Architect decisions meet requirements |
 | Architect (`architect`) | Technical planning (tandem with PM; PM leads) | `docs/PLANNING.md`, `docs/specs/<feature>.md`, `decision_*` entities | Never creates/modifies PRD.md; reads PRD.md and project_* entities; never over-engineers; does not orchestrate subagents; reports decisions to PM for validation |
-| Developer (`developer`) | Tier-aware implementation | Source code, tests, `docs/PROJECT_CONTEXT.md`, `implementation_*` entities, `root_cause_*` entities (Tier 3) | Loads relevant skills before implementing; reads PLANNING.md/roadmap; implements by phases; waits for Test Agent validation; may invoke Test via `task`; `bash: ask` for dangerous commands |
+| Developer (`developer`) | Tier-aware implementation | Source code, tests, `docs/PROJECT_CONTEXT.md`, `implementation_*` entities, `root_cause_*` entities (Tier 3) | Loads relevant skills before implementing; reads PLANNING.md/roadmap; implements by phases; waits for Test Agent validation; may invoke Test via `subagent`; `shell: ask` for dangerous commands |
 | Test (`test`) | Test creation, execution & validation | Test files only (never source) | Maps tests to PRD requirements; executes against Developer's code; reports pass/fail + root cause + coverage; feedback loop max 3 iterations; never spawns subagents |
 | Code Review (`code-review`) | Quality + security review (merged), incident categorization | `incident_*` entities (Low/Suggestions) | Categorizes Critical > High > Medium > Low > Suggestions; feedback loop max 5 iterations (3 for Tier 2/3); never edits source code |
 | DevOps (`devops`) | Git operations, CI/CD, deployment, changelog | `docs/CHANGELOG.md`, CI/CD and deployment configs | Conventional commits; Minimal mode = git + changelog only; Full mode (Tier 1 Large) = CI/CD + deployment; no destructive git commands without PM approval |
@@ -128,7 +128,7 @@ The **Language Guard**, **Security Policy**, and **Testing Protocol** sections a
 
 ## Project Awareness
 
-- **Run task in parallel** for independent tasks — never sequential
+- **Run subagents in parallel** for independent tasks — never sequential
 - **Update documentation anytime** you make changes
 - **Keep CHANGELOG.md updated** with changes (in the multi-agent workflow, CHANGELOG is the DevOps Agent's exclusive responsibility)
 - **Keep README.md updated** when needed
@@ -140,7 +140,7 @@ The **Language Guard**, **Security Policy**, and **Testing Protocol** sections a
 ## Security Policy (MANDATORY)
 
 - **NEVER remove or delete any file without explicit approval**
-- **Security policy in ~/.config/opencode/rules/security-policy.md** applies to every project
+- **Security policy in `rules/security-policy.md`** (loaded into every session via the `instructions` array in the OpenCode config) applies to every project
 - **Never expose environment variables** (tokens, API keys, secrets, passwords)
 - **Redact secrets in output** — never exfiltrate sensitive content
 
