@@ -321,6 +321,8 @@ def evaluate(command: str) -> tuple[bool, str]:
     """
     if not command or not command.strip():
         return False, ""
+    if SQL_RE.match(command.strip()):
+        return True, "destructive SQL statement"
     unquoted = re.sub(r"'[^']*'", "", command)
     for inner in re.findall(r"`([^`]*)`", unquoted):
         blocked, reason = evaluate(inner)

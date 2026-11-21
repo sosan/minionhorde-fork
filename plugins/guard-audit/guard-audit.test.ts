@@ -6,6 +6,10 @@ import { test } from "node:test"
 import { appendAudit, verifyAudit } from "./audit.ts"
 import { classifyShell, preserveExplicitDeny } from "./guard.ts"
 
+const PARITY_MATRIX = JSON.parse(
+  readFileSync(join(import.meta.dirname, "parity-matrix.json"), "utf8"),
+) as { version: string; cases: Array<{ id: string; input: string; expected: string }> }
+
 test("denies irreversible git and filesystem commands", () => {
   for (const command of ["git push --force origin main", "rm -rf build", "DROP TABLE users"]) {
     assert.equal(classifyShell(command).effect, "deny", command)
@@ -24,6 +28,14 @@ test("asks for reviewable external side effects", () => {
 
 test("explicit permission deny is never relaxed", () => {
   assert.equal(preserveExplicitDeny("deny", classifyShell("npm test")).effect, "deny")
+})
+
+test("versioned parity matrix: every case classifies as expected", () => {
+  assert.equal(PARITY_MATRIX.version, "guard-audit-parity-v1")
+  assert.ok(PARITY_MATRIX.cases.length >= 7)
+  for (const { id, input, expected } of PARITY_MATRIX.cases) {
+    assert.equal(classifyShell(input).effect, expected, `${id}: ${input}`)
+  }
 })
 
 test("audit entries are redacted and hash chained", () => {

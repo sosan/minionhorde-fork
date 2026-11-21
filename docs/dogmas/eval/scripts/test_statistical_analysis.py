@@ -40,8 +40,9 @@ def test_empty_sample_returns_zero_interval():
 
 
 def test_main_finds_the_registry_from_any_working_directory(tmp_path, monkeypatch, capsys):
-    from statistical_analysis import main
+    from statistical_analysis import EVAL_DIR, load_registry, main
 
+    expected = len(load_registry(EVAL_DIR / "repetitions"))
     monkeypatch.chdir(tmp_path)
     main()
-    assert "Total records analyzed: 72" in capsys.readouterr().out
+    assert f"Total records analyzed: {expected}" in capsys.readouterr().out
