@@ -1,3 +1,4 @@
+import { resolveAuditPath } from "./paths.ts"
 import { Plugin } from "@opencode/plugin"
 import { classifyShell, preserveExplicitDeny } from "./guard.ts"
 import { appendAudit, scrubSecret } from "./audit.ts"
@@ -28,7 +29,7 @@ interface ToolAfterEvent {
 }
 
 function projectLogPath(ctx: { location: { directory: string } }): string {
-  return `${ctx.location.directory}/.opencode/audit/guard-audit.jsonl`
+  return resolveAuditPath(ctx.location.directory)
 }
 
 function summarize(value: unknown): string {

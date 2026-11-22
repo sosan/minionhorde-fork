@@ -125,9 +125,9 @@ This harness is **MCP-dependent**. OpenCode's built-in tools (`read`, `glob`, `g
     {"action": "read", "resource": "*.env", "effect": "ask"},
     {"action": "read", "resource": "*.env.*", "effect": "ask"},
     {"action": "read", "resource": "*.env.example", "effect": "allow"},
-    {"action": "shell", "resource": "sudo *", "effect": "deny"},
-    {"action": "shell", "resource": "rm -rf *", "effect": "deny"},
-    {"action": "shell", "resource": "git push --force*", "effect": "deny"}
+    {"action": "shell", "resource": "sudo *", "effect": "ask"},
+    {"action": "shell", "resource": "rm -rf *", "effect": "ask"},
+    {"action": "shell", "resource": "git push --force*", "effect": "ask"}  // guard-audit escalates ask→deny and audits it
   ],
   "mcp": {
     "servers": {
@@ -149,6 +149,7 @@ This harness is **MCP-dependent**. OpenCode's built-in tools (`read`, `glob`, `g
 
 Notes:
 - `rules/workflow-protocols.md` (39 KB) is deliberately **not** in `instructions` — it would be re-sent on every request. Agents read it on demand with the `read` tool when a protocol section is needed; only `security-policy.md` is always loaded.
+ - **guard-audit layering:** shell rules use `ask` (not `deny`) so the plugin's `permission.hook("evaluate")` runs, escalates dangerous commands to `deny`, and writes a `status:"denied"` entry to `<project>/.opencode/audit/guard-audit.jsonl` (hash-chained, redacted; verify with `verifyAudit`). A configured `deny` is final and skips the hook, so it would **not** be audited. The log only records events that reach a hook (tool execute, shell create, permission evaluate) — if the model refuses in plain text without calling the shell tool, nothing is logged; that block is behavioral (AGENTS.md), not mechanical. Auditing refused-in-text attempts would need `session.hook("prompt")` scanning user messages — noisy (false positives), not enabled by default.
 - Optional MCP servers (filesystem, github) go under `mcp.servers` with `"enabled": false`; V2 has no top-level `tools:` kill-switch — disable MCP tools per server or via `permissions`/`policies`.
 
 > **Check:** Inside `opencode` TUI run `/mcp` — you should see `memory: connected`, `context7: connected` (and `filesystem`/`github` if enabled). If `memory` is `disconnected`, all `search_nodes("project_*")` gates will fail — fix `npx` availability (`npm i -g` or `corepack enable`) and `MEMORY_FILE_PATH` writability before running Tier 2/3 or parallel Tier 1.
@@ -348,7 +349,7 @@ minionhorde/                 ← source repo (what you clone)
 ├── plugins/                 ← V2 plugins → ~/.config/opencode/plugins/ or <project>/.opencode/plugins/
 │   ├── redact/              ← secret scrubbing (prompts, requests, tool input)
 │   ├── instructions/        ← shrinks the <env> system block to Platform only
-│   └── guard-audit/         ← dangerous-shell deny + hash-chained audit log (.opencode/audit/)
+│   └── guard-audit/         ← dangerous-shell deny (ask→deny escalation) + hash-chained audit log (.opencode/audit/guard-audit.jsonl)
 ├── templates/
 │   ├── opencode-global.json   ← merged into ~/.config/opencode/opencode.json(c)
 │   └── opencode-project.json  ← merged into <project>/opencode.json

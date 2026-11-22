@@ -5,6 +5,7 @@ import { join } from "node:path"
 import { test } from "node:test"
 import { appendAudit, verifyAudit } from "./audit.ts"
 import { classifyShell, preserveExplicitDeny } from "./guard.ts"
+import { resolveAuditPath } from "./paths.ts"
 
 const PARITY_MATRIX = JSON.parse(
   readFileSync(join(import.meta.dirname, "parity-matrix.json"), "utf8"),
@@ -28,6 +29,15 @@ test("asks for reviewable external side effects", () => {
 
 test("explicit permission deny is never relaxed", () => {
   assert.equal(preserveExplicitDeny("deny", classifyShell("npm test")).effect, "deny")
+})
+
+test("ask escalates to deny for destructive commands", () => {
+  assert.equal(preserveExplicitDeny("ask", classifyShell("rm -rf build")).effect, "deny")
+  assert.equal(preserveExplicitDeny("ask", classifyShell("git push --force origin main")).effect, "deny")
+})
+
+test("ask stays ask for reviewable side effects", () => {
+  assert.equal(preserveExplicitDeny("ask", classifyShell("git push origin main")).effect, "ask")
 })
 
 test("versioned parity matrix: every case classifies as expected", () => {
@@ -60,5 +70,18 @@ test("tampering fails verification", () => {
   writeFileSync(path, JSON.stringify(parsed) + "\n")
   assert.equal(verifyAudit(path).ok, false)
   rmSync(dir, { recursive: true, force: true })
+})
+
+test("audit path never duplicates .opencode", () => {
+  assert.equal(
+    resolveAuditPath("/tmp/minionhorde-test1/.opencode"),
+    "/tmp/minionhorde-test1/.opencode/audit/guard-audit.jsonl",
+  )
+  assert.equal(
+    resolveAuditPath("/tmp/minionhorde-test1/.opencode/"),
+    "/tmp/minionhorde-test1/.opencode/audit/guard-audit.jsonl",
+  )
+  assert.equal(resolveAuditPath(".opencode"), ".opencode/audit/guard-audit.jsonl")
+  assert.equal(resolveAuditPath("/tmp/proj"), "/tmp/proj/.opencode/audit/guard-audit.jsonl")
 })
 
