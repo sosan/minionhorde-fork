@@ -44,15 +44,19 @@ export default Plugin.define({
     await ctx.permission.hook("evaluate", (event: PermissionEvent) => {
       const resource = event.resources.join(" ")
       const decision = event.action === "shell" ? classifyShell(resource) : classifyShell(`${event.action} ${resource}`)
-      const finalDecision = preserveExplicitDeny(event.effect, decision)
-      if (event.effect !== "deny") event.effect = finalDecision.effect
-      event.message = finalDecision.reason
+      // The plugin may only escalate (allow -> ask -> deny), never relax an
+      // explicit user or global permission decision.
+      const base = event.effect === "deny" ? "deny" : event.effect === "ask" ? "ask" : "allow"
+      const effectOrder = ["allow", "ask", "deny"]
+      const finalEffect = effectOrder[Math.max(effectOrder.indexOf(base), effectOrder.indexOf(decision.effect))]
+      event.effect = finalEffect
+      event.message = decision.reason
       appendAudit({
         tool: event.action,
         target: summarize(resource),
         event: "permission_evaluated",
-        status: finalDecision.effect === "deny" ? "denied" : "success",
-        classification: finalDecision.classification,
+        status: finalEffect === "deny" ? "denied" : "success",
+        classification: decision.classification,
         logPath,
       })
     })
